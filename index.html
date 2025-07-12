@@ -44,7 +44,7 @@
     }
 
     button {
-      margin-top: 1rem;
+      margin-top: 0.5rem;
       padding: 0.75rem 1.5rem;
       background: #0097a7;
       color: white;
@@ -55,6 +55,14 @@
       width: 100%;
     }
 
+    .start-btn {
+      background: #4caf50;
+    }
+
+    .end-btn {
+      background: #f44336;
+    }
+
     #canvas {
       flex: 1;
       height: 100%;
@@ -62,20 +70,21 @@
     }
   </style>
 
-  <!-- BPMN.js styles -->
   <link rel="stylesheet" href="https://unpkg.com/bpmn-js@10.3.0/dist/assets/diagram-js.css">
   <link rel="stylesheet" href="https://unpkg.com/bpmn-js@10.3.0/dist/assets/bpmn-font/css/bpmn-embedded.css">
 </head>
 <body>
   <header>
     <h1>Mapflue</h1>
-    <p>Digite seu processo e veja o fluxo em BPMN</p>
+    <p>Construa seu processo em BPMN passo a passo</p>
   </header>
 
   <div class="container">
     <div class="input-wrapper">
-      <textarea id="text-input" placeholder="T1: Medir porção de café\nT2: Esquentar água\nT3: Misturar café e água"></textarea>
-      <button onclick="gerarFluxo()">Gerar Fluxograma</button>
+      <textarea id="text-input" placeholder="Digite aqui a tarefa..."></textarea>
+      <button class="start-btn" onclick="addStart()">Iniciar Processo</button>
+      <button onclick="addTask()">Adicionar Tarefa</button>
+      <button class="end-btn" onclick="addEnd()">Finalizar Processo</button>
     </div>
     <div id="canvas"></div>
   </div>
@@ -84,59 +93,78 @@
   <script>
     const modeler = new BpmnJS({ container: '#canvas' });
 
-    async function gerarFluxo() {
-      await modeler.createDiagram(); // limpa canvas
+    let lastElement = null;
+    let positionX = 150;
+    const positionY = 200;
+
+    async function resetDiagram() {
+      await modeler.createDiagram();
+      lastElement = null;
+      positionX = 150;
+    }
+
+    resetDiagram();
+
+    function addStart() {
+      const modeling = modeler.get('modeling');
+      const elementFactory = modeler.get('elementFactory');
+      const canvas = modeler.get('canvas');
+
+      const start = modeling.createShape(
+        elementFactory.createShape({ type: 'bpmn:StartEvent' }),
+        { x: positionX, y: positionY },
+        canvas.getRootElement()
+      );
+
+      lastElement = start;
+    }
+
+    function addTask() {
+      const text = document.getElementById("text-input").value.trim();
+      if (!text) return;
 
       const modeling = modeler.get('modeling');
       const elementFactory = modeler.get('elementFactory');
       const canvas = modeler.get('canvas');
 
-      const input = document.getElementById("text-input").value.trim().split("\n").filter(l => l);
-      if (input.length === 0) return;
+      positionX += 180;
 
-      const elements = [];
-      let x = 150, y = 200;
+      const taskBo = elementFactory.create('bpmn:Task', { name: text });
+      const task = modeling.createShape(taskBo, { x: positionX, y: positionY }, canvas.getRootElement());
 
-      const startEvent = modeling.createShape(
-        elementFactory.createShape({ type: 'bpmn:StartEvent' }),
-        { x, y },
-        canvas.getRootElement()
-      );
-      elements.push(startEvent);
-
-      for (let i = 0; i < input.length; i++) {
-        x += 150;
-
-        const taskBo = elementFactory.create('bpmn:Task', {
-          name: input[i]
-        });
-
-        const task = modeling.createShape(taskBo, { x, y }, canvas.getRootElement());
-
-        modeling.createConnection(elements[i], task, {
+      if (lastElement) {
+        modeling.createConnection(lastElement, task, {
           type: 'bpmn:SequenceFlow'
         });
-
-        elements.push(task);
       }
 
-      x += 150;
-      const endEvent = modeling.createShape(
+      lastElement = task;
+    }
+
+    function addEnd() {
+      const modeling = modeler.get('modeling');
+      const elementFactory = modeler.get('elementFactory');
+      const canvas = modeler.get('canvas');
+
+      positionX += 180;
+
+      const end = modeling.createShape(
         elementFactory.createShape({ type: 'bpmn:EndEvent' }),
-        { x, y },
+        { x: positionX, y: positionY },
         canvas.getRootElement()
       );
 
-      modeling.createConnection(elements[elements.length - 1], endEvent, {
-        type: 'bpmn:SequenceFlow'
-      });
+      if (lastElement) {
+        modeling.createConnection(lastElement, end, {
+          type: 'bpmn:SequenceFlow'
+        });
+      }
 
-      canvas.zoom('fit-viewport');
+      lastElement = end;
     }
   </script>
 </body>
 </html>
-
 
 
 
