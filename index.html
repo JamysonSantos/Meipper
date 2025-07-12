@@ -35,10 +35,10 @@
     .sidebar textarea {
       width: 100%;
       height: 80px;
-      padding: 0.5rem;
       font-size: 1rem;
       border-radius: 6px;
       resize: none;
+      border: 1px solid #ccc;
     }
     .sidebar button {
       padding: 0.75rem;
@@ -75,6 +75,7 @@
       justify-content: center;
       font-size: 14px;
       color: white;
+      margin: auto;
     }
     .circle.start { background: #4caf50; }
     .circle.end { background: #f44336; }
@@ -112,7 +113,7 @@
         className = 'start';
       } else if (type === 'task') {
         const inputText = document.getElementById('task-input').value.trim() || 'Nova Tarefa';
-        content = `<div class='title'>${inputText}</div>`;
+        content = `<div class='title' style='padding: 0;'>${inputText}</div>`;
         className = 'task';
       } else if (type === 'end') {
         content = `<div class='circle end'>Fim</div>`;
@@ -126,10 +127,11 @@
       }
 
       lastNodeId = id;
-      x += 200; // desloca para direita
+      x += 200;
     }
   </script>
 </body>
+</html>
 </html>
 
 
