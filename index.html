@@ -1,31 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeFluxe</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapflue — Texto para Fluxograma</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header class="header">
-        <h1 class="titulo">BeFluxe</h1>
-    </header>
-    <main class="main">
-        <section class="fluxControl">
-            <div class="topBar">
-                <button id="adicionarInicio" class="botaoRetangular verde">Iniciar Fluxo</button>
-                <button id="adicionarTermino" class="botaoRetangular vermelho">Finalizar Fluxo</button>
-                <button id="ajuda" class="botaoAjuda">?</button>
-            </div>
-            <div class="fraseInputContainer">
-                <input type="text" id="fraseInput" class="fraseInput" placeholder="Descrever atividade">
-                <button id="adicionarAtividade" class="botaoLaranja">Adicionar Tarefa</button>
-            </div>
-        </section>
-        <section class="fluxograma" id="fluxograma">
-        </section>
-    </main>
-    <script src="script.js"></script>
+  <header>
+    <h1>Mapflue</h1>
+    <p>Digite seu processo e veja o fluxo tomar forma.</p>
+  </header>
+
+  <main class="container">
+    <section class="input-area">
+      <h2>Entrada de Texto</h2>
+      <textarea id="text-input" placeholder="Exemplo:&#10;T1: Medir café&#10;T2: Esquentar água&#10;T3: Misturar tudo"></textarea>
+      <button id="generate-flow">Gerar Fluxograma</button>
+    </section>
+
+    <section class="output-area">
+      <h2>Fluxograma</h2>
+      <div id="flow-container"></div>
+    </section>
+  </main>
+
+  <script src="parser.js"></script>
 </body>
 </html>
 
