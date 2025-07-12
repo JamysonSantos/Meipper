@@ -33,34 +33,56 @@
     const modeler = new BpmnJS({ container: '#canvas' });
 
     async function gerarFluxo() {
+      await modeler.createDiagram();
+      const modeling = modeler.get('modeling');
+      const elementFactory = modeler.get('elementFactory');
+      const canvas = modeler.get('canvas');
+
       const input = document.getElementById("text-input").value.trim().split("\n").filter(l => l);
 
-      let diagram = `<?xml version="1.0" encoding="UTF-8"?>
-      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                        id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
-        <bpmn:process id="Process_1" isExecutable="false">
-          <bpmn:startEvent id="StartEvent_1" name="Início"/>
-          ${input.map((line, i) => `<bpmn:task id="Task_${i}" name="${line}"/>`).join('\n')}
-          <bpmn:endEvent id="EndEvent_1" name="Fim"/>
-          <bpmn:sequenceFlow id="flow_start" sourceRef="StartEvent_1" targetRef="Task_0"/>
-          ${input.map((_, i) => i < input.length - 1 ? `<bpmn:sequenceFlow id="flow_${i}" sourceRef="Task_${i}" targetRef="Task_${i+1}"/>` : `<bpmn:sequenceFlow id="flow_end" sourceRef="Task_${i}" targetRef="EndEvent_1"/>`).join('\n')}
-        </bpmn:process>
-        <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-          <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"/>
-        </bpmndi:BPMNDiagram>
-      </bpmn:definitions>`;
+      if (input.length === 0) return;
 
-      await modeler.importXML(diagram);
+      const elements = [];
+      let x = 100, y = 200;
 
-      const canvas = modeler.get("canvas");
-      canvas.zoom("fit-viewport");
+      const startEvent = modeling.createShape(
+        elementFactory.createShape({ type: 'bpmn:StartEvent' }),
+        { x, y },
+        canvas.getRootElement()
+      );
+
+      elements.push(startEvent);
+
+      for (let i = 0; i < input.length; i++) {
+        x += 150;
+        const task = modeling.createShape(
+          elementFactory.createShape({ type: 'bpmn:Task', businessObject: { name: input[i] } }),
+          { x, y },
+          canvas.getRootElement()
+        );
+        modeling.createConnection(elements[i], task, {
+          type: 'bpmn:SequenceFlow'
+        });
+        elements.push(task);
+      }
+
+      x += 150;
+      const endEvent = modeling.createShape(
+        elementFactory.createShape({ type: 'bpmn:EndEvent' }),
+        { x, y },
+        canvas.getRootElement()
+      );
+
+      modeling.createConnection(elements[elements.length - 1], endEvent, {
+        type: 'bpmn:SequenceFlow'
+      });
+
+      canvas.zoom('fit-viewport');
     }
   </script>
 </body>
 </html>
+
 
 
 
