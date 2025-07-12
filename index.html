@@ -73,9 +73,9 @@
       white-space: pre-wrap;
     }
     .circle {
-      width: 40px;
+      width: 80px;
       height: 40px;
-      border-radius: 50%;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -86,12 +86,21 @@
     .circle.start { background: #4caf50; }
     .circle.end { background: #f44336; }
     .drawflow-node.start, .drawflow-node.end {
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      width: auto !important;
-      height: auto !important;
-      padding: 0 !important;
+      background: #4caf50;
+      border: 2px solid #333;
+      border-radius: 20px;
+      box-shadow: none;
+      padding: 0;
+      width: 80px !important;
+      height: 40px !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+    .drawflow-node.end {
+      background: #f44336;
     }
   </style>
 </head>
@@ -164,6 +173,7 @@
   </script>
 </body>
 </html>
+
 
 
 
