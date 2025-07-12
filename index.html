@@ -3,29 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapflue — Texto para Fluxograma</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Mapflue — Texto para BPMN</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    header { background: #0097a7; color: white; padding: 1rem; text-align: center; }
+    .container { display: flex; flex-wrap: wrap; padding: 1rem; gap: 1rem; justify-content: center; }
+    textarea { width: 400px; height: 300px; padding: 1rem; border-radius: 8px; font-size: 1rem; }
+    #canvas { width: 100%; height: 500px; border: 1px solid #ccc; min-width: 700px; }
+    button { margin-top: 1rem; padding: 0.75rem 1.5rem; background: #0097a7; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@10.3.0/dist/assets/diagram-js.css">
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@10.3.0/dist/assets/bpmn-font/css/bpmn-embedded.css">
 </head>
 <body>
   <header>
     <h1>Mapflue</h1>
-    <p>Digite seu processo e veja o fluxo tomar forma.</p>
+    <p>Digite seu processo e veja o fluxo em BPMN</p>
   </header>
+  <div class="container">
+    <div>
+      <textarea id="text-input" placeholder="T1: Medir porção de café\nT2: Esquentar água\nT3: Misturar café e água"></textarea>
+      <br>
+      <button onclick="gerarFluxo()">Gerar Fluxograma</button>
+    </div>
+    <div id="canvas"></div>
+  </div>
+  <script src="https://unpkg.com/bpmn-js@10.3.0/dist/bpmn-modeler.development.js"></script>
+  <script>
+    const modeler = new BpmnJS({ container: '#canvas' });
 
-  <main class="container">
-    <section class="input-area">
-      <h2>Entrada de Texto</h2>
-      <textarea id="text-input" placeholder="Exemplo:&#10;T1: Medir café&#10;T2: Esquentar água&#10;T3: Misturar tudo"></textarea>
-      <button id="generate-flow">Gerar Fluxograma</button>
-    </section>
+    async function gerarFluxo() {
+      const input = document.getElementById("text-input").value.trim().split("\n").filter(l => l);
 
-    <section class="output-area">
-      <h2>Fluxograma</h2>
-      <div id="flow-container"></div>
-    </section>
-  </main>
+      let diagram = `<?xml version="1.0" encoding="UTF-8"?>
+      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                        id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+        <bpmn:process id="Process_1" isExecutable="false">
+          <bpmn:startEvent id="StartEvent_1" name="Início"/>
+          ${input.map((line, i) => `<bpmn:task id="Task_${i}" name="${line}"/>`).join('\n')}
+          <bpmn:endEvent id="EndEvent_1" name="Fim"/>
+          <bpmn:sequenceFlow id="flow_start" sourceRef="StartEvent_1" targetRef="Task_0"/>
+          ${input.map((_, i) => i < input.length - 1 ? `<bpmn:sequenceFlow id="flow_${i}" sourceRef="Task_${i}" targetRef="Task_${i+1}"/>` : `<bpmn:sequenceFlow id="flow_end" sourceRef="Task_${i}" targetRef="EndEvent_1"/>`).join('\n')}
+        </bpmn:process>
+        <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+          <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"/>
+        </bpmndi:BPMNDiagram>
+      </bpmn:definitions>`;
 
-  <script src="parser.js"></script>
+      await modeler.importXML(diagram);
+
+      const canvas = modeler.get("canvas");
+      canvas.zoom("fit-viewport");
+    }
+  </script>
 </body>
 </html>
+
 
