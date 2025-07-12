@@ -32,6 +32,14 @@
       flex-direction: column;
       gap: 0.5rem;
     }
+    .sidebar textarea {
+      width: 100%;
+      height: 80px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      resize: none;
+    }
     .sidebar button {
       padding: 0.75rem;
       border: none;
@@ -58,6 +66,18 @@
       background: transparent;
       outline: none;
     }
+    .circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: white;
+    }
+    .circle.start { background: #4caf50; }
+    .circle.end { background: #f44336; }
   </style>
 </head>
 <body>
@@ -67,6 +87,7 @@
   </header>
   <div class="main">
     <div class="sidebar">
+      <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
       <button class="start" onclick="addNode('start')">Iniciar Processo</button>
       <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
       <button class="end" onclick="addNode('end')">Finalizar Processo</button>
@@ -87,13 +108,14 @@
       let className = '';
 
       if (type === 'start') {
-        content = `<div class='title'>Início</div>`;
+        content = `<div class='circle start'>Início</div>`;
         className = 'start';
       } else if (type === 'task') {
-        content = `<div class='title'>Tarefa</div><input value='Nova tarefa' oninput='this.parentNode.parentNode.querySelector(".title").innerText=this.value' />`;
+        const inputText = document.getElementById('task-input').value.trim() || 'Nova Tarefa';
+        content = `<div class='title'>${inputText}</div>`;
         className = 'task';
       } else if (type === 'end') {
-        content = `<div class='title'>Fim</div>`;
+        content = `<div class='circle end'>Fim</div>`;
         className = 'end';
       }
 
@@ -104,7 +126,7 @@
       }
 
       lastNodeId = id;
-      x += 200; // Move o próximo elemento mais para a direita
+      x += 200; // desloca para direita
     }
   </script>
 </body>
