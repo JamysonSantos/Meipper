@@ -1,166 +1,110 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapflue — Texto para BPMN</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapflue com Drawflow</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.css">
   <style>
     body {
-      font-family: sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: sans-serif;
       height: 100vh;
       display: flex;
       flex-direction: column;
     }
-
     header {
-      background: #0097a7;
+      background-color: #0097a7;
       color: white;
-      padding: 1rem;
       text-align: center;
+      padding: 1rem;
     }
-
-    .container {
-      display: flex;
+    .main {
       flex: 1;
+      display: flex;
+      overflow: hidden;
     }
-
-    .input-wrapper {
-      width: 300px;
+    .sidebar {
+      width: 250px;
       background: #f4f4f4;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
       display: flex;
       flex-direction: column;
-      padding: 1rem;
+      gap: 0.5rem;
     }
-
-    textarea {
-      width: 100%;
-      height: 300px;
-      border-radius: 8px;
-      font-size: 1rem;
-      resize: vertical;
-    }
-
-    button {
-      margin-top: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      background: #0097a7;
-      color: white;
+    .sidebar button {
+      padding: 0.75rem;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
       font-size: 1rem;
-      width: 100%;
+      cursor: pointer;
     }
-
-    .start-btn {
-      background: #4caf50;
-    }
-
-    .end-btn {
-      background: #f44336;
-    }
-
-    #canvas {
+    .start { background-color: #4caf50; color: white; }
+    .task { background-color: #2196f3; color: white; }
+    .end { background-color: #f44336; color: white; }
+    #drawflow {
       flex: 1;
       height: 100%;
-      border-left: 1px solid #ccc;
+      background: #ffffff;
+    }
+    .drawflow-node .title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .drawflow-node input {
+      width: 100%;
+      border: none;
+      font-size: 14px;
+      background: transparent;
+      outline: none;
     }
   </style>
-
-  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@10.3.0/dist/assets/diagram-js.css">
-  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@10.3.0/dist/assets/bpmn-font/css/bpmn-embedded.css">
 </head>
 <body>
   <header>
     <h1>Mapflue</h1>
-    <p>Construa seu processo em BPMN passo a passo</p>
+    <p>Crie seu processo clicando nos elementos</p>
   </header>
-
-  <div class="container">
-    <div class="input-wrapper">
-      <textarea id="text-input" placeholder="Digite aqui a tarefa..."></textarea>
-      <button class="start-btn" onclick="addStart()">Iniciar Processo</button>
-      <button onclick="addTask()">Adicionar Tarefa</button>
-      <button class="end-btn" onclick="addEnd()">Finalizar Processo</button>
+  <div class="main">
+    <div class="sidebar">
+      <button class="start" onclick="addNode('start')">Iniciar Processo</button>
+      <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
+      <button class="end" onclick="addNode('end')">Finalizar Processo</button>
     </div>
-    <div id="canvas"></div>
+    <div id="drawflow"></div>
   </div>
-
-  <script src="https://unpkg.com/bpmn-js@10.3.0/dist/bpmn-modeler.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
   <script>
-    const modeler = new BpmnJS({ container: '#canvas' });
+    const editor = new Drawflow(document.getElementById('drawflow'));
+    editor.start();
 
-    let lastElement = null;
-    let positionX = 150;
-    const positionY = 200;
+    let lastNodeId = null;
+    let x = 100;
+    let y = 100;
 
-    async function resetDiagram() {
-      await modeler.createDiagram();
-      lastElement = null;
-      positionX = 150;
-    }
+    function addNode(type) {
+      let content = '';
+      let className = '';
 
-    resetDiagram();
-
-    function addStart() {
-      const modeling = modeler.get('modeling');
-      const elementFactory = modeler.get('elementFactory');
-      const canvas = modeler.get('canvas');
-
-      const start = modeling.createShape(
-        elementFactory.createShape({ type: 'bpmn:StartEvent' }),
-        { x: positionX, y: positionY },
-        canvas.getRootElement()
-      );
-
-      lastElement = start;
-    }
-
-    function addTask() {
-      const text = document.getElementById("text-input").value.trim();
-      if (!text) return;
-
-      const modeling = modeler.get('modeling');
-      const elementFactory = modeler.get('elementFactory');
-      const canvas = modeler.get('canvas');
-
-      positionX += 180;
-
-      const taskBo = elementFactory.create('bpmn:Task', { name: text });
-      const task = modeling.createShape(taskBo, { x: positionX, y: positionY }, canvas.getRootElement());
-
-      if (lastElement) {
-        modeling.createConnection(lastElement, task, {
-          type: 'bpmn:SequenceFlow'
-        });
+      if (type === 'start') {
+        content = `<div class='title'>Início</div>`;
+        className = 'start';
+      } else if (type === 'task') {
+        content = `<div class='title'>Tarefa</div><input value='Nova tarefa' oninput='this.parentNode.parentNode.querySelector(".title").innerText=this.value' />`;
+        className = 'task';
+      } else if (type === 'end') {
+        content = `<div class='title'>Fim</div>`;
+        className = 'end';
       }
 
-      lastElement = task;
-    }
+      const id = editor.addNode(type, 1, 1, x, y, className, {}, content);
 
-    function addEnd() {
-      const modeling = modeler.get('modeling');
-      const elementFactory = modeler.get('elementFactory');
-      const canvas = modeler.get('canvas');
-
-      positionX += 180;
-
-      const end = modeling.createShape(
-        elementFactory.createShape({ type: 'bpmn:EndEvent' }),
-        { x: positionX, y: positionY },
-        canvas.getRootElement()
-      );
-
-      if (lastElement) {
-        modeling.createConnection(lastElement, end, {
-          type: 'bpmn:SequenceFlow'
-        });
+      if (lastNodeId) {
+        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
       }
 
-      lastElement = end;
+      lastNodeId = id;
+      x += 200; // Move o próximo elemento mais para a direita
     }
   </script>
 </body>
