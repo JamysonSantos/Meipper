@@ -65,6 +65,7 @@
       font-size: 14px;
       background: transparent;
       outline: none;
+      text-align: center;
     }
     .circle {
       width: 40px;
@@ -122,9 +123,11 @@
         content = `<div class='circle start'>Início</div>`;
         className = 'start';
       } else if (type === 'task') {
-        const inputText = document.getElementById('task-input').value.trim() || 'Nova Tarefa';
-        content = `<div class='title' style='padding: 0;'>${inputText}</div>`;
+        const inputEl = document.getElementById('task-input');
+        const inputText = inputEl.value.trim() || 'Nova Tarefa';
+        content = `<input value='${inputText}' oninput='this.setAttribute("value", this.value)' />`;
         className = 'task';
+        inputEl.value = '';
       } else if (type === 'end') {
         content = `<div class='circle end'>Fim</div>`;
         className = 'end';
@@ -142,6 +145,7 @@
   </script>
 </body>
 </html>
+
 
 
 
