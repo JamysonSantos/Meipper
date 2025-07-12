@@ -1,203 +1,63 @@
 body {
-    font-family: 'Montserrat', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f7f7f7; /* Fundo cinza claro */
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f9f9f9;
 }
 
-.header {
-    background-color: #ff8c42;
-    text-align: center;
-    padding: 1rem;
+header {
+  text-align: center;
+  background: #0097a7;
+  color: white;
+  padding: 1rem;
 }
 
-.titulo {
-    margin: 0;
-    color: white;
-    font-size: 2rem;
+.container {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-.main {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* Alinhar à esquerda */
-    margin-top: 2rem;
-    padding: 1rem;
+.input-area, .output-area {
+  width: 400px;
+  max-width: 90%;
 }
 
-.fluxControl {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* Alinhar à esquerda */
-    background: linear-gradient(rgba(255, 165, 0, 0.2), rgba(255, 165, 0, 0.2)), #ff8c42; /* Fundo laranja claro com gradiente */
-    padding: 1rem;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Sombra suave */
-    width: 100%;
-    max-width: 800px; /* Limitar a largura máxima */
+textarea {
+  width: 100%;
+  height: 200px;
+  padding: 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 }
 
-.topBar {
-    display: flex;
-    flex-direction: row; /* Organizar os botões horizontalmente */
-    align-items: flex-start; /* Alinhar à esquerda */
-    width: 100%;
-    max-width: 800px;
-    margin-bottom: 1rem;
+button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background: #0097a7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
-.botaoRetangular {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
+.flow-block {
+  background: white;
+  padding: 1rem;
+  border: 2px solid #0097a7;
+  border-radius: 8px;
+  margin: 0.5rem auto;
+  text-align: center;
+  font-weight: bold;
+  width: 100%;
 }
 
-.laranjaClaro {
-    background-color: #FFD700; /* Laranja claro */
-}
-
-.verde {
-    background-color: #4CAF50;
-}
-
-.vermelho {
-    background-color: #FF5733;
-}
-
-.botaoLaranja {
-    background-color: #FFA500;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-}
-
-.botaoLaranja:hover {
-    background-color: #FF8C42;
-}
-
-.fluxograma {
-    display: flex;
-    flex-direction: row; /* Organizar as atividades da esquerda para a direita */
-    align-items: flex-start; /* Alinhar à esquerda */
-    flex-wrap: wrap; /* Quebrar linha quando não couber na largura */
-    width: 100%; /* Usar toda a largura disponível */
-    max-width: 800px; /* Limitar a largura máxima */
-    margin-top: 1rem; /* Adicionar algum espaço acima do fluxograma */
-}
-
-.circulo {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    margin: 0.5rem;
-}
-
-.atividade {
-    background-color: #FFA500;
-    color: white;
-    border-radius: 10px;
-    padding: 0.5rem 1rem;
-    margin: 0.5rem;
-    text-align: center;
-    position: relative;
-}
-
-.conector {
-    display: flex;
-    align-items: center;
-    margin: 0.25rem 0;
-    position: relative;
-}
-
-/* Estilo para as setas que apontam para a direita */
-.conector-direita .seta {
-    width: 0;
-    height: 0;
-    border-top: 5px solid transparent;
-    border-bottom: 5px solid transparent;
-    border-left: 10px solid #000;
-    display: inline-block;
-    margin-left: 10px; /* Espaço entre a esfera verde e a seta */
-}
-
-.excluir-tarefa {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    width: 17px;
-    height: 17px;
-    background-color: #FF5733;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    font-weight: bold;
-    color: white;
-}
-
-.excluir-tarefa:hover {
-    background-color: #FF0000;
-}
-
-.botaoAjuda {
-    background-color: #3498db;
-    border: none;
-    color: white;
-    border-radius: 50%;
-    font-size: 1rem;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    margin-left: 0.5rem;
-}
-
-/* Estilo para a instrução */
-.instrucao {
-    margin: 0.5rem 0;
-    font-size: 14px;
-    color: #555;
-    text-align: center;
-}
-
-/* Estilos para os tooltips */
-.tooltip {
-    position: absolute;
-    background-color: #f2f2f2;
-    color: #000;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    max-width: 200px;
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.botaoRetangular {
-    position: relative;
-}
-
-.botaoRetangular:hover .tooltip {
-    opacity: 1;
-    bottom: 30px;
-}
-
-.botaoLaranja {
-    position: relative;
-}
-
-.botaoLaranja:hover .tooltip {
-    opacity: 1;
-    bottom: 30px;
+.flow-arrow {
+  text-align: center;
+  font-size: 1.5rem;
+  margin: 0.25rem 0;
 }
