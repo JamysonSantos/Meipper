@@ -31,6 +31,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      overflow-y: auto;
     }
     .sidebar textarea, .sidebar select {
       width: 100%;
@@ -67,10 +68,19 @@
     .actor-badge {
       display: inline-block;
       padding: 4px 8px;
-      margin: 2px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: white;
       border-radius: 6px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+    }
+    .actor-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-height: 60px;
+      overflow-y: auto;
+      margin-bottom: 6px;
     }
     .sidebar textarea#actors-input {
       height: 40px;
@@ -174,7 +184,7 @@
 
       <label>Selecionar Responsável:</label>
       <select id="actor-select"></select>
-      <div id="actor-list"></div>
+      <div class="actor-container" id="actor-list"></div>
 
       <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
       <button class="start" onclick="addNode('start')">Iniciar Processo</button>
@@ -200,7 +210,7 @@
     let x = 250;
     const horizontalSpacing = 220;
     const yDefault = 100;
-    const actors = {}; // Nome => cor
+    const actors = {};
 
     const predefinedColors = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
     const extraColors = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
