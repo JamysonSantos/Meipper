@@ -25,12 +25,13 @@
       overflow: hidden;
     }
     .sidebar {
-      width: 240px;
+      width: 260px;
       background: #f4f4f4;
-      padding: 0.5rem;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
       overflow-y: auto;
     }
     .sidebar textarea, .sidebar select {
@@ -38,6 +39,7 @@
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
+      padding: 0.5rem;
       resize: none;
     }
     .color-picker {
@@ -57,8 +59,7 @@
       border-color: #000;
     }
     .more-colors {
-      margin-top: 6px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       background: #ddd;
       padding: 4px 6px;
       border-radius: 6px;
@@ -71,22 +72,13 @@
       font-size: 0.85rem;
       color: white;
       border-radius: 6px;
-      margin-bottom: 2px;
+      margin: 2px;
       white-space: nowrap;
     }
     .actor-container {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
-      max-height: 60px;
-      overflow-y: auto;
-      margin-bottom: 6px;
-    }
-    .sidebar textarea#actors-input {
-      height: 40px;
-    }
-    .sidebar textarea#task-input {
-      height: 60px;
     }
     .sidebar button {
       padding: 0.6rem;
@@ -136,34 +128,6 @@
       height: auto !important;
       padding: 0 !important;
     }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      z-index: 10;
-    }
-    .modal.active {
-      display: block;
-    }
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.3);
-      display: none;
-      z-index: 9;
-    }
-    .overlay.active {
-      display: block;
-    }
   </style>
 </head>
 <body>
@@ -174,19 +138,16 @@
   <div class="main">
     <div class="sidebar">
       <label>Responsável/Setor/Área:</label>
-      <textarea id="actors-input" placeholder="Ex: Financeiro"></textarea>
-
-      <label>Cor do responsável:</label>
+      <textarea id="actors-input" rows="2" placeholder="Ex: Financeiro"></textarea>
+      <label>Cor:</label>
       <div class="color-picker" id="color-picker"></div>
-      <div class="more-colors" onclick="openColorModal()">Mais cores</div>
-
+      <div class="more-colors" onclick="addMoreColors()">Mais cores</div>
       <button onclick="addActor()">Salvar Responsável</button>
-
       <label>Selecionar Responsável:</label>
       <select id="actor-select"></select>
       <div class="actor-container" id="actor-list"></div>
-
-      <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
+      <label>Tarefa:</label>
+      <textarea id="task-input" rows="3" placeholder="Digite a tarefa..."></textarea>
       <button class="start" onclick="addNode('start')">Iniciar Processo</button>
       <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
       <button class="end" onclick="addNode('end')">Finalizar Processo</button>
@@ -195,34 +156,27 @@
     <div id="drawflow"></div>
   </div>
 
-  <div class="overlay" id="overlay" onclick="closeColorModal()"></div>
-  <div class="modal" id="color-modal">
-    <h3>Mais cores</h3>
-    <div class="color-picker" id="extra-colors"></div>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
   <script>
     const editor = new Drawflow(document.getElementById('drawflow'));
     editor.start();
 
     let lastNodeId = null;
-    let x = 250;
+    let x = 100;
+    const y = 100;
     const horizontalSpacing = 220;
-    const yDefault = 100;
+
+    const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
+    let selectedColor = predefinedColors[0];
     const actors = {};
 
-    const predefinedColors = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
-    const extraColors = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
-    let selectedColor = predefinedColors[0];
-
-    function renderColorOptions(container, colors) {
+    function renderColorPicker() {
+      const container = document.getElementById('color-picker');
       container.innerHTML = '';
-      colors.forEach(color => {
+      predefinedColors.forEach(color => {
         const el = document.createElement('div');
         el.className = 'color-option';
         el.style.backgroundColor = color;
-        if (color === selectedColor) el.classList.add('selected');
         el.onclick = () => {
           selectedColor = color;
           document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
@@ -232,48 +186,31 @@
       });
     }
 
-    renderColorOptions(document.getElementById('color-picker'), predefinedColors);
-    renderColorOptions(document.getElementById('extra-colors'), extraColors);
-
-    function openColorModal() {
-      document.getElementById('overlay').classList.add('active');
-      document.getElementById('color-modal').classList.add('active');
-    }
-
-    function closeColorModal() {
-      document.getElementById('overlay').classList.remove('active');
-      document.getElementById('color-modal').classList.remove('active');
-    }
-
-    function updateActorList() {
-      const actorList = document.getElementById('actor-list');
-      actorList.innerHTML = '';
-      Object.entries(actors).forEach(([name, color]) => {
-        const badge = document.createElement('div');
-        badge.className = 'actor-badge';
-        badge.style.backgroundColor = color;
-        badge.innerText = name;
-        actorList.appendChild(badge);
-      });
+    function addMoreColors() {
+      const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
+      predefinedColors.push(...more);
+      renderColorPicker();
     }
 
     function addActor() {
       const name = document.getElementById('actors-input').value.trim();
       if (!name || actors[name]) return;
-
       actors[name] = selectedColor;
-
       const option = document.createElement('option');
       option.value = name;
       option.text = name;
       document.getElementById('actor-select').appendChild(option);
+
+      const badge = document.createElement('div');
+      badge.className = 'actor-badge';
+      badge.style.backgroundColor = selectedColor;
+      badge.textContent = name;
+      document.getElementById('actor-list').appendChild(badge);
+
       document.getElementById('actors-input').value = '';
-      updateActorList();
     }
 
     function addNode(type) {
-      const actor = document.getElementById('actor-select').value;
-      const color = actors[actor] || '#2196f3';
       let content = '';
       let className = '';
 
@@ -281,30 +218,20 @@
         content = `<div class='circle start'>Início</div>`;
         className = 'start';
       } else if (type === 'task') {
-        const inputEl = document.getElementById('task-input');
-        const inputText = inputEl.value.trim() || 'Nova Tarefa';
-        content = `<div class='task-content' style='background-color:${color}; color:#fff; border-radius:6px;'>${inputText}<div style='margin-top:4px; font-size:12px; font-weight:bold;'>${actor}</div></div>`;
+        const task = document.getElementById('task-input').value.trim();
+        if (!task) return;
+        const actor = document.getElementById('actor-select').value;
+        const color = actors[actor] || '#2196f3';
+        content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
         className = 'task';
-        inputEl.value = '';
+        document.getElementById('task-input').value = '';
       } else if (type === 'end') {
         content = `<div class='circle end'>Fim</div>`;
         className = 'end';
       }
 
-      let y = yDefault;
-      if (lastNodeId) {
-        const lastNode = editor.drawflow.Home.data[lastNodeId];
-        if (lastNode && lastNode.pos_y !== undefined) {
-          y = lastNode.pos_y;
-        }
-      }
-
       const id = editor.addNode(type, 1, 1, x, y, className, {}, content);
-
-      if (lastNodeId) {
-        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-      }
-
+      if (lastNodeId) editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
       lastNodeId = id;
       x += horizontalSpacing;
     }
@@ -312,7 +239,7 @@
     function clearCanvas() {
       editor.clear();
       lastNodeId = null;
-      x = 250;
+      x = 100;
     }
 
     document.getElementById('task-input').addEventListener('keydown', function(e) {
@@ -321,9 +248,12 @@
         addNode('task');
       }
     });
+
+    renderColorPicker();
   </script>
 </body>
 </html>
+
 
 
 
