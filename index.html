@@ -236,9 +236,12 @@
     return;
   }
 
+  // Lógica específica para cada tipo
   if (type === 'start') {
     content = `<div class='circle start'>Início</div>`;
     className = 'start';
+    lastNodeX = 100;
+    lastNodeY = 100;
   } else if (type === 'task') {
     const task = document.getElementById('task-input').value.trim();
     if (!task) return;
@@ -246,24 +249,33 @@
     const color = actors[actor] || '#2196f3';
     content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
     className = 'task';
+
+    // 🧠 Basear posição no último nó real
+    if (lastNodeId) {
+      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+      lastNodeX = lastNode.pos_x + spacingX;
+      lastNodeY = lastNode.pos_y;
+    }
+
     document.getElementById('task-input').value = '';
   } else if (type === 'end') {
     content = `<div class='circle end'>Fim</div>`;
     className = 'end';
-  }
 
-  // 🧠 Atualiza coordenadas baseadas na posição real do último nó
-  if (lastNodeId) {
-    const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-    lastNodeX = lastNode.pos_x + spacingX;
-    lastNodeY = lastNode.pos_y;
+    // 🧠 Basear posição no último nó real
+    if (lastNodeId) {
+      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+      lastNodeX = lastNode.pos_x + spacingX;
+      lastNodeY = lastNode.pos_y;
+    }
   }
 
   const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
 
-  if (lastNodeId) {
+  if (lastNodeId && type !== 'start') {
     editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
   }
+
   lastNodeId = id;
 }
 
