@@ -228,39 +228,44 @@
     }
 
     function addNode(type) {
-      let content = '';
-      let className = '';
+  let content = '';
+  let className = '';
 
-      // 🚨 Validação: impedir tarefas ou fim antes de iniciar o processo
-      if (!lastNodeId && type !== 'start') {
-        alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
-        return;
-      }
+  if (!lastNodeId && type !== 'start') {
+    alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
+    return;
+  }
 
-      if (type === 'start') {
-        content = `<div class='circle start'>Início</div>`;
-        className = 'start';
-      } else if (type === 'task') {
-        const task = document.getElementById('task-input').value.trim();
-        if (!task) return;
-        const actor = document.getElementById('actor-select').value;
-        const color = actors[actor] || '#2196f3';
-        content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
-        className = 'task';
-        document.getElementById('task-input').value = '';
-      } else if (type === 'end') {
-        content = `<div class='circle end'>Fim</div>`;
-        className = 'end';
-      }
+  if (type === 'start') {
+    content = `<div class='circle start'>Início</div>`;
+    className = 'start';
+  } else if (type === 'task') {
+    const task = document.getElementById('task-input').value.trim();
+    if (!task) return;
+    const actor = document.getElementById('actor-select').value;
+    const color = actors[actor] || '#2196f3';
+    content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+    className = 'task';
+    document.getElementById('task-input').value = '';
+  } else if (type === 'end') {
+    content = `<div class='circle end'>Fim</div>`;
+    className = 'end';
+  }
 
-      const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
-      if (lastNodeId) editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-      lastNodeId = id;
+  // 🧠 Atualiza coordenadas baseadas na posição real do último nó
+  if (lastNodeId) {
+    const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+    lastNodeX = lastNode.pos_x + spacingX;
+    lastNodeY = lastNode.pos_y;
+  }
 
-      const node = editor.drawflow.drawflow.Home.data[id];
-      lastNodeX = node.pos_x + spacingX;
-      lastNodeY = node.pos_y;
-    }
+  const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
+
+  if (lastNodeId) {
+    editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
+  }
+  lastNodeId = id;
+}
 
     function clearCanvas() {
       editor.clear();
