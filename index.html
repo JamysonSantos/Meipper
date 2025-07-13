@@ -25,7 +25,7 @@
       overflow: hidden;
     }
     .sidebar {
-      width: 260px;
+      width: 280px;
       background: #f4f4f4;
       padding: 1rem;
       display: flex;
@@ -34,6 +34,10 @@
       box-shadow: 2px 0 5px rgba(0,0,0,0.1);
       overflow-y: auto;
     }
+    .sidebar label {
+      font-weight: bold;
+      margin-top: 0.25rem;
+    }
     .sidebar textarea, .sidebar select {
       width: 100%;
       font-size: 1rem;
@@ -41,6 +45,7 @@
       border: 1px solid #ccc;
       padding: 0.5rem;
       resize: none;
+      min-height: 48px;
     }
     .color-picker {
       display: flex;
@@ -65,6 +70,7 @@
       border-radius: 6px;
       text-align: center;
       cursor: pointer;
+      margin-top: -0.25rem;
     }
     .actor-badge {
       display: inline-block;
@@ -72,13 +78,14 @@
       font-size: 0.85rem;
       color: white;
       border-radius: 6px;
-      margin: 2px;
+      margin: 2px 2px 0 0;
       white-space: nowrap;
     }
     .actor-container {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
+      margin-bottom: 0.5rem;
     }
     .sidebar button {
       padding: 0.6rem;
@@ -138,16 +145,22 @@
   <div class="main">
     <div class="sidebar">
       <label>Responsável/Setor/Área:</label>
-      <textarea id="actors-input" rows="2" placeholder="Ex: Financeiro"></textarea>
+      <textarea id="actors-input" placeholder="Ex: Financeiro"></textarea>
+
       <label>Cor:</label>
       <div class="color-picker" id="color-picker"></div>
       <div class="more-colors" onclick="addMoreColors()">Mais cores</div>
+
       <button onclick="addActor()">Salvar Responsável</button>
+
       <label>Selecionar Responsável:</label>
       <select id="actor-select"></select>
+
       <div class="actor-container" id="actor-list"></div>
+
       <label>Tarefa:</label>
-      <textarea id="task-input" rows="3" placeholder="Digite a tarefa..."></textarea>
+      <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
+
       <button class="start" onclick="addNode('start')">Iniciar Processo</button>
       <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
       <button class="end" onclick="addNode('end')">Finalizar Processo</button>
@@ -167,6 +180,7 @@
     const horizontalSpacing = 220;
 
     const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
+    let extendedColorsAdded = false;
     let selectedColor = predefinedColors[0];
     const actors = {};
 
@@ -182,13 +196,16 @@
           document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
           el.classList.add('selected');
         };
+        if (color === selectedColor) el.classList.add('selected');
         container.appendChild(el);
       });
     }
 
     function addMoreColors() {
+      if (extendedColorsAdded) return;
       const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
       predefinedColors.push(...more);
+      extendedColorsAdded = true;
       renderColorPicker();
     }
 
@@ -253,6 +270,7 @@
   </script>
 </body>
 </html>
+
 
 
 
