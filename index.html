@@ -176,7 +176,8 @@
     let lastNodeId = null;
     let lastNodeX = 100;
     let lastNodeY = 100;
-    const horizontalSpacing = 220;
+    const spacingX = 220;
+    const spacingY = 100;
 
     const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
     let extendedColorsAdded = false;
@@ -249,7 +250,10 @@
       const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
       if (lastNodeId) editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
       lastNodeId = id;
-      lastNodeX += horizontalSpacing;
+
+      const node = editor.drawflow.drawflow.Home.data[id];
+      lastNodeX = node.pos_x + spacingX;
+      lastNodeY = node.pos_y;
     }
 
     function clearCanvas() {
@@ -270,6 +274,7 @@
   </script>
 </body>
 </html>
+
 
 
 
