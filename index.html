@@ -25,7 +25,7 @@
       overflow: hidden;
     }
     .sidebar {
-      width: 220px;
+      width: 240px;
       background: #f4f4f4;
       padding: 0.5rem;
       display: flex;
@@ -63,6 +63,14 @@
       border-radius: 6px;
       text-align: center;
       cursor: pointer;
+    }
+    .actor-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      margin: 2px;
+      font-size: 0.9rem;
+      color: white;
+      border-radius: 6px;
     }
     .sidebar textarea#actors-input {
       height: 40px;
@@ -118,6 +126,34 @@
       height: auto !important;
       padding: 0 !important;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    .modal.active {
+      display: block;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      display: none;
+      z-index: 9;
+    }
+    .overlay.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -132,12 +168,14 @@
 
       <label>Cor do responsável:</label>
       <div class="color-picker" id="color-picker"></div>
-      <div class="more-colors" onclick="loadMoreColors()">Mais cores</div>
+      <div class="more-colors" onclick="openColorModal()">Mais cores</div>
 
       <button onclick="addActor()">Salvar Responsável</button>
 
       <label>Selecionar Responsável:</label>
       <select id="actor-select"></select>
+      <div id="actor-list"></div>
+
       <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
       <button class="start" onclick="addNode('start')">Iniciar Processo</button>
       <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
@@ -146,6 +184,13 @@
     </div>
     <div id="drawflow"></div>
   </div>
+
+  <div class="overlay" id="overlay" onclick="closeColorModal()"></div>
+  <div class="modal" id="color-modal">
+    <h3>Mais cores</h3>
+    <div class="color-picker" id="extra-colors"></div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
   <script>
     const editor = new Drawflow(document.getElementById('drawflow'));
@@ -158,12 +203,11 @@
     const actors = {}; // Nome => cor
 
     const predefinedColors = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
+    const extraColors = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
     let selectedColor = predefinedColors[0];
 
-    const colorPickerContainer = document.getElementById('color-picker');
-
-    function renderColorOptions(colors) {
-      colorPickerContainer.innerHTML = '';
+    function renderColorOptions(container, colors) {
+      container.innerHTML = '';
       colors.forEach(color => {
         const el = document.createElement('div');
         el.className = 'color-option';
@@ -174,15 +218,33 @@
           document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
           el.classList.add('selected');
         };
-        colorPickerContainer.appendChild(el);
+        container.appendChild(el);
       });
     }
 
-    renderColorOptions(predefinedColors);
+    renderColorOptions(document.getElementById('color-picker'), predefinedColors);
+    renderColorOptions(document.getElementById('extra-colors'), extraColors);
 
-    function loadMoreColors() {
-      const extra = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
-      renderColorOptions([...predefinedColors, ...extra]);
+    function openColorModal() {
+      document.getElementById('overlay').classList.add('active');
+      document.getElementById('color-modal').classList.add('active');
+    }
+
+    function closeColorModal() {
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('color-modal').classList.remove('active');
+    }
+
+    function updateActorList() {
+      const actorList = document.getElementById('actor-list');
+      actorList.innerHTML = '';
+      Object.entries(actors).forEach(([name, color]) => {
+        const badge = document.createElement('div');
+        badge.className = 'actor-badge';
+        badge.style.backgroundColor = color;
+        badge.innerText = name;
+        actorList.appendChild(badge);
+      });
     }
 
     function addActor() {
@@ -196,6 +258,7 @@
       option.text = name;
       document.getElementById('actor-select').appendChild(option);
       document.getElementById('actors-input').value = '';
+      updateActorList();
     }
 
     function addNode(type) {
@@ -218,7 +281,6 @@
         className = 'end';
       }
 
-      // Pegando última posição Y do último node (se ainda existir)
       let y = yDefault;
       if (lastNodeId) {
         const lastNode = editor.drawflow.Home.data[lastNodeId];
@@ -241,8 +303,6 @@
       editor.clear();
       lastNodeId = null;
       x = 250;
-      document.getElementById('actor-select').innerHTML = '';
-      Object.keys(actors).forEach(k => delete actors[k]);
     }
 
     document.getElementById('task-input').addEventListener('keydown', function(e) {
