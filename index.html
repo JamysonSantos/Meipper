@@ -32,12 +32,28 @@
       flex-direction: column;
       gap: 0.5rem;
     }
-    .sidebar textarea, .sidebar select, .sidebar input[type="color"] {
+    .sidebar textarea, .sidebar select {
       width: 100%;
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
       resize: none;
+    }
+    .color-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .color-option {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 2px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+    .color-option.selected {
+      border-color: #000;
     }
     .sidebar textarea#actors-input {
       height: 40px;
@@ -70,15 +86,6 @@
       text-align: center;
       word-break: break-word;
       white-space: pre-wrap;
-    }
-    .task-responsible {
-      font-size: 12px;
-      margin-top: 4px;
-      font-weight: bold;
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-block;
     }
 
     .circle {
@@ -114,7 +121,7 @@
       <label>Nome do responsável:</label>
       <textarea id="actors-input" placeholder="Ex: João"></textarea>
       <label>Cor do responsável:</label>
-      <input type="color" id="actor-color" value="#2196f3">
+      <div class="color-picker" id="color-picker"></div>
       <button onclick="addActor()">Salvar Responsável</button>
 
       <label>Selecionar Responsável:</label>
@@ -137,12 +144,28 @@
     const horizontalSpacing = 220;
     const actors = {}; // Nome => cor
 
+    const predefinedColors = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
+    let selectedColor = predefinedColors[0];
+
+    const colorPickerContainer = document.getElementById('color-picker');
+    predefinedColors.forEach(color => {
+      const el = document.createElement('div');
+      el.className = 'color-option';
+      el.style.backgroundColor = color;
+      if (color === selectedColor) el.classList.add('selected');
+      el.onclick = () => {
+        selectedColor = color;
+        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+      };
+      colorPickerContainer.appendChild(el);
+    });
+
     function addActor() {
       const name = document.getElementById('actors-input').value.trim();
-      const color = document.getElementById('actor-color').value;
       if (!name || actors[name]) return;
 
-      actors[name] = color;
+      actors[name] = selectedColor;
 
       const option = document.createElement('option');
       option.value = name;
@@ -153,7 +176,7 @@
 
     function addNode(type) {
       const actor = document.getElementById('actor-select').value;
-      const color = actors[actor] || '#999';
+      const color = actors[actor] || '#2196f3';
       let y = 100;
       let content = '';
       let className = '';
@@ -164,7 +187,7 @@
       } else if (type === 'task') {
         const inputEl = document.getElementById('task-input');
         const inputText = inputEl.value.trim() || 'Nova Tarefa';
-        content = `<div class='task-content'>${inputText}</div><div class='task-responsible' style='background:${color}'>${actor}</div>`;
+        content = `<div class='task-content' style='background-color:${color}; color:#fff; border-radius:6px;'>${inputText}<div style='margin-top:4px; font-size:12px; font-weight:bold;'>${actor}</div></div>`;
         className = 'task';
         inputEl.value = '';
       } else if (type === 'end') {
