@@ -231,6 +231,12 @@
       let content = '';
       let className = '';
 
+      // 🚨 Validação: impedir tarefas ou fim antes de iniciar o processo
+      if (!lastNodeId && type !== 'start') {
+        alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
+        return;
+      }
+
       if (type === 'start') {
         content = `<div class='circle start'>Início</div>`;
         className = 'start';
@@ -274,6 +280,7 @@
   </script>
 </body>
 </html>
+
 
 
 
