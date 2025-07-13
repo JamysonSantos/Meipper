@@ -25,20 +25,26 @@
       overflow: hidden;
     }
     .sidebar {
-      width: 200px;
+      width: 220px;
       background: #f4f4f4;
       padding: 0.5rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
     }
-    .sidebar textarea {
+    .sidebar textarea, .sidebar select {
       width: 100%;
-      height: 60px;
       font-size: 1rem;
       border-radius: 6px;
-      resize: none;
       border: 1px solid #ccc;
+      padding: 0.5rem;
+      resize: none;
+    }
+    .sidebar textarea#actors-input {
+      height: 80px;
+    }
+    .sidebar textarea#task-input {
+      height: 60px;
     }
     .sidebar button {
       padding: 0.6rem;
@@ -55,6 +61,7 @@
       flex: 1;
       height: 100%;
       background: #ffffff;
+      position: relative;
     }
     .drawflow-node input {
       width: 100%;
@@ -93,6 +100,26 @@
       height: auto !important;
       padding: 0 !important;
     }
+    .lane {
+      position: absolute;
+      width: 100%;
+      height: 120px;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: flex-start;
+      padding-left: 10px;
+      box-sizing: border-box;
+    }
+    .lane-label {
+      position: absolute;
+      left: 0;
+      top: 0;
+      padding: 2px 6px;
+      background: #e0e0e0;
+      font-size: 0.9rem;
+      border-right: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -102,8 +129,13 @@
   </header>
   <div class="main">
     <div class="sidebar">
-      <button class="start" onclick="addNode('start')">Iniciar Processo</button>
+      <label>Responsáveis (1 por linha):</label>
+      <textarea id="actors-input" placeholder="Ex: João\nFinanceiro\nCliente"></textarea>
+      <button onclick="createLanes()">Gerar Raias</button>
+      <label>Selecionar Responsável:</label>
+      <select id="actor-select"></select>
       <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
+      <button class="start" onclick="addNode('start')">Iniciar Processo</button>
       <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
       <button class="end" onclick="addNode('end')">Finalizar Processo</button>
       <button class="reset" onclick="clearCanvas()">Limpar Tudo</button>
@@ -117,10 +149,42 @@
 
     let lastNodeId = null;
     let x = 250;
-    let y = 100;
     const horizontalSpacing = 220;
+    const laneHeight = 120;
+    const lanes = {};
+
+    function createLanes() {
+      document.querySelectorAll('.lane').forEach(e => e.remove());
+      const actors = document.getElementById('actors-input').value.trim().split('\n').map(a => a.trim()).filter(a => a);
+      const drawflow = document.getElementById('drawflow');
+      const select = document.getElementById('actor-select');
+      select.innerHTML = '';
+      lanes.clear = {};
+      actors.forEach((actor, index) => {
+        const y = index * laneHeight;
+        const lane = document.createElement('div');
+        lane.className = 'lane';
+        lane.style.top = y + 'px';
+
+        const label = document.createElement('div');
+        label.className = 'lane-label';
+        label.innerText = actor;
+        label.style.top = y + 'px';
+
+        drawflow.appendChild(lane);
+        drawflow.appendChild(label);
+        lanes[actor] = y;
+
+        const option = document.createElement('option');
+        option.value = actor;
+        option.text = actor;
+        select.appendChild(option);
+      });
+    }
 
     function addNode(type) {
+      const actor = document.getElementById('actor-select').value;
+      let y = lanes[actor] + 40 || 100;
       let content = '';
       let className = '';
 
@@ -152,7 +216,9 @@
       editor.clear();
       lastNodeId = null;
       x = 250;
-      y = 100;
+      document.querySelectorAll('.lane, .lane-label').forEach(e => e.remove());
+      document.getElementById('actor-select').innerHTML = '';
+      Object.keys(lanes).forEach(k => delete lanes[k]);
     }
 
     document.getElementById('task-input').addEventListener('keydown', function(e) {
@@ -164,6 +230,7 @@
   </script>
 </body>
 </html>
+
 
 
 
