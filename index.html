@@ -37,6 +37,7 @@
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
+      padding: 0.5rem;
       resize: none;
     }
     .sidebar textarea#actors-input {
@@ -99,25 +100,16 @@
       height: auto !important;
       padding: 0 !important;
     }
-    .lane {
-      position: absolute;
-      width: 100%;
-      height: 120px;
-      border-top: 1px solid #ccc;
-      border-bottom: 1px solid #ccc;
-      display: flex;
-      align-items: flex-start;
-      padding-left: 10px;
+    .lane-node {
+      background: #f0f0f0;
+      color: #333;
+      border: 1px dashed #ccc;
+      font-size: 12px;
+      text-align: left;
+      padding: 4px 8px;
+      min-width: 800px;
+      height: 100px;
       box-sizing: border-box;
-    }
-    .lane-label {
-      position: absolute;
-      left: 0;
-      top: 0;
-      padding: 2px 6px;
-      background: #e0e0e0;
-      font-size: 0.9rem;
-      border-right: 1px solid #ccc;
     }
   </style>
 </head>
@@ -153,26 +145,17 @@
     const lanes = {};
 
     function createLanes() {
-      document.querySelectorAll('.lane').forEach(e => e.remove());
+      clearCanvas();
       const actors = document.getElementById('actors-input').value.trim().split('\n').map(a => a.trim()).filter(a => a);
-      const drawflow = document.getElementById('drawflow');
       const select = document.getElementById('actor-select');
       select.innerHTML = '';
-      lanes.clear = {};
+
       actors.forEach((actor, index) => {
-        const y = index * laneHeight;
-        const lane = document.createElement('div');
-        lane.className = 'lane';
-        lane.style.top = y + 'px';
+        const y = index * laneHeight + 20;
+        const labelContent = `<strong>${actor}</strong>`;
 
-        const label = document.createElement('div');
-        label.className = 'lane-label';
-        label.innerText = actor;
-        label.style.top = y + 'px';
-
-        drawflow.appendChild(lane);
-        drawflow.appendChild(label);
-        lanes[actor] = y;
+        const nodeId = editor.addNode("lane", 0, 0, 50, y, "lane-node", {}, labelContent);
+        lanes[actor] = y + 40; // offset para a tarefa surgir dentro da raia
 
         const option = document.createElement('option');
         option.value = actor;
@@ -183,7 +166,7 @@
 
     function addNode(type) {
       const actor = document.getElementById('actor-select').value;
-      let y = lanes[actor] + 40 || 100;
+      let y = lanes[actor] || 100;
       let content = '';
       let className = '';
 
@@ -215,8 +198,6 @@
       editor.clear();
       lastNodeId = null;
       x = 250;
-      document.querySelectorAll('.lane, .lane-label').forEach(e => e.remove());
-      document.getElementById('actor-select').innerHTML = '';
       Object.keys(lanes).forEach(k => delete lanes[k]);
     }
 
@@ -229,6 +210,7 @@
   </script>
 </body>
 </html>
+
 
 
 
