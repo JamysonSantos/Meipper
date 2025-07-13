@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapflue com Drawflow</title>
+  <title>Mapflue</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.css">
   <style>
     body {
@@ -17,7 +17,7 @@
       background-color: #0097a7;
       color: white;
       text-align: center;
-      padding: 0.5rem 1rem;
+      padding: 1rem;
     }
     .main {
       flex: 1;
@@ -25,18 +25,13 @@
       overflow: hidden;
     }
     .sidebar {
-      width: 280px;
+      width: 260px;
       background: #f4f4f4;
       padding: 1rem;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
       overflow-y: auto;
-    }
-    .sidebar label {
-      font-weight: bold;
-      margin-top: 0.25rem;
     }
     .sidebar textarea, .sidebar select {
       width: 100%;
@@ -45,46 +40,6 @@
       border: 1px solid #ccc;
       resize: none;
       min-height: 48px;
-    }
-    .color-picker {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .color-option {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      box-shadow: 0 0 2px rgba(0,0,0,0.2);
-      cursor: pointer;
-    }
-    .color-option.selected {
-      border-color: #000;
-    }
-    .more-colors {
-      font-size: 0.85rem;
-      background: #ddd;
-      padding: 4px 6px;
-      border-radius: 6px;
-      text-align: center;
-      cursor: pointer;
-      margin-top: -0.25rem;
-    }
-    .actor-badge {
-      display: inline-block;
-      padding: 4px 8px;
-      font-size: 0.85rem;
-      color: white;
-      border-radius: 6px;
-      margin: 2px 2px 0 0;
-      white-space: nowrap;
-    }
-    .actor-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 0.5rem;
     }
     .sidebar button {
       padding: 0.6rem;
@@ -96,23 +51,16 @@
     .start { background-color: #4caf50; color: white; }
     .task { background-color: #2196f3; color: white; }
     .end { background-color: #f44336; color: white; }
-    .reset { background-color: #777; color: white; }
-
+    .clear { background-color: #666; color: white; }
     #drawflow {
       flex: 1;
       height: 100%;
       background: #ffffff;
-      position: relative;
     }
-
-    .task-content {
-      padding: 8px;
-      font-size: 14px;
+    .drawflow-node .title {
+      font-weight: bold;
       text-align: center;
-      word-break: break-word;
-      white-space: pre-wrap;
     }
-
     .circle {
       width: 40px;
       height: 40px;
@@ -134,36 +82,40 @@
       height: auto !important;
       padding: 0 !important;
     }
+    .responsavel-tag {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #fff;
+      margin: 2px;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1 style="margin: 0.2em 0">Mapflue</h1>
-    <p style="margin: 0; font-size: 0.9rem">Crie seu processo clicando nos elementos</p>
+    <h1>Mapflue</h1>
+    <p>Crie seu processo clicando nos elementos</p>
   </header>
   <div class="main">
     <div class="sidebar">
-      <label>Responsável/Setor/Área:</label>
-      <textarea id="actors-input" placeholder="Ex: Financeiro"></textarea>
+      <label><strong>Responsável/Setor/Área:</strong></label>
+      <textarea id="responsible-name" placeholder="Ex: Financeiro"></textarea>
+      <label><strong>Cor:</strong></label>
+      <div id="color-options"></div>
+      <button onclick="toggleColorPicker()">Mais cores</button>
+      <input type="color" id="color-picker" style="display:none;">
+      <button onclick="salvarResponsavel()">Salvar Responsável</button>
 
-      <label>Cor:</label>
-      <div class="color-picker" id="color-picker"></div>
-      <div class="more-colors" onclick="addMoreColors()">Mais cores</div>
+      <label for="responsible-select"><strong>Selecionar Responsável:</strong></label>
+      <select id="responsible-select"></select>
+      <div id="tags-container"></div>
 
-      <button onclick="addActor()">Salvar Responsável</button>
-
-      <label>Selecionar Responsável:</label>
-      <select id="actor-select"></select>
-
-      <div class="actor-container" id="actor-list"></div>
-
-      <label>Tarefa:</label>
       <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
-
       <button class="start" onclick="addNode('start')">Iniciar Processo</button>
       <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
       <button class="end" onclick="addNode('end')">Finalizar Processo</button>
-      <button class="reset" onclick="clearCanvas()">Limpar Tudo</button>
+      <button class="clear" onclick="location.reload()">Limpar Tudo</button>
     </div>
     <div id="drawflow"></div>
   </div>
@@ -174,58 +126,9 @@
     editor.start();
 
     let lastNodeId = null;
-    let lastNodeX = 100;
-    let lastNodeY = 100;
-    const spacingX = 220;
-    const spacingY = 100;
-
-    const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
-    let extendedColorsAdded = false;
-    let selectedColor = predefinedColors[0];
-    const actors = {};
-
-    function renderColorPicker() {
-      const container = document.getElementById('color-picker');
-      container.innerHTML = '';
-      predefinedColors.forEach(color => {
-        const el = document.createElement('div');
-        el.className = 'color-option';
-        el.style.backgroundColor = color;
-        el.onclick = () => {
-          selectedColor = color;
-          document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-          el.classList.add('selected');
-        };
-        if (color === selectedColor) el.classList.add('selected');
-        container.appendChild(el);
-      });
-    }
-
-    function addMoreColors() {
-      if (extendedColorsAdded) return;
-      const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
-      predefinedColors.push(...more);
-      extendedColorsAdded = true;
-      renderColorPicker();
-    }
-
-    function addActor() {
-      const name = document.getElementById('actors-input').value.trim();
-      if (!name || actors[name]) return;
-      actors[name] = selectedColor;
-      const option = document.createElement('option');
-      option.value = name;
-      option.text = name;
-      document.getElementById('actor-select').appendChild(option);
-
-      const badge = document.createElement('div');
-      badge.className = 'actor-badge';
-      badge.style.backgroundColor = selectedColor;
-      badge.textContent = name;
-      document.getElementById('actor-list').appendChild(badge);
-
-      document.getElementById('actors-input').value = '';
-    }
+    const offsetX = 200;
+    const offsetY = 0;
+    let responsaveis = [];
 
     function addNode(type) {
       let content = '';
@@ -235,45 +138,95 @@
         content = `<div class='circle start'>Início</div>`;
         className = 'start';
       } else if (type === 'task') {
-        const task = document.getElementById('task-input').value.trim();
-        if (!task) return;
-        const actor = document.getElementById('actor-select').value;
-        const color = actors[actor] || '#2196f3';
-        content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+        const inputText = document.getElementById('task-input').value.trim() || 'Nova Tarefa';
+        const selectedResp = document.getElementById('responsible-select').value;
+        const resp = responsaveis.find(r => r.nome === selectedResp);
+        const cor = resp?.cor || '#2196f3';
+
+        content = `<div class='title' style='background:${cor}; padding: 0.5rem; border-radius: 6px;'>${inputText}<br><small>${selectedResp}</small></div>`;
         className = 'task';
+
         document.getElementById('task-input').value = '';
       } else if (type === 'end') {
         content = `<div class='circle end'>Fim</div>`;
         className = 'end';
       }
 
-      const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
-      if (lastNodeId) editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
+      let newX = 100;
+      let newY = 100;
+      if (lastNodeId && editor.drawflow.Home.data[lastNodeId]) {
+        const lastNode = editor.drawflow.Home.data[lastNodeId];
+        newX = lastNode.pos_x + offsetX;
+        newY = lastNode.pos_y + offsetY;
+      }
+
+      const id = editor.addNode(type, 1, 1, newX, newY, className, {}, content);
+
+      if (lastNodeId) {
+        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
+      }
+
       lastNodeId = id;
-
-      const node = editor.drawflow.drawflow.Home.data[id];
-      lastNodeX = node.pos_x + spacingX;
-      lastNodeY = node.pos_y;
     }
 
-    function clearCanvas() {
-      editor.clear();
-      lastNodeId = null;
-      lastNodeX = 100;
-      lastNodeY = 100;
+    function salvarResponsavel() {
+      const nome = document.getElementById('responsible-name').value.trim();
+      const cor = document.querySelector('.cor-selecionada')?.dataset.cor || '#2196f3';
+      if (!nome) return;
+
+      responsaveis.push({ nome, cor });
+
+      const option = document.createElement('option');
+      option.value = nome;
+      option.textContent = nome;
+      document.getElementById('responsible-select').appendChild(option);
+
+      const tag = document.createElement('span');
+      tag.className = 'responsavel-tag';
+      tag.style.background = cor;
+      tag.textContent = nome;
+      document.getElementById('tags-container').appendChild(tag);
+
+      document.getElementById('responsible-name').value = '';
     }
 
-    document.getElementById('task-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
+    function toggleColorPicker() {
+      const picker = document.getElementById('color-picker');
+      picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function gerarPaletaCores() {
+      const coresFixas = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
+      const container = document.getElementById('color-options');
+      container.innerHTML = '';
+      coresFixas.forEach(cor => {
+        const btn = document.createElement('button');
+        btn.style.background = cor;
+        btn.style.width = '24px';
+        btn.style.height = '24px';
+        btn.style.borderRadius = '50%';
+        btn.style.border = '2px solid white';
+        btn.dataset.cor = cor;
+        btn.onclick = () => {
+          document.querySelectorAll('#color-options button').forEach(b => b.classList.remove('cor-selecionada'));
+          btn.classList.add('cor-selecionada');
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    document.getElementById('task-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
         e.preventDefault();
         addNode('task');
       }
     });
 
-    renderColorPicker();
+    gerarPaletaCores();
   </script>
 </body>
 </html>
+
 
 
 
