@@ -43,6 +43,7 @@
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
+      padding: 0.5rem;
       resize: none;
       min-height: 48px;
     }
@@ -174,8 +175,8 @@
     editor.start();
 
     let lastNodeId = null;
-    let x = 100;
-    const y = 100;
+    let lastNodeX = 100;
+    let lastNodeY = 100;
     const horizontalSpacing = 220;
 
     const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
@@ -246,16 +247,17 @@
         className = 'end';
       }
 
-      const id = editor.addNode(type, 1, 1, x, y, className, {}, content);
+      const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
       if (lastNodeId) editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
       lastNodeId = id;
-      x += horizontalSpacing;
+      lastNodeX += horizontalSpacing;
     }
 
     function clearCanvas() {
       editor.clear();
       lastNodeId = null;
-      x = 100;
+      lastNodeX = 100;
+      lastNodeY = 100;
     }
 
     document.getElementById('task-input').addEventListener('keydown', function(e) {
@@ -269,6 +271,7 @@
   </script>
 </body>
 </html>
+
 
 
 
