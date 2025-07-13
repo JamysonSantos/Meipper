@@ -32,7 +32,7 @@
       flex-direction: column;
       gap: 0.5rem;
     }
-    .sidebar textarea, .sidebar select {
+    .sidebar textarea, .sidebar select, .sidebar input[type="color"] {
       width: 100%;
       font-size: 1rem;
       border-radius: 6px;
@@ -40,7 +40,7 @@
       resize: none;
     }
     .sidebar textarea#actors-input {
-      height: 80px;
+      height: 40px;
     }
     .sidebar textarea#task-input {
       height: 60px;
@@ -71,6 +71,16 @@
       word-break: break-word;
       white-space: pre-wrap;
     }
+    .task-responsible {
+      font-size: 12px;
+      margin-top: 4px;
+      font-weight: bold;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
     .circle {
       width: 40px;
       height: 40px;
@@ -92,29 +102,6 @@
       height: auto !important;
       padding: 0 !important;
     }
-
-    .lane-overlay {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 100px;
-      border-top: 1px dashed #ccc;
-      border-bottom: 1px dashed #ccc;
-      display: flex;
-      align-items: center;
-      padding-left: 10px;
-      box-sizing: border-box;
-      font-size: 14px;
-      color: #555;
-      background-color: rgba(255,255,255,0.2);
-      pointer-events: none;
-    }
-    .lane-label {
-      background: #e0e0e0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -124,9 +111,12 @@
   </header>
   <div class="main">
     <div class="sidebar">
-      <label>Responsáveis (1 por linha):</label>
-      <textarea id="actors-input" placeholder="Ex: João\nFinanceiro\nCliente"></textarea>
-      <button onclick="createLanes()">Gerar Raias</button>
+      <label>Nome do responsável:</label>
+      <textarea id="actors-input" placeholder="Ex: João"></textarea>
+      <label>Cor do responsável:</label>
+      <input type="color" id="actor-color" value="#2196f3">
+      <button onclick="addActor()">Salvar Responsável</button>
+
       <label>Selecionar Responsável:</label>
       <select id="actor-select"></select>
       <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
@@ -135,9 +125,7 @@
       <button class="end" onclick="addNode('end')">Finalizar Processo</button>
       <button class="reset" onclick="clearCanvas()">Limpar Tudo</button>
     </div>
-    <div id="drawflow">
-      <div id="lanes-container" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0;"></div>
-    </div>
+    <div id="drawflow"></div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
   <script>
@@ -147,38 +135,26 @@
     let lastNodeId = null;
     let x = 250;
     const horizontalSpacing = 220;
-    const laneHeight = 120;
-    const lanes = {};
-    const lanesContainer = document.getElementById('lanes-container');
+    const actors = {}; // Nome => cor
 
-    function createLanes() {
-      clearCanvas();
-      const actors = document.getElementById('actors-input').value.trim().split('\n').map(a => a.trim()).filter(a => a);
-      const select = document.getElementById('actor-select');
-      select.innerHTML = '';
-      lanesContainer.innerHTML = '';
+    function addActor() {
+      const name = document.getElementById('actors-input').value.trim();
+      const color = document.getElementById('actor-color').value;
+      if (!name || actors[name]) return;
 
-      actors.forEach((actor, index) => {
-        const y = index * laneHeight;
+      actors[name] = color;
 
-        const lane = document.createElement('div');
-        lane.className = 'lane-overlay';
-        lane.style.top = `${y}px`;
-        lane.innerHTML = `<div class="lane-label">${actor}</div>`;
-        lanesContainer.appendChild(lane);
-
-        lanes[actor] = y + 40;
-
-        const option = document.createElement('option');
-        option.value = actor;
-        option.text = actor;
-        select.appendChild(option);
-      });
+      const option = document.createElement('option');
+      option.value = name;
+      option.text = name;
+      document.getElementById('actor-select').appendChild(option);
+      document.getElementById('actors-input').value = '';
     }
 
     function addNode(type) {
       const actor = document.getElementById('actor-select').value;
-      let y = lanes[actor] || 100;
+      const color = actors[actor] || '#999';
+      let y = 100;
       let content = '';
       let className = '';
 
@@ -188,7 +164,7 @@
       } else if (type === 'task') {
         const inputEl = document.getElementById('task-input');
         const inputText = inputEl.value.trim() || 'Nova Tarefa';
-        content = `<div class='task-content'>${inputText}</div>`;
+        content = `<div class='task-content'>${inputText}</div><div class='task-responsible' style='background:${color}'>${actor}</div>`;
         className = 'task';
         inputEl.value = '';
       } else if (type === 'end') {
@@ -210,9 +186,8 @@
       editor.clear();
       lastNodeId = null;
       x = 250;
-      lanesContainer.innerHTML = '';
       document.getElementById('actor-select').innerHTML = '';
-      Object.keys(lanes).forEach(k => delete lanes[k]);
+      Object.keys(actors).forEach(k => delete actors[k]);
     }
 
     document.getElementById('task-input').addEventListener('keydown', function(e) {
@@ -224,6 +199,7 @@
   </script>
 </body>
 </html>
+
 
 
 
