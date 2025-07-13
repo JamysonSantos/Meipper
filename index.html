@@ -227,7 +227,10 @@
       document.getElementById('actors-input').value = '';
     }
 
-    function addNode(type) {
+   let lastNodeId = null;         // último nó adicionado (de qualquer tipo)
+   let lastTaskNodeId = null;     // último nó do tipo "task"
+
+function addNode(type) {
   let content = '';
   let className = '';
   let x = 100;
@@ -241,41 +244,59 @@
   if (type === 'start') {
     content = `<div class='circle start'>Início</div>`;
     className = 'start';
-    lastNodeX = 100;
-    lastNodeY = 100;
-    x = lastNodeX;
-    y = lastNodeY;
+    lastNodeX = x;
+    lastNodeY = y;
+  }
 
-  } else {
-    // 👉 Pega posição real do último nó
-    const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-    lastNodeX = lastNode.pos_x + spacingX;
-    lastNodeY = lastNode.pos_y;
-    x = lastNodeX;
-    y = lastNodeY;
+  if (type === 'task') {
+    const task = document.getElementById('task-input').value.trim();
+    if (!task) return;
 
-    if (type === 'task') {
-      const task = document.getElementById('task-input').value.trim();
-      if (!task) return;
-      const actor = document.getElementById('actor-select').value;
-      const color = actors[actor] || '#2196f3';
-      content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
-      className = 'task';
-      document.getElementById('task-input').value = '';
-    } else if (type === 'end') {
-      content = `<div class='circle end'>Fim</div>`;
-      className = 'end';
+    const actor = document.getElementById('actor-select').value;
+    const color = actors[actor] || '#2196f3';
+
+    content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>
+                 ${task}
+                 <div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div>
+               </div>`;
+    className = 'task';
+
+    // 🧠 Pega posição real do último nó
+    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
+    x = last.pos_x + spacingX;
+    y = last.pos_y;
+
+    lastNodeX = x;
+    lastNodeY = y;
+  }
+
+  if (type === 'end') {
+    content = `<div class='circle end'>Fim</div>`;
+    className = 'end';
+
+    if (lastTaskNodeId) {
+      const lastTask = editor.drawflow.drawflow.Home.data[lastTaskNodeId];
+      const offsetY = 15; // Correção visual para alinhar verticalmente
+      x = lastTask.pos_x + spacingX;
+      y = lastTask.pos_y + offsetY;
+    } else {
+      x = lastNodeX + spacingX;
+      y = lastNodeY;
     }
   }
 
   const id = editor.addNode(type, 1, 1, x, y, className, {}, content);
 
-  // Conecta com o anterior (exceto o primeiro 'start')
+  // Conecta com o anterior, se não for o primeiro
   if (lastNodeId && type !== 'start') {
     editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
   }
 
   lastNodeId = id;
+
+  if (type === 'task') {
+    lastTaskNodeId = id;
+  }
 }
 
     function clearCanvas() {
