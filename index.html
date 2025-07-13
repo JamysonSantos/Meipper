@@ -55,6 +55,15 @@
     .color-option.selected {
       border-color: #000;
     }
+    .more-colors {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      background: #ddd;
+      padding: 4px 6px;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+    }
     .sidebar textarea#actors-input {
       height: 40px;
     }
@@ -118,10 +127,13 @@
   </header>
   <div class="main">
     <div class="sidebar">
-      <label>Nome do responsável:</label>
-      <textarea id="actors-input" placeholder="Ex: João"></textarea>
+      <label>Responsável/Setor/Área:</label>
+      <textarea id="actors-input" placeholder="Ex: Financeiro"></textarea>
+
       <label>Cor do responsável:</label>
       <div class="color-picker" id="color-picker"></div>
+      <div class="more-colors" onclick="loadMoreColors()">Mais cores</div>
+
       <button onclick="addActor()">Salvar Responsável</button>
 
       <label>Selecionar Responsável:</label>
@@ -142,24 +154,36 @@
     let lastNodeId = null;
     let x = 250;
     const horizontalSpacing = 220;
+    const yDefault = 100;
     const actors = {}; // Nome => cor
 
     const predefinedColors = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
     let selectedColor = predefinedColors[0];
 
     const colorPickerContainer = document.getElementById('color-picker');
-    predefinedColors.forEach(color => {
-      const el = document.createElement('div');
-      el.className = 'color-option';
-      el.style.backgroundColor = color;
-      if (color === selectedColor) el.classList.add('selected');
-      el.onclick = () => {
-        selectedColor = color;
-        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-        el.classList.add('selected');
-      };
-      colorPickerContainer.appendChild(el);
-    });
+
+    function renderColorOptions(colors) {
+      colorPickerContainer.innerHTML = '';
+      colors.forEach(color => {
+        const el = document.createElement('div');
+        el.className = 'color-option';
+        el.style.backgroundColor = color;
+        if (color === selectedColor) el.classList.add('selected');
+        el.onclick = () => {
+          selectedColor = color;
+          document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+          el.classList.add('selected');
+        };
+        colorPickerContainer.appendChild(el);
+      });
+    }
+
+    renderColorOptions(predefinedColors);
+
+    function loadMoreColors() {
+      const extra = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
+      renderColorOptions([...predefinedColors, ...extra]);
+    }
 
     function addActor() {
       const name = document.getElementById('actors-input').value.trim();
@@ -177,7 +201,6 @@
     function addNode(type) {
       const actor = document.getElementById('actor-select').value;
       const color = actors[actor] || '#2196f3';
-      let y = 100;
       let content = '';
       let className = '';
 
@@ -193,6 +216,15 @@
       } else if (type === 'end') {
         content = `<div class='circle end'>Fim</div>`;
         className = 'end';
+      }
+
+      // Pegando última posição Y do último node (se ainda existir)
+      let y = yDefault;
+      if (lastNodeId) {
+        const lastNode = editor.drawflow.Home.data[lastNodeId];
+        if (lastNode && lastNode.pos_y !== undefined) {
+          y = lastNode.pos_y;
+        }
       }
 
       const id = editor.addNode(type, 1, 1, x, y, className, {}, content);
