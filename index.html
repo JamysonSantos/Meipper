@@ -518,9 +518,16 @@ document.getElementById('task-input').addEventListener('keydown', function(e) {
 
 function clearCanvas() {
   editor.clear();
+
+  // Resetar variáveis de controle
   lastNodeId = null;
   lastNodeX = 100;
   lastNodeY = 100;
+
+  // Garantir que o contexto esteja limpo
+  editor.drawflow.drawflow.Home.data = {};
+
+  // Remove popup de contexto se estiver aberto
   const ctx = document.getElementById('ctx-popup');
   if (ctx) ctx.remove();
 }
