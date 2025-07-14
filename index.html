@@ -149,7 +149,8 @@
       white-space: pre-wrap;
       color: white;
       font-weight: 500;
-      user-select: none; /* Evitar seleção ao clicar */
+      border-radius: 10px;
+      user-select: none;
     }
 
     .circle {
@@ -373,8 +374,8 @@
         if (!task) return;
         const actor = document.getElementById('actor-select').value;
         const color = actors[actor] || '#2196f3';
-        content = `<div class='task-content' style='background:${color};border-radius:10px;'>
-          <div class="task-text" contenteditable="false">${task}</div>
+        content = `<div class='task-content' style='background:${color};'>
+          ${task}
           <div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div>
           </div>`;
         className = 'task';
@@ -498,15 +499,7 @@
 
         btnEdit.onclick = (e) => {
           e.stopPropagation();
-          const taskText = node.querySelector('.task-text');
-          if (!taskText) return;
-          if (taskText.isContentEditable) {
-            taskText.contentEditable = "false";
-            taskText.blur();
-          } else {
-            taskText.contentEditable = "true";
-            taskText.focus();
-          }
+          alert('Para editar, selecione o nó e edite o texto diretamente no editor (em desenvolvimento).');
         };
 
         popup.appendChild(btnEdit);
@@ -551,6 +544,19 @@
       if (!nodeData) return;
 
       createPopup(node, nodeId, nodeData.name);
+    });
+
+    // Fechar popup se deletar nó com teclado
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete' && popup) {
+        // Verifica nó selecionado (lastNodeId)
+        if (lastNodeId !== null) {
+          editor.removeNode(lastNodeId);
+          popup.remove();
+          popup = null;
+          lastNodeId = null;
+        }
+      }
     });
   </script>
 </body>
