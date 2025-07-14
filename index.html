@@ -74,6 +74,7 @@
     .actor-badge {
       display: inline-flex;
       align-items: center;
+      gap: 6px;
       padding: 4px 8px;
       font-size: 0.85rem;
       color: white;
@@ -82,12 +83,22 @@
       white-space: nowrap;
     }
     .actor-badge button {
-      margin-left: 6px;
-      background: none;
+      background: rgba(255,255,255,0.2);
       border: none;
       color: white;
       font-weight: bold;
+      font-size: 0.9rem;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .actor-badge button:hover {
+      background: rgba(255,255,255,0.4);
     }
     .actor-container {
       display: flex;
@@ -122,7 +133,6 @@
       white-space: pre-wrap;
       color: white;
       font-weight: 500;
-      border-radius: 10px;
     }
 
     .circle {
@@ -138,6 +148,13 @@
     }
     .circle.start { background: #4caf50; }
     .circle.end { background: #f44336; }
+
+    .drawflow-node.task {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
     .drawflow-node.start, .drawflow-node.end {
       background: transparent !important;
       border: none !important;
@@ -145,6 +162,13 @@
       width: auto !important;
       height: auto !important;
       padding: 0 !important;
+    }
+
+    .drawflow .connection .main-path {
+      stroke: #888;
+      stroke-width: 3;
+      fill: none;
+      marker-end: url(#arrow);
     }
   </style>
 </head>
