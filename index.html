@@ -235,20 +235,10 @@
       renderColorPicker();
     }
 
-     function addActor() {
+    function addActor() {
       const name = document.getElementById('actors-input').value.trim();
       if (!name || actors[name]) return;
-
-      // Impedir cores duplicadas
-      for (let key in actors) {
-        if (actors[key] === selectedColor) {
-          alert('Essa cor já está em uso. Escolha uma cor diferente.');
-          return;
-        }
-      }
-
       actors[name] = selectedColor;
-
       const option = document.createElement('option');
       option.value = name;
       option.text = name;
@@ -257,28 +247,10 @@
       const badge = document.createElement('div');
       badge.className = 'actor-badge';
       badge.style.backgroundColor = selectedColor;
-      badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
+      badge.textContent = name;
       document.getElementById('actor-list').appendChild(badge);
 
       document.getElementById('actors-input').value = '';
-    }
-
-    function removeActor(name) {
-      delete actors[name];
-      const select = document.getElementById('actor-select');
-      for (let i = 0; i < select.options.length; i++) {
-        if (select.options[i].value === name) {
-          select.remove(i);
-          break;
-        }
-      }
-      const badges = document.getElementById('actor-list').children;
-      for (let i = badges.length - 1; i >= 0; i--) {
-        if (badges[i].textContent.startsWith(name)) {
-          badges[i].remove();
-          break;
-        }
-      }
     }
 
     function addNode(type) {
@@ -346,7 +318,6 @@
   </script>
 </body>
 </html>
-
 
 
 
