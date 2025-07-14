@@ -216,17 +216,27 @@
   border-radius: 8px;
   cursor: pointer;
   }
-  .drawflow-node .input,
-.drawflow-node .output {
-  width: 6px;
-  height: 6px;
-  background: #2196f3;
-  border: 1px solid white;
+   #drawflow .drawflow-node .input {
+  width: 9px !important;
+  height: 9px !important;
+  background: #4caf50 !important; /* verde */
+  border: 1px solid #fff !important;
+  border-radius: 50% !important;
+  cursor: crosshair;
+  z-index: 2;
   box-shadow: 0 0 2px rgba(0,0,0,0.1);
-  border-radius: 50%;
-  transition: transform 0.2s ease;
 }
-  
+
+#drawflow .drawflow-node .output {
+  width: 9px !important;
+  height: 9px !important;
+  background: #f44336 !important; /* vermelho */
+  border: 1px solid #fff !important;
+  border-radius: 50% !important;
+  cursor: crosshair;
+  z-index: 2;
+  box-shadow: 0 0 2px rgba(0,0,0,0.1);
+}
 </style>
 </head>
 <body>
