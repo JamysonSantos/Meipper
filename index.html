@@ -252,8 +252,7 @@
     </marker>
   </defs>
 </svg>
-
-<script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.49/dist/drawflow.min.js"></script>
+  
 <script>
 const editor = new Drawflow(document.getElementById('drawflow'));
 editor.reroute = true;
@@ -416,6 +415,7 @@ function createPopup(nodeElement, nodeId, type) {
   popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
   popup.style.zIndex = 1000;
 
+  // Botão Excluir
   const btnDelete = document.createElement('button');
   btnDelete.textContent = 'Excluir';
   btnDelete.style.marginRight = '8px';
@@ -424,10 +424,32 @@ function createPopup(nodeElement, nodeId, type) {
     editor.removeNode(nodeId);
     popup.remove();
     popup = null;
-    if (lastNodeId === nodeId) lastNodeId = null;
+
+    // Atualizar lastNodeId para nó anterior na sequência, se existir
+    let previousNodeId = null;
+    const nodes = editor.drawflow.drawflow.Home.data;
+    for (const key in nodes) {
+      if (nodes[key].outputs && nodes[key].outputs['output_1'] && nodes[key].outputs['output_1'].connections) {
+        if (nodes[key].outputs['output_1'].connections.some(conn => conn.node === nodeId)) {
+          previousNodeId = parseInt(key);
+          break;
+        }
+      }
+    }
+    if (previousNodeId !== null) {
+      lastNodeId = previousNodeId;
+      const prevNode = editor.drawflow.drawflow.Home.data[previousNodeId];
+      lastNodeX = prevNode.pos_x + spacingX;
+      lastNodeY = prevNode.pos_y;
+    } else {
+      lastNodeId = null;
+      lastNodeX = 100;
+      lastNodeY = 100;
+    }
   };
   popup.appendChild(btnDelete);
 
+  // Botão Editar só para tarefas
   if (type === 'task') {
     const btnEdit = document.createElement('button');
     btnEdit.textContent = 'Editar';
@@ -486,7 +508,6 @@ document.addEventListener('click', (e) => {
 });
 
 document.getElementById('drawflow').addEventListener('click', (e) => {
-  // Encontra o nó correto com data-node-id, subindo na árvore
   let nodeElement = e.target;
   while (nodeElement && !nodeElement.classList?.contains('drawflow-node')) {
     nodeElement = nodeElement.parentElement;
