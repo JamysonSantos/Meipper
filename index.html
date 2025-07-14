@@ -302,51 +302,65 @@
     }
 
     function addNode(type) {
-      let content = '';
-      let className = '';
+  let content = '';
+  let className = '';
 
-      if (!lastNodeId && type !== 'start') {
-        alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
-        return;
-      }
+  if (!lastNodeId && type !== 'start') {
+    alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
+    return;
+  }
 
-      if (type === 'start') {
-        content = `<div class='circle start'>Início</div>`;
-        className = 'start';
-        lastNodeX = 100;
-        lastNodeY = 100;
-      } else if (type === 'task') {
-        const task = document.getElementById('task-input').value.trim();
-        if (!task) return;
-        const actor = document.getElementById('actor-select').value;
-        const color = actors[actor] || '#2196f3';
-        content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
-        className = 'task';
+  if (type === 'start') {
+    content = `<div class='circle start'>Início</div>`;
+    className = 'start';
+    lastNodeX = 100;
+    lastNodeY = 100;
+  } else if (type === 'task') {
+    const task = document.getElementById('task-input').value.trim();
+    if (!task) return;
+    const actor = document.getElementById('actor-select').value;
+    const color = actors[actor] || '#2196f3';
+    content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+    className = 'task';
 
-        if (lastNodeId) {
-          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-          lastNodeX = lastNode.pos_x + spacingX;
-          lastNodeY = lastNode.pos_y;
-        }
-
-        document.getElementById('task-input').value = '';
-      } else if (type === 'end') {
-        content = `<div class='circle end'>Fim</div>`;
-        className = 'end';
-
-        if (lastNodeId) {
-          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-          lastNodeX = lastNode.pos_x + spacingX;
-          lastNodeY = lastNode.pos_y;
-        }
-      }
-
-      const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
-      if (lastNodeId && type !== 'start') {
-        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-      }
-      lastNodeId = id;
+    if (lastNodeId) {
+      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+      lastNodeX = lastNode.pos_x + spacingX;
+      lastNodeY = lastNode.pos_y;
     }
+
+    document.getElementById('task-input').value = '';
+  } else if (type === 'end') {
+    content = `<div class='circle end'>Fim</div>`;
+    className = 'end';
+
+    if (lastNodeId) {
+      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+      lastNodeX = lastNode.pos_x + spacingX;
+      lastNodeY = lastNode.pos_y;
+    }
+  }
+
+  // NOVO: configura entradas/saídas específicas por tipo
+  let inputs = 1;
+  let outputs = 1;
+
+  if (type === 'start') {
+    inputs = 0;
+    outputs = 1;
+  } else if (type === 'end') {
+    inputs = 1;
+    outputs = 0;
+  }
+
+  const id = editor.addNode(type, inputs, outputs, lastNodeX, lastNodeY, className, {}, content);
+
+  if (lastNodeId && type !== 'start') {
+    editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
+  }
+
+  lastNodeId = id;
+}
 
     function clearCanvas() {
       editor.clear();
