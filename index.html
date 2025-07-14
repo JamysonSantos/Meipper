@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mapflue com Drawflow</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.49/dist/drawflow.min.css">
   <style>
     body {
       margin: 0;
@@ -170,6 +170,31 @@
       fill: none;
       marker-end: url(#arrow);
     }
+
+    /* Menu de contexto */
+    #node-menu {
+      position: absolute;
+      z-index: 9999;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: none;
+      padding: 6px;
+      font-size: 14px;
+    }
+    #node-menu button {
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      margin: 2px 0;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+    }
+    #node-menu button:hover {
+      background: #eee;
+    }
   </style>
 </head>
 <body>
@@ -212,12 +237,15 @@
     </defs>
   </svg>
 
+  <!-- menu de contexto -->
+  <div id="node-menu"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.49/dist/drawflow.min.js"></script>
   <script>
     const editor = new Drawflow(document.getElementById('drawflow'));
     editor.reroute = true;
     editor.force_first_input = false;
-    editor.curvature = 0.5; // Curvas suaves
+    editor.curvature = 0.5; // curvas suaves
     editor.start();
 
     let lastNodeId = null;
@@ -258,17 +286,13 @@
     function addActor() {
       const name = document.getElementById('actors-input').value.trim();
       if (!name || actors[name]) return;
-
-      // Impedir cores duplicadas
       for (let key in actors) {
         if (actors[key] === selectedColor) {
           alert('Essa cor já está em uso. Escolha uma cor diferente.');
           return;
         }
       }
-
       actors[name] = selectedColor;
-
       const option = document.createElement('option');
       option.value = name;
       option.text = name;
@@ -279,7 +303,6 @@
       badge.style.backgroundColor = selectedColor;
       badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
       document.getElementById('actor-list').appendChild(badge);
-
       document.getElementById('actors-input').value = '';
     }
 
@@ -292,75 +315,59 @@
           break;
         }
       }
-      const badges = document.getElementById('actor-list').children;
-      for (let i = badges.length - 1; i >= 0; i--) {
-        if (badges[i].textContent.startsWith(name)) {
-          badges[i].remove();
-          break;
-        }
-      }
+      const badges = Array.from(document.getElementById('actor-list').children);
+      badges.forEach(b => {
+        if (b.textContent.startsWith(name)) b.remove();
+      });
     }
 
     function addNode(type) {
-  let content = '';
-  let className = '';
+      let content = '';
+      let className = '';
 
-  if (!lastNodeId && type !== 'start') {
-    alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
-    return;
-  }
+      if (!lastNodeId && type !== 'start') {
+        alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
+        return;
+      }
 
-  if (type === 'start') {
-    content = `<div class='circle start'>Início</div>`;
-    className = 'start';
-    lastNodeX = 100;
-    lastNodeY = 100;
-  } else if (type === 'task') {
-    const task = document.getElementById('task-input').value.trim();
-    if (!task) return;
-    const actor = document.getElementById('actor-select').value;
-    const color = actors[actor] || '#2196f3';
-    content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
-    className = 'task';
+      if (type === 'start') {
+        content = `<div class='circle start'>Início</div>`;
+        className = 'start';
+        lastNodeX = 100;
+        lastNodeY = 100;
+      } else if (type === 'task') {
+        const task = document.getElementById('task-input').value.trim();
+        if (!task) return;
+        const actor = document.getElementById('actor-select').value;
+        const color = actors[actor] || '#2196f3';
+        content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+        className = 'task';
+        if (lastNodeId) {
+          const last = editor.drawflow.drawflow.Home.data[lastNodeId];
+          lastNodeX = last.pos_x + spacingX;
+          lastNodeY = last.pos_y;
+        }
+        document.getElementById('task-input').value = '';
+      } else if (type === 'end') {
+        content = `<div class='circle end'>Fim</div>`;
+        className = 'end';
+        if (lastNodeId) {
+          const last = editor.drawflow.drawflow.Home.data[lastNodeId];
+          lastNodeX = last.pos_x + spacingX;
+          lastNodeY = last.pos_y;
+        }
+      }
 
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
+      let inputs = 1, outputs = 1;
+      if (type === 'start') { inputs = 0; outputs = 1; }
+      else if (type === 'end')   { inputs = 1; outputs = 0; }
+
+      const id = editor.addNode(type, inputs, outputs, lastNodeX, lastNodeY, className, {}, content);
+      if (lastNodeId && type !== 'start') {
+        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
+      }
+      lastNodeId = id;
     }
-
-    document.getElementById('task-input').value = '';
-  } else if (type === 'end') {
-    content = `<div class='circle end'>Fim</div>`;
-    className = 'end';
-
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
-    }
-  }
-
-  // NOVO: configura entradas/saídas específicas por tipo
-  let inputs = 1;
-  let outputs = 1;
-
-  if (type === 'start') {
-    inputs = 0;
-    outputs = 1;
-  } else if (type === 'end') {
-    inputs = 1;
-    outputs = 0;
-  }
-
-  const id = editor.addNode(type, inputs, outputs, lastNodeX, lastNodeY, className, {}, content);
-
-  if (lastNodeId && type !== 'start') {
-    editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-  }
-
-  lastNodeId = id;
-}
 
     function clearCanvas() {
       editor.clear();
@@ -369,7 +376,7 @@
       lastNodeY = 100;
     }
 
-    document.getElementById('task-input').addEventListener('keydown', function(e) {
+    document.getElementById('task-input').addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         addNode('task');
@@ -377,9 +384,57 @@
     });
 
     renderColorPicker();
+
+    // menu de contexto
+    const nodeMenu = document.getElementById('node-menu');
+    document.addEventListener('click', e => {
+      if (!nodeMenu.contains(e.target)) nodeMenu.style.display = 'none';
+    });
+
+    editor.on('click', ({id}) => {
+      const node = editor.drawflow.drawflow.Home.data[id];
+      const type = node.class;
+      nodeMenu.innerHTML = '';
+
+      if (type === 'task') {
+        const btnEdit = document.createElement('button');
+        btnEdit.textContent = '✏️ Editar';
+        btnEdit.onclick = () => {
+          const html = node.html;
+          const m = html.match(/>([^<]+)<\/div><div.*?>([^<]+)<\/div>/);
+          const oldTask  = m?.[1] ?? '';
+          const oldActor = m?.[2] ?? '';
+          const newTask  = prompt('Editar tarefa:', oldTask);
+          const newActor = prompt('Editar responsável:', oldActor);
+          if (newTask && newActor) {
+            const clr = actors[newActor]||'#2196f3';
+            node.html = `<div class='task-content' style='background:${clr};border-radius:10px;'>${newTask}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${newActor}</div></div>`;
+            editor.updateNodeFromId(id);
+          }
+          nodeMenu.style.display = 'none';
+        };
+        nodeMenu.appendChild(btnEdit);
+      }
+
+      const btnDel = document.createElement('button');
+      btnDel.textContent = '🗑️ Excluir';
+      btnDel.onclick = () => {
+        editor.removeNodeId(id);
+        nodeMenu.style.display = 'none';
+      };
+      nodeMenu.appendChild(btnDel);
+
+      // posiciona menu
+      const cont = editor.container.getBoundingClientRect();
+      const nb   = document.querySelector(`.drawflow-node[data-id="${id}"]`).getBoundingClientRect();
+      nodeMenu.style.top  = `${nb.top - cont.top + nb.height + 4}px`;
+      nodeMenu.style.left = `${nb.left - cont.left}px`;
+      nodeMenu.style.display = 'block';
+    });
   </script>
 </body>
 </html>
+
 
 
 
