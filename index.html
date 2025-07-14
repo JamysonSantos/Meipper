@@ -131,11 +131,14 @@
     color: white;
   }
   #drawflow {
-    flex: 1;
-    height: 100%;
-    background: #fff;
-    position: relative;
-  }
+  flex: 1;
+  height: 100%;
+  background: #fff;
+  position: relative;
+  padding-top: 110px;  /* espaço para a legenda no topo */
+  padding-left: 20px;  /* espaço lateral extra */
+  box-sizing: border-box;
+}
   .task-content {
     padding: 12px;
     font-size: 14px;
@@ -216,7 +219,8 @@
   border-radius: 8px;
   cursor: pointer;
   }
-   #drawflow .drawflow-node .input {
+
+  #drawflow .drawflow-node .input {
   width: 9px !important;
   height: 9px !important;
   background: #4caf50 !important; /* verde */
@@ -237,6 +241,7 @@
   z-index: 2;
   box-shadow: 0 0 2px rgba(0,0,0,0.1);
 }
+  
 </style>
 </head>
 <body>
@@ -246,6 +251,9 @@
 </header>
 <div class="main">
   <div class="sidebar">
+    <label>Nome do Processo:</label>
+    <input type="text" id="process-name" placeholder="Ex: Aprovação de Faturas"     style="padding: 8px; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc;" />
+
     <label>Responsável/Setor/Área:</label>
     <textarea id="actors-input" placeholder="Ex: Financeiro"></textarea>
 
@@ -268,7 +276,14 @@
     <button class="end" onclick="addNode('end')">Finalizar Processo</button>
     <button class="reset" onclick="clearCanvas()">Limpar Tudo</button>
   </div>
-  <div id="drawflow"></div>
+  <div id="drawflow">
+  <div id="process-info" style="position: absolute; top: 8px; left: 8px; z-index: 10; background: rgba(255,255,255,0.95); padding: 10px 14px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 340px; font-family: sans-serif;">
+  <div style="font-weight: bold; font-size: 0.9rem; color: #333; margin-bottom: 4px;">📌 Nome do Processo:</div>
+  <div id="process-title" style="font-size: 1rem; font-weight: 600; color: #000; margin-bottom: 10px;"></div>
+  <div style="font-weight: bold; font-size: 0.9rem; color: #333; margin-bottom: 4px;">👥 Responsáveis pelas tarefas:</div>
+  <div id="legend" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+</div>
+</div>
 </div>
 
 <svg style="display:none">
@@ -511,6 +526,79 @@ function clearCanvas() {
 }
 
 renderColorPicker();
+
+function updateProcessInfo() {
+  const name = document.getElementById('process-name').value.trim();
+  document.getElementById('process-title').textContent = name || 'Processo sem nome';
+
+  const legend = document.getElementById('legend');
+  legend.innerHTML = '';
+
+  Object.entries(actors).forEach(([actor, color]) => {
+    const badge = document.createElement('div');
+    badge.style.backgroundColor = color;
+    badge.style.color = '#fff';
+    badge.style.padding = '4px 8px';
+    badge.style.borderRadius = '6px';
+    badge.style.fontSize = '0.85rem';
+    badge.textContent = actor;
+    legend.appendChild(badge);
+  });
+}
+
+// Atualiza a legenda toda vez que adicionar ou remover um ator
+function addActor() {
+  const name = document.getElementById('actors-input').value.trim();
+  if (!name || actors[name]) return;
+
+  for (let key in actors) {
+    if (actors[key] === selectedColor) {
+      alert('Essa cor já está em uso. Escolha uma cor diferente.');
+      return;
+    }
+  }
+
+  actors[name] = selectedColor;
+
+  const option = document.createElement('option');
+  option.value = name;
+  option.text = name;
+  document.getElementById('actor-select').appendChild(option);
+
+  const badge = document.createElement('div');
+  badge.className = 'actor-badge';
+  badge.style.backgroundColor = selectedColor;
+  badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
+  document.getElementById('actor-list').appendChild(badge);
+
+  document.getElementById('actors-input').value = '';
+
+  updateProcessInfo(); // Atualiza legenda
+}
+
+function removeActor(name) {
+  delete actors[name];
+  const select = document.getElementById('actor-select');
+  for (let i = 0; i < select.options.length; i++) {
+    if (select.options[i].value === name) {
+      select.remove(i);
+      break;
+    }
+  }
+  const badges = document.getElementById('actor-list').children;
+  for (let i = badges.length - 1; i >= 0; i--) {
+    if (badges[i].textContent.startsWith(name)) {
+      badges[i].remove();
+      break;
+    }
+  }
+
+  updateProcessInfo(); // Atualiza legenda
+}
+
+// Atualiza o título em tempo real ao digitar
+document.getElementById('process-name').addEventListener('input', updateProcessInfo);
+
 </script>
 </body>
 </html>
