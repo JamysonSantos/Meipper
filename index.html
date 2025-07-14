@@ -271,64 +271,78 @@ let extendedColorsAdded = false;
 let selectedColor = predefinedColors[0];
 const actors = {};
 
-// ===== POPUP DE OPÇÕES =====
-const popup = document.createElement("div");
-popup.id = "popup-options";
-popup.style.position = "absolute";
-popup.style.display = "none";
-popup.style.background = "#fff";
-popup.style.border = "1px solid #ccc";
-popup.style.borderRadius = "6px";
-popup.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-popup.style.padding = "6px";
-popup.style.zIndex = "9999";
-document.body.appendChild(popup);
+let popup = null;
 
-function hidePopup() {
-  popup.style.display = "none";
-  popup.innerHTML = '';
+function renderColorPicker() {
+  const container = document.getElementById('color-picker');
+  container.innerHTML = '';
+  predefinedColors.forEach(color => {
+    const el = document.createElement('div');
+    el.className = 'color-option';
+    el.style.backgroundColor = color;
+    el.onclick = () => {
+      selectedColor = color;
+      document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+    };
+    if (color === selectedColor) el.classList.add('selected');
+    container.appendChild(el);
+  });
 }
 
-document.addEventListener("click", function (e) {
-  if (!popup.contains(e.target)) hidePopup();
-});
+function addMoreColors() {
+  if (extendedColorsAdded) return;
+  const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
+  predefinedColors.push(...more);
+  extendedColorsAdded = true;
+  renderColorPicker();
+}
 
-function showPopup(nodeId, nodeType, x, y) {
-  popup.innerHTML = '';
+function addActor() {
+  const name = document.getElementById('actors-input').value.trim();
+  if (!name || actors[name]) return;
 
-  if (nodeType === 'task') {
-    const editBtn = document.createElement('button');
-    editBtn.textContent = 'Editar';
-    editBtn.style.marginRight = '6px';
-    editBtn.onclick = () => {
-      const task = prompt("Editar tarefa:", editor.drawflow.drawflow.Home.data[nodeId].html.match(/>([^<]+)</)[1]);
-      if (task !== null) {
-        const actor = editor.drawflow.drawflow.Home.data[nodeId].html.match(/<div style='margin-top:4px[^>]+'>([^<]+)</)[1];
-        const color = actors[actor] || '#2196f3';
-        const html = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
-        editor.drawflow.drawflow.Home.data[nodeId].html = html;
-        editor.updateNodeHtmlFromId(nodeId);
-      }
-      hidePopup();
-    };
-    popup.appendChild(editBtn);
+  for (let key in actors) {
+    if (actors[key] === selectedColor) {
+      alert('Essa cor já está em uso. Escolha uma cor diferente.');
+      return;
+    }
   }
 
-  const delBtn = document.createElement('button');
-  delBtn.textContent = 'Excluir';
-  delBtn.onclick = () => {
-    editor.removeNodeId(nodeId);
-    hidePopup();
-    if (lastNodeId === nodeId) lastNodeId = getLastValidNode();
-  };
-  popup.appendChild(delBtn);
+  actors[name] = selectedColor;
 
-  popup.style.left = `${x + 10}px`;
-  popup.style.top = `${y + 10}px`;
-  popup.style.display = "block";
+  const option = document.createElement('option');
+  option.value = name;
+  option.text = name;
+  document.getElementById('actor-select').appendChild(option);
+
+  const badge = document.createElement('div');
+  badge.className = 'actor-badge';
+  badge.style.backgroundColor = selectedColor;
+  badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
+  document.getElementById('actor-list').appendChild(badge);
+
+  document.getElementById('actors-input').value = '';
 }
 
-// ===== NÓS =====
+function removeActor(name) {
+  delete actors[name];
+  const select = document.getElementById('actor-select');
+  for (let i = 0; i < select.options.length; i++) {
+    if (select.options[i].value === name) {
+      select.remove(i);
+      break;
+    }
+  }
+  const badges = document.getElementById('actor-list').children;
+  for (let i = badges.length - 1; i >= 0; i--) {
+    if (badges[i].textContent.startsWith(name)) {
+      badges[i].remove();
+      break;
+    }
+  }
+}
+
 function addNode(type) {
   let content = '';
   let className = '';
@@ -351,10 +365,10 @@ function addNode(type) {
     content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
     className = 'task';
 
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
+    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
+    if (last) {
+      lastNodeX = last.pos_x + spacingX;
+      lastNodeY = last.pos_y;
     }
 
     document.getElementById('task-input').value = '';
@@ -362,22 +376,16 @@ function addNode(type) {
     content = `<div class='circle end'>Fim</div>`;
     className = 'end';
 
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
+    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
+    if (last) {
+      lastNodeX = last.pos_x + spacingX;
+      lastNodeY = last.pos_y;
     }
   }
 
-  let inputs = 1;
-  let outputs = 1;
-  if (type === 'start') {
-    inputs = 0;
-    outputs = 1;
-  } else if (type === 'end') {
-    inputs = 1;
-    outputs = 0;
-  }
+  let inputs = 1, outputs = 1;
+  if (type === 'start') { inputs = 0; outputs = 1; }
+  if (type === 'end') { inputs = 1; outputs = 0; }
 
   const id = editor.addNode(type, inputs, outputs, lastNodeX, lastNodeY, className, {}, content);
 
@@ -388,19 +396,99 @@ function addNode(type) {
   lastNodeId = id;
 }
 
-// ===== UTIL =====
-function getLastValidNode() {
-  const nodes = editor.drawflow.drawflow.Home.data;
-  const ids = Object.keys(nodes).map(n => parseInt(n));
-  return ids.length > 0 ? Math.max(...ids) : null;
+function createPopup(nodeElement, nodeId, type) {
+  if (popup) popup.remove();
+
+  popup = document.createElement('div');
+  popup.style.position = 'absolute';
+  popup.style.background = '#fff';
+  popup.style.border = '1px solid #ccc';
+  popup.style.padding = '6px 8px';
+  popup.style.borderRadius = '6px';
+  popup.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  popup.style.fontSize = '14px';
+  popup.style.zIndex = 1000;
+  popup.style.display = 'flex';
+  popup.style.gap = '8px';
+
+  const btnDel = document.createElement('button');
+  btnDel.textContent = 'Excluir';
+  btnDel.onclick = () => {
+    editor.removeNode(nodeId);
+    popup.remove();
+    popup = null;
+
+    // Atualiza lastNodeId com base no último nó restante
+    const nodes = Object.keys(editor.drawflow.drawflow.Home.data);
+    if (nodes.length > 0) {
+      const last = editor.drawflow.drawflow.Home.data[nodes[nodes.length - 1]];
+      lastNodeId = parseInt(nodes[nodes.length - 1]);
+      lastNodeX = last.pos_x + spacingX;
+      lastNodeY = last.pos_y;
+    } else {
+      lastNodeId = null;
+      lastNodeX = 100;
+      lastNodeY = 100;
+    }
+  };
+  popup.appendChild(btnDel);
+
+  if (type === 'task') {
+    const btnEdit = document.createElement('button');
+    btnEdit.textContent = 'Editar';
+    btnEdit.onclick = () => {
+      const node = editor.drawflow.drawflow.Home.data[nodeId];
+      if (!node) return;
+
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = node.html;
+      const taskEl = tempDiv.querySelector('.task-content');
+      if (!taskEl) return;
+
+      const texto = taskEl.childNodes[0].textContent.trim();
+      const responsavel = taskEl.querySelector('div')?.textContent || '';
+      const novaTarefa = prompt('Editar tarefa:', texto);
+      if (!novaTarefa) return;
+
+      const cor = taskEl.style.backgroundColor || '#2196f3';
+      const newHtml = `<div class='task-content' style='background:${cor};border-radius:10px;'>${novaTarefa}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${responsavel}</div></div>`;
+
+      editor.updateNodeValue(nodeId, {}, newHtml);
+      popup.remove();
+      popup = null;
+    };
+    popup.appendChild(btnEdit);
+  }
+
+  document.body.appendChild(popup);
+
+  const rect = nodeElement.getBoundingClientRect();
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  popup.style.top = rect.bottom + scrollTop + 6 + 'px';
+  popup.style.left = rect.left + 'px';
 }
 
-function clearCanvas() {
-  editor.clear();
-  lastNodeId = null;
-  lastNodeX = 100;
-  lastNodeY = 100;
-}
+document.getElementById('drawflow').addEventListener('click', (e) => {
+  let el = e.target;
+  while (el && !el.classList.contains('drawflow-node')) {
+    el = el.parentElement;
+  }
+  if (!el) return;
+
+  const nodeId = parseInt(el.getAttribute('data-node-id'));
+  const type = el.classList.contains('task') ? 'task' :
+               el.classList.contains('start') ? 'start' :
+               el.classList.contains('end') ? 'end' : '';
+
+  createPopup(el, nodeId, type);
+});
+
+document.addEventListener('click', (e) => {
+  if (popup && !popup.contains(e.target) && !e.target.closest('.drawflow-node')) {
+    popup.remove();
+    popup = null;
+  }
+});
 
 document.getElementById('task-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -409,20 +497,16 @@ document.getElementById('task-input').addEventListener('keydown', function(e) {
   }
 });
 
-// PREVENIR O MENU DIREITO PADRÃO DO DRAWFLOW
-document.getElementById('drawflow').addEventListener('contextmenu', function(e) {
-  e.preventDefault();
-});
-
-// ESCUTAR CLIQUE NORMAL NOS NÓS
-editor.on('nodeSelected', function(id) {
-  const node = editor.drawflow.drawflow.Home.data[id];
-  const el = document.querySelector(`.drawflow-node[data-id="${id}"]`);
-  if (el) {
-    const rect = el.getBoundingClientRect();
-    showPopup(id, node.class, rect.x, rect.y);
+function clearCanvas() {
+  editor.clear();
+  lastNodeId = null;
+  lastNodeX = 100;
+  lastNodeY = 100;
+  if (popup) {
+    popup.remove();
+    popup = null;
   }
-});
+}
 
 renderColorPicker();
 </script>
