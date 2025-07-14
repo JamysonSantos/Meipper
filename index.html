@@ -255,7 +255,7 @@
       renderColorPicker();
     }
 
-     function addActor() {
+    function addActor() {
       const name = document.getElementById('actors-input').value.trim();
       if (!name || actors[name]) return;
 
@@ -311,7 +311,7 @@
       }
 
       if (type === 'start') {
-        content = <div class='circle start'>Início</div>;
+        content = `<div class='circle start'>Início</div>`;
         className = 'start';
         lastNodeX = 100;
         lastNodeY = 100;
@@ -320,7 +320,7 @@
         if (!task) return;
         const actor = document.getElementById('actor-select').value;
         const color = actors[actor] || '#2196f3';
-        content = <div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>;
+        content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
         className = 'task';
 
         if (lastNodeId) {
@@ -331,7 +331,7 @@
 
         document.getElementById('task-input').value = '';
       } else if (type === 'end') {
-        content = <div class='circle end'>Fim</div>;
+        content = `<div class='circle end'>Fim</div>`;
         className = 'end';
 
         if (lastNodeId) {
@@ -366,7 +366,6 @@
   </script>
 </body>
 </html>
-
 
 
 
