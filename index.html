@@ -211,159 +211,160 @@
       </marker>
     </defs>
   </svg>
-
   <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
-  <script>
-    const editor = new Drawflow(document.getElementById('drawflow'));
-    editor.reroute = true;
-    editor.force_first_input = false;
-    editor.curvature = 0.5; // Curvas suaves
-    editor.start();
+<script>
+  const editor = new Drawflow(document.getElementById('drawflow'));
+  editor.reroute = true;
+  editor.force_first_input = false;
+  editor.curvature = 0.5;
+  editor.start();
 
-    let lastNodeId = null;
-    let lastNodeX = 100;
-    let lastNodeY = 100;
-    const spacingX = 220;
+  let lastNodeId = null;
+  let lastNodeX = 100;
+  let lastNodeY = 100;
+  const spacingX = 220;
 
-    const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
-    let extendedColorsAdded = false;
-    let selectedColor = predefinedColors[0];
-    const actors = {};
+  const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
+  let extendedColorsAdded = false;
+  let selectedColor = predefinedColors[0];
+  const actors = {};
 
-    function renderColorPicker() {
-      const container = document.getElementById('color-picker');
-      container.innerHTML = '';
-      predefinedColors.forEach(color => {
-        const el = document.createElement('div');
-        el.className = 'color-option';
-        el.style.backgroundColor = color;
-        el.onclick = () => {
-          selectedColor = color;
-          document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-          el.classList.add('selected');
-        };
-        if (color === selectedColor) el.classList.add('selected');
-        container.appendChild(el);
-      });
-    }
+  function renderColorPicker() {
+    const container = document.getElementById('color-picker');
+    container.innerHTML = '';
+    predefinedColors.forEach(color => {
+      const el = document.createElement('div');
+      el.className = 'color-option';
+      el.style.backgroundColor = color;
+      el.onclick = () => {
+        selectedColor = color;
+        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+      };
+      if (color === selectedColor) el.classList.add('selected');
+      container.appendChild(el);
+    });
+  }
 
-    function addMoreColors() {
-      if (extendedColorsAdded) return;
-      const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
-      predefinedColors.push(...more);
-      extendedColorsAdded = true;
-      renderColorPicker();
-    }
+  function addMoreColors() {
+    if (extendedColorsAdded) return;
+    const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
+    predefinedColors.push(...more);
+    extendedColorsAdded = true;
+    renderColorPicker();
+  }
 
-     function addActor() {
-      const name = document.getElementById('actors-input').value.trim();
-      if (!name || actors[name]) return;
+  function addActor() {
+    const name = document.getElementById('actors-input').value.trim();
+    if (!name || actors[name]) return;
 
-      // Impedir cores duplicadas
-      for (let key in actors) {
-        if (actors[key] === selectedColor) {
-          alert('Essa cor já está em uso. Escolha uma cor diferente.');
-          return;
-        }
-      }
-
-      actors[name] = selectedColor;
-
-      const option = document.createElement('option');
-      option.value = name;
-      option.text = name;
-      document.getElementById('actor-select').appendChild(option);
-
-      const badge = document.createElement('div');
-      badge.className = 'actor-badge';
-      badge.style.backgroundColor = selectedColor;
-      badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
-      document.getElementById('actor-list').appendChild(badge);
-
-      document.getElementById('actors-input').value = '';
-    }
-
-    function removeActor(name) {
-      delete actors[name];
-      const select = document.getElementById('actor-select');
-      for (let i = 0; i < select.options.length; i++) {
-        if (select.options[i].value === name) {
-          select.remove(i);
-          break;
-        }
-      }
-      const badges = document.getElementById('actor-list').children;
-      for (let i = badges.length - 1; i >= 0; i--) {
-        if (badges[i].textContent.startsWith(name)) {
-          badges[i].remove();
-          break;
-        }
-      }
-    }
-
-    function addNode(type) {
-      let content = '';
-      let className = '';
-
-      if (!lastNodeId && type !== 'start') {
-        alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
+    for (let key in actors) {
+      if (actors[key] === selectedColor) {
+        alert('Essa cor já está em uso. Escolha uma cor diferente.');
         return;
       }
-
-      if (type === 'start') {
-        content = <div class='circle start'>Início</div>;
-        className = 'start';
-        lastNodeX = 100;
-        lastNodeY = 100;
-      } else if (type === 'task') {
-        const task = document.getElementById('task-input').value.trim();
-        if (!task) return;
-        const actor = document.getElementById('actor-select').value;
-        const color = actors[actor] || '#2196f3';
-        content = <div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>;
-        className = 'task';
-
-        if (lastNodeId) {
-          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-          lastNodeX = lastNode.pos_x + spacingX;
-          lastNodeY = lastNode.pos_y;
-        }
-
-        document.getElementById('task-input').value = '';
-      } else if (type === 'end') {
-        content = <div class='circle end'>Fim</div>;
-        className = 'end';
-
-        if (lastNodeId) {
-          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-          lastNodeX = lastNode.pos_x + spacingX;
-          lastNodeY = lastNode.pos_y;
-        }
-      }
-
-      const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
-      if (lastNodeId && type !== 'start') {
-        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-      }
-      lastNodeId = id;
     }
 
-    function clearCanvas() {
-      editor.clear();
-      lastNodeId = null;
+    actors[name] = selectedColor;
+
+    const option = document.createElement('option');
+    option.value = name;
+    option.text = name;
+    document.getElementById('actor-select').appendChild(option);
+
+    const badge = document.createElement('div');
+    badge.className = 'actor-badge';
+    badge.style.backgroundColor = selectedColor;
+    badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
+    document.getElementById('actor-list').appendChild(badge);
+
+    document.getElementById('actors-input').value = '';
+  }
+
+  function removeActor(name) {
+    delete actors[name];
+    const select = document.getElementById('actor-select');
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === name) {
+        select.remove(i);
+        break;
+      }
+    }
+    const badges = document.getElementById('actor-list').children;
+    for (let i = badges.length - 1; i >= 0; i--) {
+      if (badges[i].textContent.startsWith(name)) {
+        badges[i].remove();
+        break;
+      }
+    }
+  }
+
+  function addNode(type) {
+    let content = '';
+    let className = '';
+
+    if (!lastNodeId && type !== 'start') {
+      alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
+      return;
+    }
+
+    if (type === 'start') {
+      content = "<div class='circle start'>Início</div>";
+      className = 'start';
       lastNodeX = 100;
       lastNodeY = 100;
+    } else if (type === 'task') {
+      const task = document.getElementById('task-input').value.trim();
+      if (!task) return;
+      const actor = document.getElementById('actor-select').value;
+      const color = actors[actor] || '#2196f3';
+      content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+      className = 'task';
+
+      if (lastNodeId) {
+        const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+        lastNodeX = lastNode.pos_x + spacingX;
+        lastNodeY = lastNode.pos_y;
+      }
+
+      document.getElementById('task-input').value = '';
+    } else if (type === 'end') {
+      content = "<div class='circle end'>Fim</div>";
+      className = 'end';
+
+      if (lastNodeId) {
+        const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+        lastNodeX = lastNode.pos_x + spacingX;
+        lastNodeY = lastNode.pos_y;
+      }
     }
 
-    document.getElementById('task-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        addNode('task');
-      }
-    });
+    // 2 inputs e 2 outputs para permitir conexões nas 4 extremidades
+    const id = editor.addNode(type, 2, 2, lastNodeX, lastNodeY, className, {}, content);
 
-    renderColorPicker();
-  </script>
+    if (lastNodeId && type !== 'start') {
+      editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
+    }
+
+    lastNodeId = id;
+  }
+
+  function clearCanvas() {
+    editor.clear();
+    lastNodeId = null;
+    lastNodeX = 100;
+    lastNodeY = 100;
+  }
+
+  document.getElementById('task-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      addNode('task');
+    }
+  });
+
+  renderColorPicker();
+</script>
 </body>
 </html>
 
