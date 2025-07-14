@@ -267,7 +267,7 @@ editor.force_first_input = false;
 editor.curvature = 0.5;
 editor.start();
 
-let lastNodeId = null;   // Armazena o último nó válido para conectar próximo
+let lastNodeId = null;
 let lastNodeX = 100;
 let lastNodeY = 100;
 const spacingX = 220;
@@ -369,7 +369,6 @@ function addNode(type) {
     content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
     className = 'task';
 
-    // Pega posição do último nó válido para conectar
     const last = editor.drawflow.drawflow.Home.data[lastNodeId];
     if (last) {
       lastNodeX = last.pos_x + spacingX;
@@ -401,10 +400,11 @@ function addNode(type) {
   lastNodeId = id;
 }
 
-// Variáveis para controle da seleção e tooltip
+// Variáveis para controle da seleção
 let selectedNode = null;
 let tooltip = null;
 
+// Função para limpar seleção e tooltip
 function clearSelection() {
   if (selectedNode) {
     selectedNode.classList.remove('selected');
@@ -416,6 +416,7 @@ function clearSelection() {
   }
 }
 
+// Função para criar tooltip com instruções
 function createTooltip(nodeEl) {
   if (tooltip) tooltip.remove();
   tooltip = document.createElement('div');
@@ -436,7 +437,7 @@ function createTooltip(nodeEl) {
   tooltip.style.left = (rect.left + (rect.width - tooltip.offsetWidth) / 2 + window.scrollX) + 'px';
 }
 
-// Clique simples para selecionar o nó
+// Evento click para selecionar nó
 document.getElementById('drawflow').addEventListener('click', (e) => {
   let el = e.target;
   while (el && !el.classList.contains('drawflow-node')) {
@@ -454,7 +455,7 @@ document.getElementById('drawflow').addEventListener('click', (e) => {
   createTooltip(selectedNode);
 });
 
-// Duplo clique para editar tarefa
+// Evento duplo clique para editar
 document.getElementById('drawflow').addEventListener('dblclick', (e) => {
   let el = e.target;
   while (el && !el.classList.contains('drawflow-node')) {
@@ -466,8 +467,7 @@ document.getElementById('drawflow').addEventListener('dblclick', (e) => {
   const nodeData = editor.drawflow.drawflow.Home.data[nodeId];
   if (!nodeData) return;
 
-  // Só permite editar nós do tipo task
-  if (nodeData.class === 'task' || nodeData.name === 'task') {
+  if (nodeData.name === 'task') {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = nodeData.html;
     const taskEl = tempDiv.querySelector('.task-content');
@@ -482,60 +482,28 @@ document.getElementById('drawflow').addEventListener('dblclick', (e) => {
     const cor = taskEl.style.backgroundColor || '#2196f3';
     const newHtml = `<div class='task-content' style='background:${cor};border-radius:10px;'>${novaTarefa}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${responsavel}</div></div>`;
 
-    // Atualiza o HTML do nó
     editor.updateNodeValue(nodeId, {}, newHtml);
   }
 });
 
-// Deletar nó selecionado com Delete
+// Evento para deletar nó selecionado com Delete
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Delete' && selectedNode) {
     const nodeId = parseInt(selectedNode.getAttribute('data-node-id'));
     editor.removeNode(nodeId);
     clearSelection();
 
-    // Atualiza lastNodeId e posição para próxima conexão
-    const nodes = Object.keys(editor.drawflow.drawflow.Home.data).map(n => parseInt(n)).sort((a,b) => a-b);
-
-    if (nodes.length === 0) {
+    // Atualizar lastNodeId com base no último nó restante
+    const nodes = Object.keys(editor.drawflow.drawflow.Home.data);
+    if (nodes.length > 0) {
+      const last = editor.drawflow.drawflow.Home.data[nodes[nodes.length - 1]];
+      lastNodeId = parseInt(nodes[nodes.length - 1]);
+      lastNodeX = last.pos_x + spacingX;
+      lastNodeY = last.pos_y;
+    } else {
       lastNodeId = null;
       lastNodeX = 100;
       lastNodeY = 100;
-    } else {
-      // Se existir o nó início, ele deve ser o lastNodeId quando o próximo nó for criado após exclusão da primeira tarefa
-      // Procuramos nó start (com class start)
-      let startNodeId = null;
-      for (const id of nodes) {
-        const node = editor.drawflow.drawflow.Home.data[id];
-        if (node.class === 'start' || node.name === 'start') {
-          startNodeId = id;
-          break;
-        }
-      }
-
-      // Se não tiver tarefas, lastNodeId = startNodeId, para próxima conexão ser feita com o início
-      if (nodes.length === 1 && startNodeId !== null) {
-        lastNodeId = startNodeId;
-        const startNode = editor.drawflow.drawflow.Home.data[startNodeId];
-        lastNodeX = startNode.pos_x;
-        lastNodeY = startNode.pos_y;
-      } else {
-        // Se tiver tarefas, lastNodeId será o maior ID que não for start
-        // Pegamos último nó que não for start
-        const filtered = nodes.filter(id => id !== startNodeId);
-        if (filtered.length > 0) {
-          lastNodeId = filtered[filtered.length -1];
-          const last = editor.drawflow.drawflow.Home.data[lastNodeId];
-          lastNodeX = last.pos_x;
-          lastNodeY = last.pos_y;
-        } else {
-          // fallback para start node
-          lastNodeId = startNodeId;
-          const startNode = editor.drawflow.drawflow.Home.data[startNodeId];
-          lastNodeX = startNode.pos_x;
-          lastNodeY = startNode.pos_y;
-        }
-      }
     }
   }
 });
