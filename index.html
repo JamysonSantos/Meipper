@@ -106,11 +106,13 @@
     }
 
     .task-content {
-      padding: 8px;
+      padding: 12px;
       font-size: 14px;
       text-align: center;
       word-break: break-word;
       white-space: pre-wrap;
+      color: white;
+      font-weight: 500;
     }
 
     .circle {
@@ -126,6 +128,13 @@
     }
     .circle.start { background: #4caf50; }
     .circle.end { background: #f44336; }
+
+    .drawflow-node.task {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
     .drawflow-node.start, .drawflow-node.end {
       background: transparent !important;
       border: none !important;
@@ -133,6 +142,13 @@
       width: auto !important;
       height: auto !important;
       padding: 0 !important;
+    }
+
+    .drawflow .connection .main-path {
+      stroke: #888;
+      stroke-width: 3;
+      fill: none;
+      marker-end: url(#arrow);
     }
   </style>
 </head>
@@ -168,16 +184,26 @@
     <div id="drawflow"></div>
   </div>
 
+  <svg style="display:none">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#888" />
+      </marker>
+    </defs>
+  </svg>
+
   <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
   <script>
     const editor = new Drawflow(document.getElementById('drawflow'));
+    editor.reroute = true;
+    editor.force_first_input = false;
+    editor.curvature = 0.5; // Curvas suaves
     editor.start();
 
     let lastNodeId = null;
     let lastNodeX = 100;
     let lastNodeY = 100;
     const spacingX = 220;
-    const spacingY = 100;
 
     const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
     let extendedColorsAdded = false;
@@ -228,56 +254,51 @@
     }
 
     function addNode(type) {
-  let content = '';
-  let className = '';
+      let content = '';
+      let className = '';
 
-  if (!lastNodeId && type !== 'start') {
-    alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
-    return;
-  }
+      if (!lastNodeId && type !== 'start') {
+        alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
+        return;
+      }
 
-  // Lógica específica para cada tipo
-  if (type === 'start') {
-    content = `<div class='circle start'>Início</div>`;
-    className = 'start';
-    lastNodeX = 100;
-    lastNodeY = 100;
-  } else if (type === 'task') {
-    const task = document.getElementById('task-input').value.trim();
-    if (!task) return;
-    const actor = document.getElementById('actor-select').value;
-    const color = actors[actor] || '#2196f3';
-    content = `<div class='task-content' style='background:${color};color:white;border-radius:6px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
-    className = 'task';
+      if (type === 'start') {
+        content = `<div class='circle start'>Início</div>`;
+        className = 'start';
+        lastNodeX = 100;
+        lastNodeY = 100;
+      } else if (type === 'task') {
+        const task = document.getElementById('task-input').value.trim();
+        if (!task) return;
+        const actor = document.getElementById('actor-select').value;
+        const color = actors[actor] || '#2196f3';
+        content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+        className = 'task';
 
-    // 🧠 Basear posição no último nó real
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
+        if (lastNodeId) {
+          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+          lastNodeX = lastNode.pos_x + spacingX;
+          lastNodeY = lastNode.pos_y;
+        }
+
+        document.getElementById('task-input').value = '';
+      } else if (type === 'end') {
+        content = `<div class='circle end'>Fim</div>`;
+        className = 'end';
+
+        if (lastNodeId) {
+          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
+          lastNodeX = lastNode.pos_x + spacingX;
+          lastNodeY = lastNode.pos_y;
+        }
+      }
+
+      const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
+      if (lastNodeId && type !== 'start') {
+        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
+      }
+      lastNodeId = id;
     }
-
-    document.getElementById('task-input').value = '';
-  } else if (type === 'end') {
-    content = `<div class='circle end'>Fim</div>`;
-    className = 'end';
-
-    // 🧠 Basear posição no último nó real
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
-    }
-  }
-
-  const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
-
-  if (lastNodeId && type !== 'start') {
-    editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-  }
-
-  lastNodeId = id;
-}
 
     function clearCanvas() {
       editor.clear();
