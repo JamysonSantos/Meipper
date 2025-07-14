@@ -211,7 +211,7 @@
       </marker>
     </defs>
   </svg>
-  <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
+ <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
 <script>
   const editor = new Drawflow(document.getElementById('drawflow'));
   editor.reroute = true;
@@ -339,8 +339,8 @@
       }
     }
 
-    // 2 inputs e 2 outputs para permitir conexões nas 4 extremidades
-    const id = editor.addNode(type, 2, 2, lastNodeX, lastNodeY, className, {}, content);
+    // ✅ Apenas 1 entrada e 1 saída
+    const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
 
     if (lastNodeId && type !== 'start') {
       editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
