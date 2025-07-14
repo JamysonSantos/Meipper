@@ -72,13 +72,33 @@
       margin-top: -0.25rem;
     }
     .actor-badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       padding: 4px 8px;
       font-size: 0.85rem;
       color: white;
       border-radius: 6px;
       margin: 2px 2px 0 0;
       white-space: nowrap;
+    }
+    .actor-badge button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      font-weight: bold;
+      font-size: 0.9rem;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .actor-badge button:hover {
+      background: rgba(255,255,255,0.4);
     }
     .actor-container {
       display: flex;
@@ -153,172 +173,6 @@
   </style>
 </head>
 <body>
-  <header>
-    <h1 style="margin: 0.2em 0">Mapflue</h1>
-    <p style="margin: 0; font-size: 0.9rem">Crie seu processo clicando nos elementos</p>
-  </header>
-  <div class="main">
-    <div class="sidebar">
-      <label>Responsável/Setor/Área:</label>
-      <textarea id="actors-input" placeholder="Ex: Financeiro"></textarea>
-
-      <label>Cor:</label>
-      <div class="color-picker" id="color-picker"></div>
-      <div class="more-colors" onclick="addMoreColors()">Mais cores</div>
-
-      <button onclick="addActor()">Salvar Responsável</button>
-
-      <label>Selecionar Responsável:</label>
-      <select id="actor-select"></select>
-
-      <div class="actor-container" id="actor-list"></div>
-
-      <label>Tarefa:</label>
-      <button class="start" onclick="addNode('start')">Iniciar Processo</button>
-      <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
-
-      <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
-      <button class="end" onclick="addNode('end')">Finalizar Processo</button>
-      <button class="reset" onclick="clearCanvas()">Limpar Tudo</button>
-    </div>
-    <div id="drawflow"></div>
-  </div>
-
-  <svg style="display:none">
-    <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="#888" />
-      </marker>
-    </defs>
-  </svg>
-
-  <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
-  <script>
-    const editor = new Drawflow(document.getElementById('drawflow'));
-    editor.reroute = true;
-    editor.force_first_input = false;
-    editor.curvature = 0.5; // Curvas suaves
-    editor.start();
-
-    let lastNodeId = null;
-    let lastNodeX = 100;
-    let lastNodeY = 100;
-    const spacingX = 220;
-
-    const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
-    let extendedColorsAdded = false;
-    let selectedColor = predefinedColors[0];
-    const actors = {};
-
-    function renderColorPicker() {
-      const container = document.getElementById('color-picker');
-      container.innerHTML = '';
-      predefinedColors.forEach(color => {
-        const el = document.createElement('div');
-        el.className = 'color-option';
-        el.style.backgroundColor = color;
-        el.onclick = () => {
-          selectedColor = color;
-          document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-          el.classList.add('selected');
-        };
-        if (color === selectedColor) el.classList.add('selected');
-        container.appendChild(el);
-      });
-    }
-
-    function addMoreColors() {
-      if (extendedColorsAdded) return;
-      const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
-      predefinedColors.push(...more);
-      extendedColorsAdded = true;
-      renderColorPicker();
-    }
-
-    function addActor() {
-      const name = document.getElementById('actors-input').value.trim();
-      if (!name || actors[name]) return;
-      actors[name] = selectedColor;
-      const option = document.createElement('option');
-      option.value = name;
-      option.text = name;
-      document.getElementById('actor-select').appendChild(option);
-
-      const badge = document.createElement('div');
-      badge.className = 'actor-badge';
-      badge.style.backgroundColor = selectedColor;
-      badge.textContent = name;
-      document.getElementById('actor-list').appendChild(badge);
-
-      document.getElementById('actors-input').value = '';
-    }
-
-    function addNode(type) {
-      let content = '';
-      let className = '';
-
-      if (!lastNodeId && type !== 'start') {
-        alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
-        return;
-      }
-
-      if (type === 'start') {
-        content = <div class='circle start'>Início</div>;
-        className = 'start';
-        lastNodeX = 100;
-        lastNodeY = 100;
-      } else if (type === 'task') {
-        const task = document.getElementById('task-input').value.trim();
-        if (!task) return;
-        const actor = document.getElementById('actor-select').value;
-        const color = actors[actor] || '#2196f3';
-        content = <div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>;
-        className = 'task';
-
-        if (lastNodeId) {
-          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-          lastNodeX = lastNode.pos_x + spacingX;
-          lastNodeY = lastNode.pos_y;
-        }
-
-        document.getElementById('task-input').value = '';
-      } else if (type === 'end') {
-        content = <div class='circle end'>Fim</div>;
-        className = 'end';
-
-        if (lastNodeId) {
-          const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-          lastNodeX = lastNode.pos_x + spacingX;
-          lastNodeY = lastNode.pos_y;
-        }
-      }
-
-      const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
-      if (lastNodeId && type !== 'start') {
-        editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-      }
-      lastNodeId = id;
-    }
-
-    function clearCanvas() {
-      editor.clear();
-      lastNodeId = null;
-      lastNodeX = 100;
-      lastNodeY = 100;
-    }
-
-    document.getElementById('task-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        addNode('task');
-      }
-    });
-
-    renderColorPicker();
-  </script>
-</body>
-</html>
-
 
 
 
