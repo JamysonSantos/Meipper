@@ -111,6 +111,7 @@
       text-align: center;
       word-break: break-word;
       white-space: pre-wrap;
+      border-radius: 10px;
       color: white;
       font-weight: 500;
     }
@@ -128,13 +129,6 @@
     }
     .circle.start { background: #4caf50; }
     .circle.end { background: #f44336; }
-
-    .drawflow-node.task {
-      border: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-
     .drawflow-node.start, .drawflow-node.end {
       background: transparent !important;
       border: none !important;
@@ -142,13 +136,6 @@
       width: auto !important;
       height: auto !important;
       padding: 0 !important;
-    }
-
-    .drawflow .connection .main-path {
-      stroke: #888;
-      stroke-width: 3;
-      fill: none;
-      marker-end: url(#arrow);
     }
   </style>
 </head>
@@ -184,26 +171,18 @@
     <div id="drawflow"></div>
   </div>
 
-  <svg style="display:none">
-    <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="#888" />
-      </marker>
-    </defs>
-  </svg>
-
   <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
   <script>
     const editor = new Drawflow(document.getElementById('drawflow'));
     editor.reroute = true;
-    editor.force_first_input = false;
-    editor.curvature = 0.5; // Curvas suaves
+    editor.reroute_curved = true;
     editor.start();
 
     let lastNodeId = null;
     let lastNodeX = 100;
     let lastNodeY = 100;
     const spacingX = 220;
+    const spacingY = 100;
 
     const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
     let extendedColorsAdded = false;
@@ -272,7 +251,7 @@
         if (!task) return;
         const actor = document.getElementById('actor-select').value;
         const color = actors[actor] || '#2196f3';
-        content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+        content = `<div class='task-content' style='background:${color}'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
         className = 'task';
 
         if (lastNodeId) {
@@ -294,9 +273,11 @@
       }
 
       const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
+
       if (lastNodeId && type !== 'start') {
         editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
       }
+
       lastNodeId = id;
     }
 
