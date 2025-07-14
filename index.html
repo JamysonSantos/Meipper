@@ -72,161 +72,6 @@
       margin-top: -0.25rem;
     }
     .actor-badge {
-      display: inline-block;
-      padding: 4px 8px;
-      font-size: 0.85rem;
-      color: white;
-      border-radius: 6px;
-      margin: 2px 2px 0 0;
-      white-space: nowrap;
-    }
-    .actor-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 0.5rem;
-    }
-    .sidebar button {
-      padding: 0.6rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .start { background-color: #4caf50; color: white; }
-    .task { background-color: #2196f3; color: white; }
-    .end { background-color: #f44336; color: white; }
-    .reset { background-color: #777; color: white; }
-
-    #drawflow {
-      flex: 1;
-      height: 100%;
-      background: #ffffff;
-      position: relative;
-    }
-
-    .task-content {
-      padding: 12px;
-      font-size: 14px;
-      text-align: center;
-      word-break: break-word;
-      white-space: pre-wrap;
-      color: white;
-      font-weight: 500;
-    }
-
-    .circle {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: white;
-      margin: auto;
-    }
-    .circle.start { background: #4caf50; }
-    .circle.end { background: #f44336; }
-
-    .drawflow-node.task {
-      border: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-
-    .drawflow-node.start, .drawflow-node.end {
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      width: auto !important;
-      height: auto !important;
-      padding: 0 !important;
-    }
-
-    .drawflow .connection .main-path {
-      stroke: #888;
-      stroke-width: 3;
-      fill: none;
-      marker-end: url(#arrow);
-    }
-  </style>
-</head>
-<body>
-  <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapflue com Drawflow</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow/dist/drawflow.min.css">
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      background-color: #0097a7;
-      color: white;
-      text-align: center;
-      padding: 0.5rem 1rem;
-    }
-    .main {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-    .sidebar {
-      width: 280px;
-      background: #f4f4f4;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-      overflow-y: auto;
-    }
-    .sidebar label {
-      font-weight: bold;
-      margin-top: 0.25rem;
-    }
-    .sidebar textarea, .sidebar select {
-      width: 100%;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      resize: none;
-      min-height: 48px;
-    }
-    .color-picker {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .color-option {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      box-shadow: 0 0 2px rgba(0,0,0,0.2);
-      cursor: pointer;
-    }
-    .color-option.selected {
-      border-color: #000;
-    }
-    .more-colors {
-      font-size: 0.85rem;
-      background: #ddd;
-      padding: 4px 6px;
-      border-radius: 6px;
-      text-align: center;
-      cursor: pointer;
-      margin-top: -0.25rem;
-    }
-    .actor-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -466,7 +311,7 @@
       }
 
       if (type === 'start') {
-        content = `<div class='circle start'>Início</div>`;
+        content = <div class='circle start'>Início</div>;
         className = 'start';
         lastNodeX = 100;
         lastNodeY = 100;
@@ -475,7 +320,7 @@
         if (!task) return;
         const actor = document.getElementById('actor-select').value;
         const color = actors[actor] || '#2196f3';
-        content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+        content = <div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>;
         className = 'task';
 
         if (lastNodeId) {
@@ -486,7 +331,7 @@
 
         document.getElementById('task-input').value = '';
       } else if (type === 'end') {
-        content = `<div class='circle end'>Fim</div>`;
+        content = <div class='circle end'>Fim</div>;
         className = 'end';
 
         if (lastNodeId) {
@@ -521,7 +366,6 @@
   </script>
 </body>
 </html>
-
 
 
 
