@@ -365,10 +365,10 @@ function addNode(type) {
     content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
     className = 'task';
 
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
+    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
+    if (last) {
+      lastNodeX = last.pos_x + spacingX;
+      lastNodeY = last.pos_y;
     }
 
     document.getElementById('task-input').value = '';
@@ -376,23 +376,16 @@ function addNode(type) {
     content = `<div class='circle end'>Fim</div>`;
     className = 'end';
 
-    if (lastNodeId) {
-      const lastNode = editor.drawflow.drawflow.Home.data[lastNodeId];
-      lastNodeX = lastNode.pos_x + spacingX;
-      lastNodeY = lastNode.pos_y;
+    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
+    if (last) {
+      lastNodeX = last.pos_x + spacingX;
+      lastNodeY = last.pos_y;
     }
   }
 
-  let inputs = 1;
-  let outputs = 1;
-
-  if (type === 'start') {
-    inputs = 0;
-    outputs = 1;
-  } else if (type === 'end') {
-    inputs = 1;
-    outputs = 0;
-  }
+  let inputs = 1, outputs = 1;
+  if (type === 'start') { inputs = 0; outputs = 1; }
+  if (type === 'end') { inputs = 1; outputs = 0; }
 
   const id = editor.addNode(type, inputs, outputs, lastNodeX, lastNodeY, className, {}, content);
 
@@ -407,76 +400,60 @@ function createPopup(nodeElement, nodeId, type) {
   if (popup) popup.remove();
 
   popup = document.createElement('div');
-  popup.classList.add('node-popup');
   popup.style.position = 'absolute';
   popup.style.background = '#fff';
   popup.style.border = '1px solid #ccc';
+  popup.style.padding = '6px 8px';
   popup.style.borderRadius = '6px';
-  popup.style.padding = '6px';
-  popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+  popup.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  popup.style.fontSize = '14px';
   popup.style.zIndex = 1000;
+  popup.style.display = 'flex';
+  popup.style.gap = '8px';
 
-  // Botão Excluir
-  const btnDelete = document.createElement('button');
-  btnDelete.textContent = 'Excluir';
-  btnDelete.style.marginRight = '8px';
-  btnDelete.onclick = (e) => {
-    e.stopPropagation();
+  const btnDel = document.createElement('button');
+  btnDel.textContent = 'Excluir';
+  btnDel.onclick = () => {
     editor.removeNode(nodeId);
     popup.remove();
     popup = null;
 
-    // Atualizar lastNodeId para nó anterior na sequência, se existir
-    let previousNodeId = null;
-    const nodes = editor.drawflow.drawflow.Home.data;
-    for (const key in nodes) {
-      if (nodes[key].outputs && nodes[key].outputs['output_1'] && nodes[key].outputs['output_1'].connections) {
-        if (nodes[key].outputs['output_1'].connections.some(conn => conn.node === nodeId)) {
-          previousNodeId = parseInt(key);
-          break;
-        }
-      }
-    }
-    if (previousNodeId !== null) {
-      lastNodeId = previousNodeId;
-      const prevNode = editor.drawflow.drawflow.Home.data[previousNodeId];
-      lastNodeX = prevNode.pos_x + spacingX;
-      lastNodeY = prevNode.pos_y;
+    // Atualiza lastNodeId com base no último nó restante
+    const nodes = Object.keys(editor.drawflow.drawflow.Home.data);
+    if (nodes.length > 0) {
+      const last = editor.drawflow.drawflow.Home.data[nodes[nodes.length - 1]];
+      lastNodeId = parseInt(nodes[nodes.length - 1]);
+      lastNodeX = last.pos_x + spacingX;
+      lastNodeY = last.pos_y;
     } else {
       lastNodeId = null;
       lastNodeX = 100;
       lastNodeY = 100;
     }
   };
-  popup.appendChild(btnDelete);
+  popup.appendChild(btnDel);
 
-  // Botão Editar só para tarefas
   if (type === 'task') {
     const btnEdit = document.createElement('button');
     btnEdit.textContent = 'Editar';
-    btnEdit.onclick = (e) => {
-      e.stopPropagation();
-      const nodeData = editor.drawflow.drawflow.Home.data[nodeId];
-      if (!nodeData) return;
+    btnEdit.onclick = () => {
+      const node = editor.drawflow.drawflow.Home.data[nodeId];
+      if (!node) return;
 
-      const div = document.createElement('div');
-      div.innerHTML = nodeData.html;
-      const taskDiv = div.querySelector('.task-content');
-      if (!taskDiv) return;
-      const taskText = taskDiv.childNodes[0].textContent.trim();
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = node.html;
+      const taskEl = tempDiv.querySelector('.task-content');
+      if (!taskEl) return;
 
-      const newTask = prompt('Editar tarefa:', taskText);
-      if (newTask === null || newTask.trim() === '') return;
+      const texto = taskEl.childNodes[0].textContent.trim();
+      const responsavel = taskEl.querySelector('div')?.textContent || '';
+      const novaTarefa = prompt('Editar tarefa:', texto);
+      if (!novaTarefa) return;
 
-      const actorDiv = taskDiv.querySelector('div');
-      const actorName = actorDiv ? actorDiv.textContent : '';
-
-      const bgColor = taskDiv.style.backgroundColor || '#2196f3';
-
-      const newHtml = `<div class='task-content' style='background:${bgColor};border-radius:10px;'>${newTask}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actorName}</div></div>`;
+      const cor = taskEl.style.backgroundColor || '#2196f3';
+      const newHtml = `<div class='task-content' style='background:${cor};border-radius:10px;'>${novaTarefa}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${responsavel}</div></div>`;
 
       editor.updateNodeValue(nodeId, {}, newHtml);
-
       popup.remove();
       popup = null;
     };
@@ -487,19 +464,24 @@ function createPopup(nodeElement, nodeId, type) {
 
   const rect = nodeElement.getBoundingClientRect();
   const scrollTop = window.scrollY || document.documentElement.scrollTop;
-  const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-
-  let top = rect.bottom + scrollTop + 8;
-  let left = rect.left + scrollLeft + rect.width / 2 - popup.offsetWidth / 2;
-
-  if (left < 10) left = 10;
-  if (left + popup.offsetWidth > window.innerWidth - 10) {
-    left = window.innerWidth - popup.offsetWidth - 10;
-  }
-
-  popup.style.top = top + 'px';
-  popup.style.left = left + 'px';
+  popup.style.top = rect.bottom + scrollTop + 6 + 'px';
+  popup.style.left = rect.left + 'px';
 }
+
+document.getElementById('drawflow').addEventListener('click', (e) => {
+  let el = e.target;
+  while (el && !el.classList.contains('drawflow-node')) {
+    el = el.parentElement;
+  }
+  if (!el) return;
+
+  const nodeId = parseInt(el.getAttribute('data-node-id'));
+  const type = el.classList.contains('task') ? 'task' :
+               el.classList.contains('start') ? 'start' :
+               el.classList.contains('end') ? 'end' : '';
+
+  createPopup(el, nodeId, type);
+});
 
 document.addEventListener('click', (e) => {
   if (popup && !popup.contains(e.target) && !e.target.closest('.drawflow-node')) {
@@ -508,22 +490,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
-document.getElementById('drawflow').addEventListener('click', (e) => {
-  let nodeElement = e.target;
-  while (nodeElement && !nodeElement.classList?.contains('drawflow-node')) {
-    nodeElement = nodeElement.parentElement;
+document.getElementById('task-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    addNode('task');
   }
-  if (!nodeElement) return;
-
-  const nodeIdAttr = nodeElement.getAttribute('data-node-id');
-  if (!nodeIdAttr) return;
-  const nodeId = parseInt(nodeIdAttr);
-  if (isNaN(nodeId)) return;
-
-  const type = nodeElement.classList.contains('start') ? 'start' :
-               nodeElement.classList.contains('end') ? 'end' : 'task';
-
-  createPopup(nodeElement, nodeId, type);
 });
 
 function clearCanvas() {
@@ -536,13 +507,6 @@ function clearCanvas() {
     popup = null;
   }
 }
-
-document.getElementById('task-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    addNode('task');
-  }
-});
 
 renderColorPicker();
 </script>
