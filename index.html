@@ -599,10 +599,27 @@ function removeActor(name) {
 // Atualiza o título em tempo real ao digitar
 document.getElementById('process-name').addEventListener('input', updateProcessInfo);
 
+// Estilo de seleção visual (borda azul)
+const style = document.createElement('style');
+style.textContent = `
+  .drawflow-node.selected {
+    outline: 2px solid #4cafef !important;
+    z-index: 10 !important;
+  }
+`;
+document.head.appendChild(style);
+
+// Seleção de nós com clique esquerdo
+document.getElementById('drawflow').addEventListener('mousedown', function(e) {
+  if (e.button !== 0) return; // Apenas clique esquerdo
+  const node = e.target.closest('.drawflow-node');
+  document.querySelectorAll('.drawflow-node.selected').forEach(el => el.classList.remove('selected'));
+  if (node) node.classList.add('selected');
+});
+
 </script>
 </body>
 </html>
-
 
 
 
