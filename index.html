@@ -211,8 +211,7 @@
       </marker>
     </defs>
   </svg>
- <script src="https://cdn.jsdelivr.net/npm/drawflow"></script>
-<script>
+ <script>
   const editor = new Drawflow(document.getElementById('drawflow'));
   editor.reroute = true;
   editor.force_first_input = false;
@@ -318,7 +317,8 @@
       if (!task) return;
       const actor = document.getElementById('actor-select').value;
       const color = actors[actor] || '#2196f3';
-      content = <div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>;
+      // Corrigido template string com crase
+      content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
       className = 'task';
 
       if (lastNodeId) {
@@ -339,7 +339,7 @@
       }
     }
 
-    // ✅ Apenas 1 entrada e 1 saída
+    // Apenas 1 entrada e 1 saída
     const id = editor.addNode(type, 1, 1, lastNodeX, lastNodeY, className, {}, content);
 
     if (lastNodeId && type !== 'start') {
