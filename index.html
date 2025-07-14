@@ -258,7 +258,7 @@
 const editor = new Drawflow(document.getElementById('drawflow'));
 editor.reroute = true;
 editor.force_first_input = false;
-editor.curvature = 0.5; // Curvas suaves
+editor.curvature = 0.5;
 editor.start();
 
 let lastNodeId = null;
@@ -403,16 +403,22 @@ function addNode(type) {
   lastNodeId = id;
 }
 
-// Popup para opções editar/excluir
 function createPopup(nodeElement, nodeId, type) {
   if (popup) popup.remove();
 
   popup = document.createElement('div');
   popup.classList.add('node-popup');
+  popup.style.position = 'absolute';
+  popup.style.background = '#fff';
+  popup.style.border = '1px solid #ccc';
+  popup.style.borderRadius = '6px';
+  popup.style.padding = '6px';
+  popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+  popup.style.zIndex = 1000;
 
   const btnDelete = document.createElement('button');
   btnDelete.textContent = 'Excluir';
-  btnDelete.classList.add('delete');
+  btnDelete.style.marginRight = '8px';
   btnDelete.onclick = (e) => {
     e.stopPropagation();
     editor.removeNode(nodeId);
@@ -425,16 +431,13 @@ function createPopup(nodeElement, nodeId, type) {
   if (type === 'task') {
     const btnEdit = document.createElement('button');
     btnEdit.textContent = 'Editar';
-    btnEdit.classList.add('edit');
     btnEdit.onclick = (e) => {
       e.stopPropagation();
-
       const nodeData = editor.drawflow.drawflow.Home.data[nodeId];
       if (!nodeData) return;
 
-      const currentHtml = nodeData.html;
       const div = document.createElement('div');
-      div.innerHTML = currentHtml;
+      div.innerHTML = nodeData.html;
       const taskDiv = div.querySelector('.task-content');
       if (!taskDiv) return;
       const taskText = taskDiv.childNodes[0].textContent.trim();
@@ -447,7 +450,7 @@ function createPopup(nodeElement, nodeId, type) {
 
       const bgColor = taskDiv.style.backgroundColor || '#2196f3';
 
-      const newHtml = `<div class='task-content' style='background:${bgColor};'>${newTask}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actorName}</div></div>`;
+      const newHtml = `<div class='task-content' style='background:${bgColor};border-radius:10px;'>${newTask}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actorName}</div></div>`;
 
       editor.updateNodeValue(nodeId, {}, newHtml);
 
@@ -475,7 +478,6 @@ function createPopup(nodeElement, nodeId, type) {
   popup.style.left = left + 'px';
 }
 
-// Fecha popup ao clicar fora
 document.addEventListener('click', (e) => {
   if (popup && !popup.contains(e.target) && !e.target.closest('.drawflow-node')) {
     popup.remove();
@@ -483,12 +485,17 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Adiciona evento de click para mostrar popup só nos nós (delegação)
 document.getElementById('drawflow').addEventListener('click', (e) => {
-  const nodeElement = e.target.closest('.drawflow-node');
+  // Encontra o nó correto com data-node-id, subindo na árvore
+  let nodeElement = e.target;
+  while (nodeElement && !nodeElement.classList?.contains('drawflow-node')) {
+    nodeElement = nodeElement.parentElement;
+  }
   if (!nodeElement) return;
 
-  const nodeId = parseInt(nodeElement.getAttribute('data-node-id'));
+  const nodeIdAttr = nodeElement.getAttribute('data-node-id');
+  if (!nodeIdAttr) return;
+  const nodeId = parseInt(nodeIdAttr);
   if (isNaN(nodeId)) return;
 
   const type = nodeElement.classList.contains('start') ? 'start' :
