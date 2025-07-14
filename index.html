@@ -179,62 +179,12 @@
     height: auto !important;
     padding: 0 !important;
   }
-
-  /* Estilo refinado para os pontos de input/output */
-  .drawflow-node .input,
-  .drawflow-node .output {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 0 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease, background-color 0.2s ease;
-  }
-
-  .drawflow-node .input:hover,
-  .drawflow-node .output:hover {
-    transform: scale(1.3);
-    filter: brightness(1.2);
-  }
-
-  /* Cores distintas por tipo de nó */
-  .drawflow-node.start .output {
-    background-color: #4caf50;
-  }
-
-  .drawflow-node.task .input {
-    background-color: #2196f3;
-  }
-
-  .drawflow-node.task .output {
-    background-color: #42a5f5;
-  }
-
-  .drawflow-node.end .input {
-    background-color: #f44336;
-  }
-
-  /* Posicionamento refinado */
-  .drawflow-node.task .input,
-  .drawflow-node.task .output {
-    margin-top: 4px;
-  }
-
-  .drawflow-node.start .output,
-  .drawflow-node.end .input {
-    margin: auto;
-    display: block;
-  }
-
-  /* Conexões entre nós */
   .drawflow .connection .main-path {
-    stroke: #607d8b;
-    stroke-width: 2.5;
+    stroke: #888;
+    stroke-width: 3;
     fill: none;
     marker-end: url(#arrow);
-    transition: stroke 0.3s ease;
   }
-
   /* Popup estilos */
   .node-popup {
     position: absolute;
@@ -262,10 +212,11 @@
     background-color: #2196f3;
   }
   .drawflow-node.selected {
-    box-shadow: 0 0 10px 3px #2196f3;
-    border-radius: 8px;
-    cursor: pointer;
+  box-shadow: 0 0 10px 3px #2196f3;
+  border-radius: 8px;
+  cursor: pointer;
   }
+  
 </style>
 </head>
 <body>
