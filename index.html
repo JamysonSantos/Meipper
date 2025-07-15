@@ -13,17 +13,20 @@
     display: flex;
     flex-direction: column;
   }
+
   header {
     background-color: #0097a7;
     color: white;
     text-align: center;
     padding: 0.5rem 1rem;
   }
+
   .main {
     flex: 1;
     display: flex;
     overflow: hidden;
   }
+
   .sidebar {
     width: 280px;
     background: #f4f4f4;
@@ -34,10 +37,12 @@
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     overflow-y: auto;
   }
+
   .sidebar label {
     font-weight: bold;
     margin-top: 0.25rem;
   }
+
   .sidebar textarea,
   .sidebar select {
     width: 100%;
@@ -47,11 +52,13 @@
     resize: none;
     min-height: 48px;
   }
+
   .color-picker {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
+
   .color-option {
     width: 24px;
     height: 24px;
@@ -60,9 +67,11 @@
     box-shadow: 0 0 2px rgba(0,0,0,0.2);
     cursor: pointer;
   }
+
   .color-option.selected {
     border-color: #000;
   }
+
   .more-colors {
     font-size: 0.85rem;
     background: #ddd;
@@ -72,6 +81,7 @@
     cursor: pointer;
     margin-top: -0.25rem;
   }
+
   .actor-badge {
     display: inline-flex;
     align-items: center;
@@ -83,6 +93,7 @@
     margin: 2px 2px 0 0;
     white-space: nowrap;
   }
+
   .actor-badge button {
     background: rgba(255,255,255,0.2);
     border: none;
@@ -98,15 +109,18 @@
     justify-content: center;
     padding: 0;
   }
+
   .actor-badge button:hover {
     background: rgba(255,255,255,0.4);
   }
+
   .actor-container {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
     margin-bottom: 0.5rem;
   }
+
   .sidebar button {
     padding: 0.6rem;
     border: none;
@@ -114,42 +128,37 @@
     font-size: 1rem;
     cursor: pointer;
   }
+
   .start {
     background-color: #4caf50;
     color: white;
   }
+
   .task {
     background-color: #2196f3;
     color: white;
   }
+
   .end {
     background-color: #f44336;
     color: white;
   }
+
   .reset {
     background-color: #777;
     color: white;
   }
+
   #drawflow {
-  flex: 1;
-  height: 100%;
-  background: #fff;
-  position: relative;
-  padding-top: 110px;  /* espaço para a legenda no topo */
-  padding-left: 20px;  /* espaço lateral extra */
-  box-sizing: border-box;
-}
-  .task-content {
-    padding: 12px;
-    font-size: 14px;
-    text-align: center;
-    word-break: break-word;
-    white-space: pre-wrap;
-    color: white;
-    font-weight: 500;
-    border-radius: 10px;
-    user-select: none;
+    flex: 1;
+    height: 100%;
+    background: #fff;
+    position: relative;
+    padding-top: 110px;  /* espaço para a legenda no topo */
+    padding-left: 20px;  /* espaço lateral extra */
+    box-sizing: border-box;
   }
+
   .circle {
     width: 40px;
     height: 40px;
@@ -162,17 +171,21 @@
     margin: auto;
     user-select: none;
   }
+
   .circle.start {
     background: #4caf50;
   }
+
   .circle.end {
     background: #f44336;
   }
+
   .drawflow-node.task {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
   }
+
   .drawflow-node.start,
   .drawflow-node.end {
     background: transparent !important;
@@ -182,12 +195,14 @@
     height: auto !important;
     padding: 0 !important;
   }
+
   .drawflow .connection .main-path {
     stroke: #888;
-    stroke-width: 3;
+    stroke-width: ;
     fill: none;
     marker-end: url(#arrow);
   }
+
   /* Popup estilos */
   .node-popup {
     position: absolute;
@@ -201,6 +216,7 @@
     font-size: 14px;
     z-index: 10000;
   }
+
   .node-popup button {
     cursor: pointer;
     border: none;
@@ -208,16 +224,48 @@
     padding: 4px 8px;
     color: #fff;
   }
+
   .node-popup button.delete {
     background-color: #f44336;
   }
+
   .node-popup button.edit {
     background-color: #2196f3;
   }
+
   .drawflow-node.selected {
   box-shadow: 0 0 10px 3px #2196f3;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
+  }
+
+  .task-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .task-content {
+    /* background será definido via JS */
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 20px;
+    text-align: center;
+    word-break: break-word;
+    white-space: pre-wrap;
+    color: white;
+    font-weight: 500;
+    user-select: none;
+    min-width: 120px;
+    max-width: 200px;
+  }
+
+  .task-actor {
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
   }
 
   #drawflow .drawflow-node .input {
@@ -241,8 +289,9 @@
   z-index: 2;
   box-shadow: 0 0 2px rgba(0,0,0,0.1);
 }
-  
+
 </style>
+
 </head>
 <body>
 <header>
@@ -362,6 +411,8 @@ function addActor() {
   document.getElementById('actor-list').appendChild(badge);
 
   document.getElementById('actors-input').value = '';
+
+  updateProcessInfo(); // Atualiza legenda
 }
 
 function removeActor(name) {
@@ -380,6 +431,8 @@ function removeActor(name) {
       break;
     }
   }
+
+  updateProcessInfo(); // Atualiza legenda
 }
 
 function addNode(type) {
@@ -401,7 +454,11 @@ function addNode(type) {
     if (!task) return;
     const actor = document.getElementById('actor-select').value;
     const color = actors[actor] || '#2196f3';
-    content = `<div class='task-content' style='background:${color};border-radius:10px;'>${task}<div style='margin-top:4px;font-size:12px;font-weight:bold;'>${actor}</div></div>`;
+   content = `
+  <div class='task-wrapper'>
+    <div class='task-content' style='background:${color};'>${task}</div>
+    <div class='task-actor'>${actor}</div>
+  </div>`;
     className = 'task';
 
     const last = editor.drawflow.drawflow.Home.data[lastNodeId];
@@ -435,7 +492,6 @@ function addNode(type) {
   lastNodeId = id;
 }
 
-// Reconecta após exclusão
 editor.on('nodeRemoved', function(id) {
   const keys = Object.keys(editor.drawflow.drawflow.Home.data).map(Number).sort((a,b)=>a-b);
   if (keys.length > 0) {
@@ -449,7 +505,6 @@ editor.on('nodeRemoved', function(id) {
   }
 });
 
-// Menu botão direito com editar/excluir
 editor.on('contextmenu', function(id, event) {
   event.preventDefault();
 
@@ -481,29 +536,21 @@ editor.on('contextmenu', function(id, event) {
   };
   div.appendChild(btnDel);
 
+  // Removido botão "Editar" conforme solicitado
+  // Incluindo mensagem sobre edição do responsável
   if (node.class === 'task') {
-    const btnEdit = document.createElement('button');
-    btnEdit.textContent = 'Editar';
-    btnEdit.onclick = () => {
-      const temp = document.createElement('div');
-      temp.innerHTML = node.html;
-      const txt = temp.querySelector('.task-content')?.childNodes[0].textContent.trim();
-      const newTxt = prompt('Editar tarefa:', txt);
-      if (newTxt) {
-        const responsavel = temp.querySelector('.task-content > div')?.textContent || '';
-        const color = temp.querySelector('.task-content')?.style.backgroundColor || '#2196f3';
-        const newHtml = `<div class="task-content" style="background:${color};border-radius:10px;">${newTxt}<div style="margin-top:4px;font-size:12px;font-weight:bold;">${responsavel}</div></div>`;
-        editor.updateNodeValue(id, {}, newHtml);
-      }
-      div.remove();
-    };
-    div.appendChild(btnEdit);
+    const note = document.createElement('div');
+    note.style.fontSize = '12px';
+    note.style.color = '#555';
+    note.style.marginLeft = '6px';
+    note.style.marginTop = '4px';
+    note.textContent = 'Para editar o responsável, exclua essa tarefa e adicione novamente com o responsável correto.';
+    div.appendChild(note);
   }
 
   document.body.appendChild(div);
 });
 
-// Fecha popup ao clicar fora
 document.addEventListener('click', (e) => {
   const ctx = document.getElementById('ctx-popup');
   if (ctx && !ctx.contains(e.target)) ctx.remove();
@@ -518,21 +565,12 @@ document.getElementById('task-input').addEventListener('keydown', function(e) {
 
 function clearCanvas() {
   editor.clear();
-
-  // Resetar variáveis de controle
   lastNodeId = null;
   lastNodeX = 100;
   lastNodeY = 100;
-
-  // Garantir que o contexto esteja limpo
-  editor.drawflow.drawflow.Home.data = {};
-
-  // Remove popup de contexto se estiver aberto
   const ctx = document.getElementById('ctx-popup');
   if (ctx) ctx.remove();
 }
-
-renderColorPicker();
 
 function updateProcessInfo() {
   const name = document.getElementById('process-name').value.trim();
@@ -553,58 +591,75 @@ function updateProcessInfo() {
   });
 }
 
-// Atualiza a legenda toda vez que adicionar ou remover um ator
-function addActor() {
-  const name = document.getElementById('actors-input').value.trim();
-  if (!name || actors[name]) return;
-
-  for (let key in actors) {
-    if (actors[key] === selectedColor) {
-      alert('Essa cor já está em uso. Escolha uma cor diferente.');
-      return;
-    }
-  }
-
-  actors[name] = selectedColor;
-
-  const option = document.createElement('option');
-  option.value = name;
-  option.text = name;
-  document.getElementById('actor-select').appendChild(option);
-
-  const badge = document.createElement('div');
-  badge.className = 'actor-badge';
-  badge.style.backgroundColor = selectedColor;
-  badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
-  document.getElementById('actor-list').appendChild(badge);
-
-  document.getElementById('actors-input').value = '';
-
-  updateProcessInfo(); // Atualiza legenda
-}
-
-function removeActor(name) {
-  delete actors[name];
-  const select = document.getElementById('actor-select');
-  for (let i = 0; i < select.options.length; i++) {
-    if (select.options[i].value === name) {
-      select.remove(i);
-      break;
-    }
-  }
-  const badges = document.getElementById('actor-list').children;
-  for (let i = badges.length - 1; i >= 0; i--) {
-    if (badges[i].textContent.startsWith(name)) {
-      badges[i].remove();
-      break;
-    }
-  }
-
-  updateProcessInfo(); // Atualiza legenda
-}
-
-// Atualiza o título em tempo real ao digitar
 document.getElementById('process-name').addEventListener('input', updateProcessInfo);
+
+// Seleção visual ao clicar
+function clearSelection() {
+  document.querySelectorAll('.drawflow-node.selected').forEach(el => el.classList.remove('selected'));
+}
+
+function selectNode(id) {
+  clearSelection();
+  const nodeEl = document.querySelector(`.drawflow-node[data-nodeid=\"${id}\"]`);
+  if (nodeEl) nodeEl.classList.add('selected');
+}
+
+document.getElementById('drawflow').addEventListener('mousedown', function(e) {
+  if (e.button === 0) {
+    const node = e.target.closest('.drawflow-node');
+    if (node) {
+      const id = node.getAttribute('data-nodeid');
+      if (id) selectNode(id);
+    } else {
+      clearSelection();
+    }
+  }
+});
+
+renderColorPicker();
+
+document.getElementById('drawflow').addEventListener('click', function (e) {
+  const nodeEl = e.target.closest('.drawflow-node');
+  const existingPopup = document.getElementById('popup-left');
+  if (existingPopup) existingPopup.remove();
+
+  if (!nodeEl) return;
+
+  const nodeId = parseInt(nodeEl.id.replace('node-', ''));
+  const node = editor.drawflow.drawflow.Home.data[nodeId];
+  if (!node || node.class !== 'task') return;
+
+  // Posição do nó na tela
+  const rect = nodeEl.getBoundingClientRect();
+  const popupX = rect.right + 10;
+  const popupY = rect.top + window.scrollY;
+
+  // Criação do popup
+  const div = document.createElement('div');
+  div.id = 'popup-left';
+  div.className = 'node-popup';
+  div.style.left = `${popupX}px`;
+  div.style.top = `${popupY}px`;
+
+  // Aviso de exclusão
+  const note = document.createElement('div');
+  note.style.fontSize = '12px';
+  note.style.color = '#555';
+  note.style.marginLeft = '6px';
+  note.style.marginTop = '2px';
+  note.textContent = 'Clique duas vezes para EDITAR. Para excluir cliquem em DELETE. E para e para editar o Responsavel, exclua e crie novamente';
+
+  div.appendChild(note);
+  document.body.appendChild(div);
+});
+
+// Fecha popup ao clicar fora
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('popup-left');
+  if (popup && !popup.contains(e.target) && !e.target.closest('.drawflow-node')) {
+    popup.remove();
+  }
+});
 
 // Estilo de seleção visual (borda azul)
 const style = document.createElement('style');
@@ -622,6 +677,28 @@ document.getElementById('drawflow').addEventListener('mousedown', function(e) {
   const node = e.target.closest('.drawflow-node');
   document.querySelectorAll('.drawflow-node.selected').forEach(el => el.classList.remove('selected'));
   if (node) node.classList.add('selected');
+});
+
+// Permite edição inline do texto da tarefa ao dar duplo clique
+document.getElementById('drawflow').addEventListener('dblclick', function (e) {
+  const target = e.target;
+  if (target.classList.contains('task-content')) {
+    target.setAttribute('contenteditable', 'true');
+    target.focus();
+
+    // Impede Enter de quebrar a linha (finaliza edição)
+    target.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        target.blur();
+      }
+    });
+
+    // Ao sair do campo, desabilita a edição
+    target.addEventListener('blur', function () {
+      target.removeAttribute('contenteditable');
+    }, { once: true });
+  }
 });
 
 </script>
