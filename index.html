@@ -45,7 +45,7 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             border-bottom: 1px solid #e5e7eb;
-            padding: 16px;
+            padding: 10px;
         }
 
         .process-info-content {
@@ -505,8 +505,7 @@
             font-weight: bold;
             font-size: 20px;
             position: relative;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-            border: 4px solid rgba(255,255,255,0.4);
+            border: 2px solid rgba(255,255,255,0.4);
             transition: all 0.3s ease;
         }
 
@@ -543,13 +542,12 @@
             max-width: 280px;
             min-height: 60px;
             font-size: 15px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
             cursor: text;
             line-height: 1.5;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
             overflow-wrap: break-word;
@@ -693,13 +691,13 @@
 
         .task-node .input-point {
             left: -10px;
-            top: 55%;
+            top: 48%;
             transform: translateY(-170%);
         }
 
         .task-node .output-point {
             right: -10px;
-            top: 55%;
+            top: 48%;
             transform: translateY(-170%);
         }
 
@@ -828,11 +826,9 @@
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             padding: 12px;
             z-index: 1000;
             backdrop-filter: blur(10px);
-            max-width: 250px;
         }
 
         .task-popup h4 {
@@ -976,7 +972,7 @@
                 </button>
 
                 <button class="btn btn-purple" onclick="startGatewayMode()">
-                    ◆ Essa tarefa possui mais de um caminho?
+                    ◆ Essa tarefa possui mais de um caminho
                 </button>
 
                 <button class="btn btn-danger" onclick="addTask('end')">
@@ -1007,12 +1003,11 @@
                 <h4>💡 Como usar:</h4>
                 <ul>
                     <li>Clique em uma tarefa para selecioná-la</li>
-                    <li>Novas tarefas serão adicionadas após a selecionada</li>
                     <li>Duplo clique para editar texto das tarefas</li>
+                    <li>Novas tarefas serão adicionadas após a selecionada</li>
+                    <li>Clique no botão direito ou em DELETE para excluir tarefas</li>
                     <li>Arraste tarefas para reposicioná-las</li>
-                    <li>Arraste pontos vermelhos para verdes para conectar</li>
                     <li>Use scroll do mouse para zoom</li>
-                    <li>Clique direito para excluir tarefas</li>
                 </ul>
             </div>
 
@@ -1425,40 +1420,7 @@
             renderCanvas();
         }
 
-        function showTaskPopup(event) {
-            // Remove existing popup
-            const existingPopup = document.querySelector('.task-popup');
-            if (existingPopup) {
-                existingPopup.remove();
-            }
-
-            const popup = document.createElement('div');
-            popup.className = 'task-popup';
-            popup.innerHTML = `
-                <button class="close-btn" onclick="this.parentElement.remove()">×</button>
-                <h4>Tarefa Selecionada</h4>
-                <ul>
-                    <li><strong>Duplo clique</strong> para editar</li>
-                    <li><strong>Botão direito</strong> para excluir</li>
-                    <li><strong>Arraste pontos vermelhos</strong> para conectar</li>
-                </ul>
-            `;
-
-            // Position popup near the click
-            const rect = document.getElementById('canvas-viewport').getBoundingClientRect();
-            popup.style.left = (event.clientX - rect.left + 20) + 'px';
-            popup.style.top = (event.clientY - rect.top - 20) + 'px';
-
-            document.getElementById('canvas-viewport').appendChild(popup);
-
-            // Auto-hide after 3 seconds
-            setTimeout(() => {
-                if (popup.parentElement) {
-                    popup.remove();
-                }
-            }, 3000);
-        }
-
+       
         function deleteTask(taskId) {
             tasks = tasks.filter(t => t.id !== taskId);
             connections = connections.filter(c => c.from !== taskId && c.to !== taskId);
@@ -1695,7 +1657,7 @@
                 const textLength = task.name ? task.name.length : 0;
                 const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, textLength * 8 + 48));
                 
-                const taskCenterY = task.y + 40;
+                const taskCenterY = task.y + 30;
                 points.input = { x: task.x, y: taskCenterY };
                 points.output = { x: task.x + estimatedWidth, y: taskCenterY };
             }
@@ -2004,20 +1966,3 @@
     </script>
   </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
