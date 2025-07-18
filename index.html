@@ -430,11 +430,11 @@
 
         .canvas {
             position: relative;
+            width: 20000px;
+            height: 20000px;
             transform-origin: 0 0;
             transition: transform 0.2s ease;
             cursor: grab;
-            width: 10000px;
-            height: 10000px;
         }
 
         .canvas-viewport {
@@ -505,7 +505,7 @@
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
             position: relative;
             border: 2px solid rgba(255,255,255,0.4);
             transition: all 0.3s ease;
@@ -543,7 +543,7 @@
             min-width: 120px;
             max-width: 220px;
             min-height: 50px;
-            font-size: 13px;
+            font-size: 14px;
             cursor: text;
             line-height: 1.4;
             display: flex;
@@ -573,7 +573,7 @@
 
         .task-actor {
             margin-top: 8px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             color: #374151;
             text-align: center;
@@ -587,8 +587,8 @@
 
         /* Gateway Nodes */
         .gateway-node {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             position: relative;
         }
 
@@ -601,25 +601,25 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
         }
 
         .gateway-shape:hover {
             transform: rotate(45deg) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
         }
 
         .gateway-label {
             position: absolute;
-            top: 70px;
+            top: 60px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             color: #374151;
             text-align: center;
-            max-width: 120px;
+            max-width: 140px;
             word-break: break-word;
             padding: 4px 10px;
             background: rgba(255,255,255,0.95);
@@ -628,8 +628,6 @@
             border: 1px solid rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
             cursor: text;
-            line-height: 1.3;
-            hyphens: auto;
         }
 
         .gateway-label[contenteditable="true"] {
@@ -653,8 +651,8 @@
         }
 
         .connection-point:hover {
-            transform: scale(1.4);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            transform: scale(1.3);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
         }
 
         .input-point {
@@ -680,12 +678,14 @@
 
         .task-node .input-point {
             left: -8px;
-            top: 25px;
+            top: 40%;
+            transform: translateY(-50%);
         }
 
         .task-node .output-point {
             right: -8px;
-            top: 25px;
+            top: 40%;
+            transform: translateY(-50%);
         }
 
         /* Gateway connections */
@@ -703,6 +703,7 @@
 
         /* Connections */
         .connection-svg {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -715,7 +716,7 @@
             stroke: #4b5563;
             stroke-width: 2;
             fill: none;
-            marker-end: url(#arrowhead);
+            marker-end: url(#arrow);
             transition: all 0.3s ease;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
             cursor: pointer;
@@ -729,7 +730,7 @@
         }
 
         .connection-label {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             fill: #1f2937;
             text-anchor: middle;
@@ -797,73 +798,14 @@
             bottom: 16px;
             right: 16px;
             background: rgba(255,255,255,0.95);
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
             color: #4b5563;
             z-index: 1000;
             font-weight: 600;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             backdrop-filter: blur(10px);
-        }
-
-        /* Task Selection Popup */
-        .task-popup {
-            position: absolute;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 12px;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        .task-popup h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-
-        .task-popup ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .task-popup li {
-            margin-bottom: 4px;
-            padding-left: 12px;
-            position: relative;
-        }
-
-        .task-popup li:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #3b82f6;
-        }
-
-        .task-popup .close-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 16px;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .task-popup .close-btn:hover {
-            color: #6b7280;
         }
 
         /* Temporary connection line */
@@ -1023,8 +965,8 @@
                     <svg class="connection-svg" id="connections-svg">
                         <defs>
                             <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#888" />
-    </marker>
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563" />
+                            </marker>
                         </defs>
                     </svg>
                 </div>
@@ -1078,7 +1020,17 @@
             renderColorPicker();
             updateProcessInfo();
             setupCanvasEvents();
+            setupKeyboardEvents();
         });
+
+        // Keyboard events
+        function setupKeyboardEvents() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Delete' && selectedTask) {
+                    deleteTask(selectedTask);
+                }
+            });
+        }
 
         // Canvas setup
         function setupCanvasEvents() {
@@ -1117,8 +1069,8 @@
                     const x = (e.clientX - rect.left - panX * zoomLevel) / zoomLevel - dragOffsetX;
                     const y = (e.clientY - rect.top - panY * zoomLevel) / zoomLevel - dragOffsetY;
                     
-                    draggedTask.x = Math.max(0, x);
-                    draggedTask.y = Math.max(0, y);
+                    draggedTask.x = Math.max(0, Math.min(19800, x));
+                    draggedTask.y = Math.max(0, Math.min(19800, y));
                     
                     renderCanvas();
                 } else if (isConnecting && connectionStart) {
@@ -1290,6 +1242,59 @@
             });
         }
 
+        // Position checking for smart placement
+        function isPositionOccupied(x, y, excludeId = null) {
+            const buffer = 50; // Buffer space around elements
+            return tasks.some(task => {
+                if (task.id === excludeId) return false;
+                
+                const taskWidth = task.type === 'task' ? 220 : (task.type === 'gateway' ? 50 : 50);
+                const taskHeight = task.type === 'task' ? 80 : (task.type === 'gateway' ? 80 : 50);
+                
+                return (x < task.x + taskWidth + buffer && 
+                        x + taskWidth + buffer > task.x &&
+                        y < task.y + taskHeight + buffer && 
+                        y + taskHeight + buffer > task.y);
+            });
+        }
+
+        function findAvailablePosition(preferredX, preferredY) {
+            let x = preferredX;
+            let y = preferredY;
+            
+            // Try the preferred position first
+            if (!isPositionOccupied(x, y)) {
+                return { x, y };
+            }
+            
+            // Try positions in a spiral pattern
+            const maxAttempts = 50;
+            const step = 40;
+            
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                // Try positions around the preferred location
+                const positions = [
+                    { x: preferredX + (step * attempt), y: preferredY },
+                    { x: preferredX, y: preferredY + (step * attempt) },
+                    { x: preferredX - (step * attempt), y: preferredY },
+                    { x: preferredX, y: preferredY - (step * attempt) },
+                    { x: preferredX + (step * attempt), y: preferredY + (step * attempt) },
+                    { x: preferredX - (step * attempt), y: preferredY - (step * attempt) },
+                    { x: preferredX + (step * attempt), y: preferredY - (step * attempt) },
+                    { x: preferredX - (step * attempt), y: preferredY + (step * attempt) }
+                ];
+                
+                for (const pos of positions) {
+                    if (pos.x >= 0 && pos.y >= 0 && pos.x <= 19800 && pos.y <= 19800 && !isPositionOccupied(pos.x, pos.y)) {
+                        return pos;
+                    }
+                }
+            }
+            
+            // Fallback to original position if no free space found
+            return { x: preferredX, y: preferredY };
+        }
+
         // Task management
         function getNextPosition() {
             if (tasks.length === 0) {
@@ -1299,12 +1304,16 @@
             if (selectedTask) {
                 const selected = tasks.find(t => t.id === selectedTask);
                 if (selected) {
-                    return { x: selected.x + SPACING_X, y: selected.y };
+                    const preferredX = selected.x + SPACING_X;
+                    const preferredY = selected.y;
+                    return findAvailablePosition(preferredX, preferredY);
                 }
             }
 
             const lastTask = tasks[tasks.length - 1];
-            return { x: lastTask.x + SPACING_X, y: lastTask.y };
+            const preferredX = lastTask.x + SPACING_X;
+            const preferredY = lastTask.y;
+            return findAvailablePosition(preferredX, preferredY);
         }
 
         function addTask(type) {
@@ -1404,7 +1413,6 @@
             renderCanvas();
         }
 
-       
         function deleteTask(taskId) {
             tasks = tasks.filter(t => t.id !== taskId);
             connections = connections.filter(c => c.from !== taskId && c.to !== taskId);
@@ -1562,7 +1570,7 @@
             if (!selectedTaskObj) return;
 
             // Create gateway
-            const gatewayPosition = { x: selectedTaskObj.x + SPACING_X, y: selectedTaskObj.y };
+            const gatewayPosition = findAvailablePosition(selectedTaskObj.x + SPACING_X, selectedTaskObj.y);
             const gatewayTask = {
                 id: `task-${taskIdCounter++}`,
                 name: question,
@@ -1581,16 +1589,14 @@
                 to: gatewayTask.id
             });
 
-            // Create tasks for each path
+            // Create tasks for each path with smart positioning
             const totalPaths = validPaths.length;
-            const pathSpacing = 90;
+            const pathSpacing = 100;
             const startY = gatewayPosition.y - ((totalPaths - 1) * pathSpacing / 2);
             
             validPaths.forEach((path, index) => {
-                const pathTaskPosition = {
-                    x: gatewayPosition.x + SPACING_X,
-                    y: startY + (index * pathSpacing)
-                };
+                const preferredY = startY + (index * pathSpacing);
+                const pathTaskPosition = findAvailablePosition(gatewayPosition.x + SPACING_X, preferredY);
 
                 const pathTask = {
                     id: `task-${taskIdCounter++}`,
@@ -1633,10 +1639,9 @@
             } else if (task.type === 'end') {
                 points.input = { x: task.x, y: task.y + 25 };
             } else if (task.type === 'gateway') {
-                points.input = { x: task.x, y: task.y + 30 };
-                points.output = { x: task.x + 60, y: task.y + 30 };
+                points.input = { x: task.x, y: task.y + 25 };
+                points.output = { x: task.x + 50, y: task.y + 25 };
             } else if (task.type === 'task') {
-                // Calculate actual task width based on content
                 const minWidth = 120;
                 const maxWidth = 220;
                 const textLength = task.name ? task.name.length : 0;
@@ -1648,6 +1653,70 @@
             }
             
             return points;
+        }
+
+        // Text editing functions
+        function editTaskText(element, taskId) {
+            element.setAttribute('contenteditable', 'true');
+            element.focus();
+
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            element.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+                e.stopPropagation();
+            });
+
+            element.addEventListener('blur', function() {
+                element.removeAttribute('contenteditable');
+                
+                // Update task data
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.name = element.textContent.trim();
+                    renderCanvas();
+                }
+            }, { once: true });
+        }
+
+        function editGatewayText(element, taskId) {
+            element.setAttribute('contenteditable', 'true');
+            element.focus();
+
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            element.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+                e.stopPropagation();
+            });
+
+            element.addEventListener('blur', function() {
+                element.removeAttribute('contenteditable');
+                
+                // Update gateway data
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.question = element.textContent.trim();
+                    task.name = element.textContent.trim();
+                    renderCanvas();
+                }
+            }, { once: true });
         }
 
         // Função para editar labels de conexão
@@ -1800,15 +1869,15 @@
                     // Create background rectangle for label
                     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                     const textLength = conn.pathLabel.length * 6;
-                    rect.setAttribute('x', midX - textLength/2 - 5);
+                    rect.setAttribute('x', midX - textLength/2 - 4);
                     rect.setAttribute('y', midY - 10);
-                    rect.setAttribute('width', textLength + 10);
-                    rect.setAttribute('height', 18);
+                    rect.setAttribute('width', textLength + 8);
+                    rect.setAttribute('height', 16);
                     rect.setAttribute('fill', 'white');
                     rect.setAttribute('stroke', '#e5e7eb');
                     rect.setAttribute('stroke-width', '1');
-                    rect.setAttribute('rx', '5');
-                    rect.setAttribute('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.1))');
+                    rect.setAttribute('rx', '4');
+                    rect.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))');
                     rect.setAttribute('class', 'connection-label-bg');
                     rect.setAttribute('onclick', `editConnectionLabel(this.nextSibling, '${conn.id}', event)`);
                     svg.appendChild(rect);
@@ -1822,70 +1891,6 @@
                     svg.appendChild(text);
                 }
             });
-        }
-
-        // Text editing
-        function editTaskText(element, taskId) {
-            element.setAttribute('contenteditable', 'true');
-            element.focus();
-
-            // Select all text
-            const range = document.createRange();
-            range.selectNodeContents(element);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            element.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    element.blur();
-                }
-                e.stopPropagation();
-            });
-
-            element.addEventListener('blur', function() {
-                element.removeAttribute('contenteditable');
-                
-                // Update task data
-                const task = tasks.find(t => t.id === taskId);
-                if (task) {
-                    task.name = element.textContent.trim();
-                    renderCanvas();
-                }
-            }, { once: true });
-        }
-
-        function editGatewayText(element, taskId) {
-            element.setAttribute('contenteditable', 'true');
-            element.focus();
-
-            // Select all text
-            const range = document.createRange();
-            range.selectNodeContents(element);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            element.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    element.blur();
-                }
-                e.stopPropagation();
-            });
-
-            element.addEventListener('blur', function() {
-                element.removeAttribute('contenteditable');
-                
-                // Update gateway data
-                const task = tasks.find(t => t.id === taskId);
-                if (task) {
-                    task.question = element.textContent.trim();
-                    task.name = element.textContent.trim();
-                    renderCanvas();
-                }
-            }, { once: true });
         }
 
         // Context menu
