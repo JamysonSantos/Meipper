@@ -433,6 +433,8 @@
             transform-origin: 0 0;
             transition: transform 0.2s ease;
             cursor: grab;
+            width: 10000px;
+            height: 10000px;
         }
 
         .canvas-viewport {
@@ -495,15 +497,15 @@
         /* Start and End Nodes */
         .start-node,
         .end-node {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 20px;
+            font-size: 16px;
             position: relative;
             border: 2px solid rgba(255,255,255,0.4);
             transition: all 0.3s ease;
@@ -532,18 +534,18 @@
         }
 
         .task-content {
-            padding: 18px 24px;
-            border-radius: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
             color: white;
             font-weight: 600;
             text-align: center;
             word-break: break-word;
-            min-width: 140px;
-            max-width: 280px;
-            min-height: 60px;
-            font-size: 15px;
+            min-width: 120px;
+            max-width: 220px;
+            min-height: 50px;
+            font-size: 13px;
             cursor: text;
-            line-height: 1.5;
+            line-height: 1.4;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -551,6 +553,8 @@
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
             overflow-wrap: break-word;
+            hyphens: auto;
+            word-wrap: break-word;
         }
 
         .task-content:hover {
@@ -568,23 +572,23 @@
         }
 
         .task-actor {
-            margin-top: 10px;
-            font-size: 13px;
+            margin-top: 8px;
+            font-size: 11px;
             font-weight: 600;
             color: #374151;
             text-align: center;
-            padding: 6px 12px;
+            padding: 4px 10px;
             background: rgba(255,255,255,0.95);
-            border-radius: 8px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             border: 1px solid rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
         }
 
         /* Gateway Nodes */
         .gateway-node {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             position: relative;
         }
 
@@ -596,76 +600,61 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: text;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
         }
 
         .gateway-shape:hover {
             transform: rotate(45deg) scale(1.05);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-        }
-
-        .gateway-question {
-            transform: rotate(-45deg);
-            font-size: 12px;
-            font-weight: bold;
-            color: #92400e;
-            text-align: center;
-            max-width: 60px;
-            word-break: break-word;
-            cursor: text;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 40px;
-            padding: 4px;
-        }
-
-        .gateway-question[contenteditable="true"] {
-            background: rgba(255,255,255,0.95);
-            color: #1f2937;
-            outline: 2px solid #3b82f6;
-            padding: 6px;
-            border-radius: 6px;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
         }
 
         .gateway-label {
             position: absolute;
-            top: 90px;
+            top: 70px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: #374151;
             text-align: center;
-            max-width: 140px;
+            max-width: 120px;
             word-break: break-word;
-            padding: 6px 12px;
+            padding: 4px 10px;
             background: rgba(255,255,255,0.95);
-            border-radius: 8px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             border: 1px solid rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
+            cursor: text;
+            line-height: 1.3;
+            hyphens: auto;
+        }
+
+        .gateway-label[contenteditable="true"] {
+            outline: 2px solid #3b82f6;
+            background: rgba(255,255,255,0.95);
+            color: #1f2937;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
         }
 
         /* Connection Points */
         .connection-point {
             position: absolute;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            border: 3px solid white;
+            border: 2px solid white;
             cursor: crosshair;
             z-index: 20;
             transition: all 0.3s ease;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
         }
 
         .connection-point:hover {
-            transform: scale(1.5);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transform: scale(1.4);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
         }
 
         .input-point {
@@ -678,38 +667,36 @@
 
         /* Positioning for different element types */
         .start-node .output-point {
-            right: -15px;
+            right: -12px;
             top: 50%;
             transform: translateY(-50%);
         }
 
         .end-node .input-point {
-            left: -15px;
+            left: -12px;
             top: 50%;
             transform: translateY(-50%);
         }
 
         .task-node .input-point {
-            left: -10px;
-            top: 48%;
-            transform: translateY(-170%);
+            left: -8px;
+            top: 25px;
         }
 
         .task-node .output-point {
-            right: -10px;
-            top: 48%;
-            transform: translateY(-170%);
+            right: -8px;
+            top: 25px;
         }
 
         /* Gateway connections */
         .gateway-node .input-point {
-            left: -25px;
+            left: -20px;
             top: 50%;
             transform: translateY(-50%);
         }
 
         .gateway-node .output-point {
-            right: -25px;
+            right: -20px;
             top: 50%;
             transform: translateY(-50%);
         }
@@ -742,7 +729,7 @@
         }
 
         .connection-label {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             fill: #1f2937;
             text-anchor: middle;
@@ -890,11 +877,11 @@
 
         /* Melhorias adicionais */
         .task-element {
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.1));
         }
 
         .task-element:hover {
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
         }
     </style>
   </head>
@@ -1081,8 +1068,8 @@
         let connectionStart = null;
         let tempConnectionEnd = null;
 
-        const SPACING_X = 200;
-        const SPACING_Y = 170;
+        const SPACING_X = 160;
+        const SPACING_Y = 120;
         const INITIAL_X = 50;
         const INITIAL_Y = 50;
 
@@ -1414,9 +1401,6 @@
 
         function selectTask(taskId, event) {
             selectedTask = taskId;
-            if (tasks.find(t => t.id === taskId && t.type === 'task')) {
-                showTaskPopup(event);
-            }
             renderCanvas();
         }
 
@@ -1599,7 +1583,7 @@
 
             // Create tasks for each path
             const totalPaths = validPaths.length;
-            const pathSpacing = 120;
+            const pathSpacing = 90;
             const startY = gatewayPosition.y - ((totalPaths - 1) * pathSpacing / 2);
             
             validPaths.forEach((path, index) => {
@@ -1645,19 +1629,20 @@
             const points = {};
             
             if (task.type === 'start') {
-                points.output = { x: task.x + 60, y: task.y + 30 };
+                points.output = { x: task.x + 50, y: task.y + 25 };
             } else if (task.type === 'end') {
-                points.input = { x: task.x, y: task.y + 30 };
+                points.input = { x: task.x, y: task.y + 25 };
             } else if (task.type === 'gateway') {
-                points.input = { x: task.x, y: task.y + 40 };
-                points.output = { x: task.x + 80, y: task.y + 40 };
+                points.input = { x: task.x, y: task.y + 30 };
+                points.output = { x: task.x + 60, y: task.y + 30 };
             } else if (task.type === 'task') {
-                const minWidth = 140;
-                const maxWidth = 280;
+                // Calculate actual task width based on content
+                const minWidth = 120;
+                const maxWidth = 220;
                 const textLength = task.name ? task.name.length : 0;
-                const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, textLength * 8 + 48));
+                const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, textLength * 6 + 36));
                 
-                const taskCenterY = task.y + 30;
+                const taskCenterY = task.y + 25;
                 points.input = { x: task.x, y: taskCenterY };
                 points.output = { x: task.x + estimatedWidth, y: taskCenterY };
             }
@@ -1755,9 +1740,8 @@
                 } else if (task.type === 'gateway') {
                     taskEl.innerHTML = `
                         <div class="gateway-node">
-                            <div class="gateway-shape">
-                                <div class="gateway-question" ondblclick="editGatewayText(this, '${task.id}')">${task.question || '?'}</div>
-                            </div>
+                            <div class="gateway-shape"></div>
+                            <div class="gateway-label" ondblclick="editGatewayText(this, '${task.id}')">${task.question || 'Decisão'}</div>
                             <div class="input-point connection-point" onmousedown="endConnection('${task.id}', 'input', event)"></div>
                             <div class="output-point connection-point" onmousedown="startConnection('${task.id}', 'output', event)"></div>
                         </div>
@@ -1815,23 +1799,23 @@
                     
                     // Create background rectangle for label
                     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    const textLength = conn.pathLabel.length * 7;
-                    rect.setAttribute('x', midX - textLength/2 - 6);
-                    rect.setAttribute('y', midY - 12);
-                    rect.setAttribute('width', textLength + 12);
-                    rect.setAttribute('height', 20);
+                    const textLength = conn.pathLabel.length * 6;
+                    rect.setAttribute('x', midX - textLength/2 - 5);
+                    rect.setAttribute('y', midY - 10);
+                    rect.setAttribute('width', textLength + 10);
+                    rect.setAttribute('height', 18);
                     rect.setAttribute('fill', 'white');
                     rect.setAttribute('stroke', '#e5e7eb');
                     rect.setAttribute('stroke-width', '1');
-                    rect.setAttribute('rx', '6');
-                    rect.setAttribute('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))');
+                    rect.setAttribute('rx', '5');
+                    rect.setAttribute('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.1))');
                     rect.setAttribute('class', 'connection-label-bg');
                     rect.setAttribute('onclick', `editConnectionLabel(this.nextSibling, '${conn.id}', event)`);
                     svg.appendChild(rect);
                     
                     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                     text.setAttribute('x', midX);
-                    text.setAttribute('y', midY + 2);
+                    text.setAttribute('y', midY + 1);
                     text.setAttribute('class', 'connection-label');
                     text.setAttribute('ondblclick', `editConnectionLabel(this, '${conn.id}', event)`);
                     text.textContent = conn.pathLabel;
