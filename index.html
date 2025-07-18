@@ -1,708 +1,2010 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mapflue com Drawflow</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.49/dist/drawflow.min.css" />
-<style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meipper - Sistema de Fluxo Aprimorado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  header {
-    background-color: #0097a7;
-    color: white;
-    text-align: center;
-    padding: 0.5rem 1rem;
-  }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-  .main {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            color: white;
+            text-align: center;
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-  .sidebar {
-    width: 280px;
-    background: #f4f4f4;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    overflow-y: auto;
-  }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
 
-  .sidebar label {
-    font-weight: bold;
-    margin-top: 0.25rem;
-  }
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
 
-  .sidebar textarea,
-  .sidebar select {
-    width: 100%;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    resize: none;
-    min-height: 48px;
-  }
+        /* Process Info Card - Horizontal Layout */
+        .process-info-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px;
+        }
 
-  .color-picker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
+        .process-info-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 100%;
+        }
 
-  .color-option {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    box-shadow: 0 0 2px rgba(0,0,0,0.2);
-    cursor: pointer;
-  }
+        .process-info-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
 
-  .color-option.selected {
-    border-color: #000;
-  }
+        .process-name-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-  .more-colors {
-    font-size: 0.85rem;
-    background: #ddd;
-    padding: 4px 6px;
-    border-radius: 6px;
-    text-align: center;
-    cursor: pointer;
-    margin-top: -0.25rem;
-  }
+        .process-name-section h3 {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
 
-  .actor-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    font-size: 0.85rem;
-    color: white;
-    border-radius: 6px;
-    margin: 2px 2px 0 0;
-    white-space: nowrap;
-  }
+        .process-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+        }
 
-  .actor-badge button {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    font-weight: bold;
-    font-size: 0.9rem;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
+        .actors-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-  .actor-badge button:hover {
-    background: rgba(255,255,255,0.4);
-  }
+        .actors-section h3 {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
 
-  .actor-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 0.5rem;
-  }
+        .actors-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
 
-  .sidebar button {
-    padding: 0.6rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-  }
+        .zoom-info {
+            text-align: right;
+            font-size: 14px;
+            color: #6b7280;
+        }
 
-  .start {
-    background-color: #4caf50;
-    color: white;
-  }
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
 
-  .task {
-    background-color: #2196f3;
-    color: white;
-  }
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-  .end {
-    background-color: #f44336;
-    color: white;
-  }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-  .reset {
-    background-color: #777;
-    color: white;
-  }
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
 
-  #drawflow {
-    flex: 1;
-    height: 100%;
-    background: #fff;
-    position: relative;
-    padding-top: 110px;  /* espaço para a legenda no topo */
-    padding-left: 20px;  /* espaço lateral extra */
-    box-sizing: border-box;
-  }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
 
-  .circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: white;
-    margin: auto;
-    user-select: none;
-  }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
 
-  .circle.start {
-    background: #4caf50;
-  }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
 
-  .circle.end {
-    background: #f44336;
-  }
+        /* Color Picker */
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
 
-  .drawflow-node.task {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-  .drawflow-node.start,
-  .drawflow-node.end {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    width: auto !important;
-    height: auto !important;
-    padding: 0 !important;
-  }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
 
-  .drawflow .connection .main-path {
-    stroke: #888;
-    stroke-width: ;
-    fill: none;
-    marker-end: url(#arrow);
-  }
+        .color-option.selected {
+            border-color: #1f2937;
+            box-shadow: 0 0 0 2px rgba(31, 41, 55, 0.2);
+        }
 
-  /* Popup estilos */
-  .node-popup {
-    position: absolute;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 6px 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    display: flex;
-    gap: 8px;
-    font-size: 14px;
-    z-index: 10000;
-  }
+        .more-colors-btn {
+            background: #f3f4f6;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #6b7280;
+            transition: background-color 0.2s;
+        }
 
-  .node-popup button {
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-    padding: 4px 8px;
-    color: #fff;
-  }
+        .more-colors-btn:hover {
+            background: #e5e7eb;
+        }
 
-  .node-popup button.delete {
-    background-color: #f44336;
-  }
+        /* Actor Management */
+        .actors-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
 
-  .node-popup button.edit {
-    background-color: #2196f3;
-  }
+        .actor-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
 
-  .drawflow-node.selected {
-  box-shadow: 0 0 10px 3px #2196f3;
-  border-radius: 4px;
-  cursor: pointer;
-  }
+        .actor-badge button {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-  .task-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+        .actor-badge button:hover {
+            background: rgba(255,255,255,0.5);
+        }
 
-  .task-content {
-    /* background será definido via JS */
-    border-radius: 10px;
-    padding: 12px;
-    font-size: 20px;
-    text-align: center;
-    word-break: break-word;
-    white-space: pre-wrap;
-    color: white;
-    font-weight: 500;
-    user-select: none;
-    min-width: 120px;
-    max-width: 200px;
-  }
+        /* Buttons */
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
 
-  .task-actor {
-    margin-top: 6px;
-    font-size: 15px;
-    font-weight: bold;
-    color: #333;
-    text-align: center;
-  }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
 
-  #drawflow .drawflow-node .input {
-  width: 9px !important;
-  height: 9px !important;
-  background: #4caf50 !important; /* verde */
-  border: 1px solid #fff !important;
-  border-radius: 50% !important;
-  cursor: crosshair;
-  z-index: 2;
-  box-shadow: 0 0 2px rgba(0,0,0,0.1);
-}
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
 
-#drawflow .drawflow-node .output {
-  width: 9px !important;
-  height: 9px !important;
-  background: #f44336 !important; /* vermelho */
-  border: 1px solid #fff !important;
-  border-radius: 50% !important;
-  cursor: crosshair;
-  z-index: 2;
-  box-shadow: 0 0 2px rgba(0,0,0,0.1);
-}
+        .btn-primary:hover {
+            background: #2563eb;
+        }
 
-</style>
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
 
-</head>
-<body>
-<header>
-  <h1 style="margin: 0.2em 0">Mapflue</h1>
-  <p style="margin: 0; font-size: 0.9rem">Crie seu processo clicando nos elementos</p>
-</header>
-<div class="main">
-  <div class="sidebar">
-    <label>Nome do Processo:</label>
-    <input type="text" id="process-name" placeholder="Ex: Aprovação de Faturas"     style="padding: 8px; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc;" />
+        .btn-success:hover {
+            background: #059669;
+        }
 
-    <label>Responsável/Setor/Área:</label>
-    <textarea id="actors-input" placeholder="Ex: Financeiro"></textarea>
+        .btn-purple {
+            background: #8b5cf6;
+            color: white;
+        }
 
-    <label>Cor:</label>
-    <div class="color-picker" id="color-picker"></div>
-    <div class="more-colors" onclick="addMoreColors()">Mais cores</div>
+        .btn-purple:hover {
+            background: #7c3aed;
+        }
 
-    <button onclick="addActor()">Salvar Responsável</button>
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
 
-    <label>Selecionar Responsável:</label>
-    <select id="actor-select"></select>
+        .btn-danger:hover {
+            background: #dc2626;
+        }
 
-    <div class="actor-container" id="actor-list"></div>
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
 
-    <label>Tarefa:</label>
-    <button class="start" onclick="addNode('start')">Iniciar Processo</button>
-    <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
 
-    <button class="task" onclick="addNode('task')">Adicionar Tarefa</button>
-    <button class="end" onclick="addNode('end')">Finalizar Processo</button>
-    <button class="reset" onclick="clearCanvas()">Limpar Tudo</button>
-  </div>
-  <div id="drawflow">
-  <div id="process-info" style="position: absolute; top: 8px; left: 8px; z-index: 10; background: rgba(255,255,255,0.95); padding: 10px 14px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 340px; font-family: sans-serif;">
-  <div style="font-weight: bold; font-size: 0.9rem; color: #333; margin-bottom: 4px;">📌 Nome do Processo:</div>
-  <div id="process-title" style="font-size: 1rem; font-weight: 600; color: #000; margin-bottom: 10px;"></div>
-  <div style="font-weight: bold; font-size: 0.9rem; color: #333; margin-bottom: 4px;">👥 Responsáveis pelas tarefas:</div>
-  <div id="legend" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
-</div>
-</div>
-</div>
+        /* Gateway Panel */
+        .gateway-panel {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
 
-<svg style="display:none">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        .gateway-panel h3 {
+            color: #1e293b;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .gateway-paths {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .path-block {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .path-label {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .remove-path-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .gateway-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .gateway-buttons .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #1e40af;
+        }
+
+        .instructions h4 {
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instructions li {
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .instructions li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+        }
+
+        /* Canvas Area */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .canvas-controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+        }
+
+        .canvas-controls button {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .canvas-controls button:hover {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .canvas {
+            position: relative;
+            width: 10000px;
+            height: 10000px;
+            transform-origin: 0 0;
+            transition: transform 0.2s ease;
+            cursor: grab;
+        }
+
+        .canvas-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: auto;
+        }
+
+        /* Task Elements */
+        .task-element {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .task-element:hover {
+            transform: scale(1.01);
+            z-index: 15;
+        }
+
+        .task-element.selected {
+            z-index: 16;
+        }
+
+        .task-element.selected::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border: 3px solid #3b82f6;
+            border-radius: 16px;
+            pointer-events: none;
+            animation: pulse 2s infinite;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.7;
+                transform: scale(1.02);
+            }
+        }
+
+        .task-element.dragging {
+            z-index: 1000;
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        /* Start and End Nodes */
+        .start-node,
+        .end-node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            border: 4px solid rgba(255,255,255,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .start-node:hover,
+        .end-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .start-node {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .end-node {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        /* Task Nodes */
+        .task-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .task-content {
+            padding: 18px 24px;
+            border-radius: 14px;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            word-break: break-word;
+            min-width: 140px;
+            max-width: 280px;
+            min-height: 60px;
+            font-size: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            cursor: text;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            overflow-wrap: break-word;
+        }
+
+        .task-content:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .task-content[contenteditable="true"] {
+            outline: 3px solid #3b82f6;
+            background: rgba(255,255,255,0.95) !important;
+            color: #1f2937 !important;
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .task-actor {
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Gateway Nodes */
+        .gateway-node {
+            width: 80px;
+            height: 80px;
+            position: relative;
+        }
+
+        .gateway-shape {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            transform: rotate(45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: text;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .gateway-shape:hover {
+            transform: rotate(45deg) scale(1.05);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+
+        .gateway-question {
+            transform: rotate(-45deg);
+            font-size: 12px;
+            font-weight: bold;
+            color: #92400e;
+            text-align: center;
+            max-width: 60px;
+            word-break: break-word;
+            cursor: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 4px;
+        }
+
+        .gateway-question[contenteditable="true"] {
+            background: rgba(255,255,255,0.95);
+            color: #1f2937;
+            outline: 2px solid #3b82f6;
+            padding: 6px;
+            border-radius: 6px;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .gateway-label {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
+            max-width: 140px;
+            word-break: break-word;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Connection Points */
+        .connection-point {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid white;
+            cursor: crosshair;
+            z-index: 20;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+        }
+
+        .connection-point:hover {
+            transform: scale(1.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .input-point {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .output-point {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        /* Positioning for different element types */
+        .start-node .output-point {
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .end-node .input-point {
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .task-node .input-point {
+            left: -10px;
+            top: 55%;
+            transform: translateY(-170%);
+        }
+
+        .task-node .output-point {
+            right: -10px;
+            top: 55%;
+            transform: translateY(-170%);
+        }
+
+        /* Gateway connections */
+        .gateway-node .input-point {
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .gateway-node .output-point {
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Connections */
+        .connection-svg {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .connection-path {
+            stroke: #4b5563;
+            stroke-width: 1;
+            fill: none;
+            marker-end: url(#arrowhead);
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            cursor: pointer;
+            pointer-events: stroke;
+        }
+
+        .connection-path:hover {
+            stroke: #1f2937;
+            stroke-width: 4;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+        }
+
+        .connection-label {
+            font-size: 13px;
+            font-weight: 600;
+            fill: #1f2937;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+            cursor: pointer;
+            pointer-events: all;
+        }
+
+        .connection-label-bg {
+            cursor: pointer;
+            pointer-events: all;
+        }
+
+        .connection-label[contenteditable="true"] {
+            outline: 2px solid #3b82f6;
+            background: rgba(255,255,255,0.95);
+            color: #1f2937;
+            padding: 4px 8px;
+            border-radius: 4px;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 8px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .context-menu button {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .context-menu button:hover {
+            background: #f3f4f6;
+            transform: translateX(2px);
+        }
+
+        .context-menu button.delete {
+            color: #ef4444;
+        }
+
+        .context-menu button.delete:hover {
+            background: #fef2f2;
+        }
+
+        /* Zoom indicator */
+        .zoom-indicator {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.95);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #4b5563;
+            z-index: 1000;
+            font-weight: 600;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Task Selection Popup */
+        .task-popup {
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 12px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            max-width: 250px;
+        }
+
+        .task-popup h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .task-popup ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .task-popup li {
+            margin-bottom: 4px;
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .task-popup li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+        }
+
+        .task-popup .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 16px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-popup .close-btn:hover {
+            color: #6b7280;
+        }
+
+        /* Temporary connection line */
+        .temp-connection {
+            stroke: #3b82f6;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            fill: none;
+            pointer-events: none;
+        }
+
+        /* Melhorias adicionais */
+        .task-element {
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .task-element:hover {
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+        }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+        <h1>Meipper</h1>
+        <p>Do zero ao fluxo em poucos cliques.</p>
+    </header>
+
+    <!-- Process Info Card - Horizontal Layout -->
+    <div class="process-info-card">
+        <div class="process-info-content">
+            <div class="process-info-left">
+                <div class="process-name-section">
+                    <div>
+                        <h3>📌 Nome do Processo:</h3>
+                        <div class="process-name" id="process-display-name">Processo sem nome</div>
+                    </div>
+                </div>
+                <div class="actors-section">
+                    <div>
+                        <h3>👥 Responsáveis:</h3>
+                        <div class="actors-legend" id="actors-legend"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="zoom-info">
+                <div id="zoom-display">Zoom: 100%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Process Name -->
+            <div class="form-group">
+                <label for="process-name">Nome do Processo:</label>
+                <input type="text" id="process-name" placeholder="Ex: Aprovação de Faturas">
+            </div>
+
+            <!-- Actor Management -->
+            <div class="form-group">
+                <label for="actor-input">Responsável/Setor/Cargo:</label>
+                <textarea id="actor-input" placeholder="Ex: Financeiro"></textarea>
+                
+                <label>Cor:</label>
+                <div class="color-picker" id="color-picker"></div>
+                <button class="more-colors-btn" onclick="addMoreColors()">Mais cores</button>
+                
+                <button class="btn btn-primary" onclick="addActor()">Salvar Responsável</button>
+
+                <div class="actors-list" id="actors-list"></div>
+
+                <label for="actor-select">Selecionar Responsável:</label>
+                <select id="actor-select">
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+
+            <!-- Task Management -->
+            <div class="form-group">
+                <label>Tarefa:</label>
+                
+                <button class="btn btn-success" onclick="addTask('start')">
+                    ▶ Iniciar Processo
+                </button>
+
+                <textarea id="task-input" placeholder="Digite a tarefa..." onkeydown="handleTaskInputKeydown(event)"></textarea>
+
+                <button class="btn btn-primary" onclick="addTask('task')">
+                    ➕ Adicionar Tarefa
+                </button>
+
+                <button class="btn btn-purple" onclick="startGatewayMode()">
+                    ◆ Essa tarefa possui mais de um caminho?
+                </button>
+
+                <button class="btn btn-danger" onclick="addTask('end')">
+                    ⏹ Finalizar Processo
+                </button>
+            </div>
+
+            <!-- Gateway Panel -->
+            <div id="gateway-panel" class="gateway-panel" style="display: none;">
+                <h3>Caminhos de Decisão</h3>
+                
+                <div class="form-group">
+                    <label for="gateway-question">Pergunta de decisão:</label>
+                    <textarea id="gateway-question" placeholder="Ex: A solicitação foi aprovada?"></textarea>
+                </div>
+
+                <div class="gateway-paths" id="gateway-paths"></div>
+
+                <div class="gateway-buttons">
+                    <button class="btn btn-primary" onclick="addGatewayPath()">➕ Adicionar caminho</button>
+                    <button class="btn btn-success" onclick="finalizeGateway()">✅ Fechar caminho de decisão</button>
+                    <button class="btn btn-secondary" onclick="cancelGateway()">❌ Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h4>💡 Como usar:</h4>
+                <ul>
+                    <li>Clique em uma tarefa para selecioná-la</li>
+                    <li>Novas tarefas serão adicionadas após a selecionada</li>
+                    <li>Duplo clique para editar texto das tarefas</li>
+                    <li>Arraste tarefas para reposicioná-las</li>
+                    <li>Arraste pontos vermelhos para verdes para conectar</li>
+                    <li>Use scroll do mouse para zoom</li>
+                    <li>Clique direito para excluir tarefas</li>
+                </ul>
+            </div>
+
+            <button class="btn btn-secondary" onclick="clearAll()">
+                🔄 Limpar Tudo
+            </button>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <!-- Canvas Controls -->
+            <div class="canvas-controls">
+                <button onclick="zoomIn()">🔍 +</button>
+                <button onclick="zoomOut()">🔍 -</button>
+                <button onclick="resetZoom()">⌂ Reset</button>
+            </div>
+
+            <!-- Zoom Indicator -->
+            <div class="zoom-indicator" id="zoom-indicator">100%</div>
+
+            <!-- Canvas Viewport -->
+            <div class="canvas-viewport" id="canvas-viewport">
+                <!-- Canvas -->
+                <div class="canvas" id="canvas">
+                    <!-- SVG for connections -->
+                    <svg class="connection-svg" id="connections-svg">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#888" />
     </marker>
-  </defs>
-</svg>
-  
-<script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.49/dist/drawflow.min.js"></script>  
-<script>
-const editor = new Drawflow(document.getElementById('drawflow'));
-editor.reroute = true;
-editor.force_first_input = false;
-editor.curvature = 0.5;
-editor.start();
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
 
-let lastNodeId = null;
-let lastNodeX = 100;
-let lastNodeY = 100;
-const spacingX = 220;
+    <script>
+        // Global variables
+        const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
+        const EXTENDED_COLORS = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
+        
+        let actors = {};
+        let selectedColor = COLORS[0];
+        let colors = [...COLORS];
+        let tasks = [];
+        let connections = [];
+        let selectedTask = null;
+        let gatewayMode = false;
+        let gatewayPaths = [
+            { label: 'Caminho 1', pathName: 'Sim', task: '', actor: '', tasks: [] },
+            { label: 'Caminho 2', pathName: 'Não', task: '', actor: '', tasks: [] }
+        ];
+        let taskIdCounter = 1;
+        let connectionIdCounter = 1;
 
-const predefinedColors = ['#2196f3','#f44336','#4caf50','#ff9800','#9c27b0','#3f51b5','#009688','#795548'];
-let extendedColorsAdded = false;
-let selectedColor = predefinedColors[0];
-const actors = {};
+        // Canvas variables
+        let zoomLevel = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let isDraggingTask = false;
+        let draggedTask = null;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
 
-function renderColorPicker() {
-  const container = document.getElementById('color-picker');
-  container.innerHTML = '';
-  predefinedColors.forEach(color => {
-    const el = document.createElement('div');
-    el.className = 'color-option';
-    el.style.backgroundColor = color;
-    el.onclick = () => {
-      selectedColor = color;
-      document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-      el.classList.add('selected');
-    };
-    if (color === selectedColor) el.classList.add('selected');
-    container.appendChild(el);
-  });
-}
+        // Connection variables
+        let isConnecting = false;
+        let connectionStart = null;
+        let tempConnectionEnd = null;
 
-function addMoreColors() {
-  if (extendedColorsAdded) return;
-  const more = ['#607d8b','#e91e63','#cddc39','#00bcd4','#ffc107','#8bc34a','#ff5722','#673ab7'];
-  predefinedColors.push(...more);
-  extendedColorsAdded = true;
-  renderColorPicker();
-}
+        const SPACING_X = 200;
+        const SPACING_Y = 170;
+        const INITIAL_X = 50;
+        const INITIAL_Y = 50;
 
-function addActor() {
-  const name = document.getElementById('actors-input').value.trim();
-  if (!name || actors[name]) return;
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderColorPicker();
+            updateProcessInfo();
+            setupCanvasEvents();
+        });
 
-  for (let key in actors) {
-    if (actors[key] === selectedColor) {
-      alert('Essa cor já está em uso. Escolha uma cor diferente.');
-      return;
-    }
-  }
+        // Canvas setup
+        function setupCanvasEvents() {
+            const viewport = document.getElementById('canvas-viewport');
+            const canvas = document.getElementById('canvas');
 
-  actors[name] = selectedColor;
+            // Zoom with mouse wheel
+            viewport.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                zoomLevel = Math.max(0.1, Math.min(3, zoomLevel * delta));
+                updateCanvasTransform();
+            });
 
-  const option = document.createElement('option');
-  option.value = name;
-  option.text = name;
-  document.getElementById('actor-select').appendChild(option);
+            // Pan with mouse drag
+            viewport.addEventListener('mousedown', function(e) {
+                if (e.target === viewport || e.target === canvas) {
+                    isDragging = true;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    viewport.style.cursor = 'grabbing';
+                }
+            });
 
-  const badge = document.createElement('div');
-  badge.className = 'actor-badge';
-  badge.style.backgroundColor = selectedColor;
-  badge.innerHTML = name + '<button onclick="removeActor(\'' + name + '\')">×</button>';
-  document.getElementById('actor-list').appendChild(badge);
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging && !isDraggingTask && !isConnecting) {
+                    const deltaX = e.clientX - lastMouseX;
+                    const deltaY = e.clientY - lastMouseY;
+                    panX += deltaX / zoomLevel;
+                    panY += deltaY / zoomLevel;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    updateCanvasTransform();
+                } else if (isDraggingTask && draggedTask) {
+                    const rect = document.getElementById('canvas-viewport').getBoundingClientRect();
+                    const x = (e.clientX - rect.left - panX * zoomLevel) / zoomLevel - dragOffsetX;
+                    const y = (e.clientY - rect.top - panY * zoomLevel) / zoomLevel - dragOffsetY;
+                    
+                    draggedTask.x = Math.max(0, x);
+                    draggedTask.y = Math.max(0, y);
+                    
+                    renderCanvas();
+                } else if (isConnecting && connectionStart) {
+                    // Update temporary connection line
+                    const rect = viewport.getBoundingClientRect();
+                    const x = (e.clientX - rect.left - panX * zoomLevel) / zoomLevel;
+                    const y = (e.clientY - rect.top - panY * zoomLevel) / zoomLevel;
+                    tempConnectionEnd = { x, y };
+                    renderTempConnection();
+                }
+            });
 
-  document.getElementById('actors-input').value = '';
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                isDraggingTask = false;
+                draggedTask = null;
+                viewport.style.cursor = 'grab';
+                
+                // End connection if in progress
+                if (isConnecting) {
+                    isConnecting = false;
+                    connectionStart = null;
+                    tempConnectionEnd = null;
+                    renderCanvas();
+                }
+                
+                // Remove dragging class from all elements
+                document.querySelectorAll('.task-element.dragging').forEach(el => {
+                    el.classList.remove('dragging');
+                });
+            });
+        }
 
-  updateProcessInfo(); // Atualiza legenda
-}
+        function updateCanvasTransform() {
+            const canvas = document.getElementById('canvas');
+            canvas.style.transform = `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`;
+            document.getElementById('zoom-indicator').textContent = Math.round(zoomLevel * 100) + '%';
+            document.getElementById('zoom-display').textContent = 'Zoom: ' + Math.round(zoomLevel * 100) + '%';
+        }
 
-function removeActor(name) {
-  delete actors[name];
-  const select = document.getElementById('actor-select');
-  for (let i = 0; i < select.options.length; i++) {
-    if (select.options[i].value === name) {
-      select.remove(i);
-      break;
-    }
-  }
-  const badges = document.getElementById('actor-list').children;
-  for (let i = badges.length - 1; i >= 0; i--) {
-    if (badges[i].textContent.startsWith(name)) {
-      badges[i].remove();
-      break;
-    }
-  }
+        function zoomIn() {
+            zoomLevel = Math.min(3, zoomLevel * 1.2);
+            updateCanvasTransform();
+        }
 
-  updateProcessInfo(); // Atualiza legenda
-}
+        function zoomOut() {
+            zoomLevel = Math.max(0.1, zoomLevel * 0.8);
+            updateCanvasTransform();
+        }
 
-function addNode(type) {
-  let content = '';
-  let className = '';
+        function resetZoom() {
+            zoomLevel = 1;
+            panX = 0;
+            panY = 0;
+            updateCanvasTransform();
+        }
 
-  if (!lastNodeId && type !== 'start') {
-    alert('Você precisa iniciar o processo com um nó de Início antes de adicionar tarefas ou finalizar.');
-    return;
-  }
+        // Color picker functions
+        function renderColorPicker() {
+            const container = document.getElementById('color-picker');
+            container.innerHTML = '';
+            
+            colors.forEach(color => {
+                const colorEl = document.createElement('div');
+                colorEl.className = 'color-option';
+                colorEl.style.backgroundColor = color;
+                if (color === selectedColor) {
+                    colorEl.classList.add('selected');
+                }
+                colorEl.onclick = () => selectColor(color);
+                container.appendChild(colorEl);
+            });
+        }
 
-  if (type === 'start') {
-    content = `<div class='circle start'>Início</div>`;
-    className = 'start';
-    lastNodeX = 100;
-    lastNodeY = 100;
-  } else if (type === 'task') {
-    const task = document.getElementById('task-input').value.trim();
-    if (!task) return;
-    const actor = document.getElementById('actor-select').value;
-    const color = actors[actor] || '#2196f3';
-   content = `
-  <div class='task-wrapper'>
-    <div class='task-content' style='background:${color};'>${task}</div>
-    <div class='task-actor'>${actor}</div>
-  </div>`;
-    className = 'task';
+        function selectColor(color) {
+            selectedColor = color;
+            renderColorPicker();
+        }
 
-    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
-    if (last) {
-      lastNodeX = last.pos_x + spacingX;
-      lastNodeY = last.pos_y;
-    }
+        function addMoreColors() {
+            if (colors.length === COLORS.length) {
+                colors.push(...EXTENDED_COLORS);
+                renderColorPicker();
+            }
+        }
 
-    document.getElementById('task-input').value = '';
-  } else if (type === 'end') {
-    content = `<div class='circle end'>Fim</div>`;
-    className = 'end';
+        // Actor management
+        function addActor() {
+            const input = document.getElementById('actor-input');
+            const name = input.value.trim();
+            
+            if (!name) return;
+            
+            if (actors[name]) {
+                alert('Esse responsável já existe!');
+                return;
+            }
 
-    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
-    if (last) {
-      lastNodeX = last.pos_x + spacingX;
-      lastNodeY = last.pos_y;
-    }
-  }
+            const colorInUse = Object.values(actors).includes(selectedColor);
+            if (colorInUse) {
+                alert('Essa cor já está em uso. Escolha uma cor diferente.');
+                return;
+            }
 
-  let inputs = 1, outputs = 1;
-  if (type === 'start') { inputs = 0; outputs = 1; }
-  if (type === 'end') { inputs = 1; outputs = 0; }
+            actors[name] = selectedColor;
+            input.value = '';
 
-  const id = editor.addNode(type, inputs, outputs, lastNodeX, lastNodeY, className, {}, content);
+            updateActorSelect();
+            updateActorsList();
+            updateProcessInfo();
+        }
 
-  if (lastNodeId && type !== 'start') {
-    editor.addConnection(lastNodeId, id, 'output_1', 'input_1');
-  }
+        function removeActor(name) {
+            delete actors[name];
+            updateActorSelect();
+            updateActorsList();
+            updateProcessInfo();
+        }
 
-  lastNodeId = id;
-}
+        function updateActorSelect() {
+            const select = document.getElementById('actor-select');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">Selecione...</option>';
+            
+            Object.keys(actors).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
 
-editor.on('nodeRemoved', function(id) {
-  const keys = Object.keys(editor.drawflow.drawflow.Home.data).map(Number).sort((a,b)=>a-b);
-  if (keys.length > 0) {
-    lastNodeId = keys[keys.length -1];
-    const last = editor.drawflow.drawflow.Home.data[lastNodeId];
-    lastNodeX = last.pos_x + spacingX;
-    lastNodeY = last.pos_y;
-  } else {
-    lastNodeId = null;
-    lastNodeX = lastNodeY = 100;
-  }
-});
+            if (actors[currentValue]) {
+                select.value = currentValue;
+            } else if (Object.keys(actors).length > 0 && !currentValue) {
+                select.value = Object.keys(actors)[0];
+            }
+        }
 
-editor.on('contextmenu', function(id, event) {
-  event.preventDefault();
+        function updateActorsList() {
+            const container = document.getElementById('actors-list');
+            container.innerHTML = '';
 
-  const node = editor.drawflow.drawflow.Home.data[id];
-  if (!node) return;
+            Object.entries(actors).forEach(([name, color]) => {
+                const badge = document.createElement('div');
+                badge.className = 'actor-badge';
+                badge.style.backgroundColor = color;
+                badge.innerHTML = `
+                    ${name}
+                    <button onclick="removeActor('${name}')">×</button>
+                `;
+                container.appendChild(badge);
+            });
+        }
 
-  const existing = document.getElementById('ctx-popup');
-  if (existing) existing.remove();
+        function updateProcessInfo() {
+            const processName = document.getElementById('process-name').value.trim();
+            document.getElementById('process-display-name').textContent = processName || 'Processo sem nome';
 
-  const div = document.createElement('div');
-  div.id = 'ctx-popup';
-  div.style.position = 'absolute';
-  div.style.left = event.pageX + 'px';
-  div.style.top = event.pageY + 'px';
-  div.style.background = '#fff';
-  div.style.border = '1px solid #ccc';
-  div.style.padding = '6px 8px';
-  div.style.borderRadius = '6px';
-  div.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
-  div.style.display = 'flex';
-  div.style.gap = '6px';
-  div.style.zIndex = 10000;
+            const legend = document.getElementById('actors-legend');
+            legend.innerHTML = '';
 
-  const btnDel = document.createElement('button');
-  btnDel.textContent = 'Excluir';
-  btnDel.onclick = () => {
-    editor.removeNodeId(id);
-    div.remove();
-  };
-  div.appendChild(btnDel);
+            Object.entries(actors).forEach(([name, color]) => {
+                const badge = document.createElement('div');
+                badge.className = 'actor-badge';
+                badge.style.backgroundColor = color;
+                badge.textContent = name;
+                legend.appendChild(badge);
+            });
+        }
 
-  // Removido botão "Editar" conforme solicitado
-  // Incluindo mensagem sobre edição do responsável
-  if (node.class === 'task') {
-    const note = document.createElement('div');
-    note.style.fontSize = '12px';
-    note.style.color = '#555';
-    note.style.marginLeft = '6px';
-    note.style.marginTop = '4px';
-    note.textContent = 'Para editar o responsável, exclua essa tarefa e adicione novamente com o responsável correto.';
-    div.appendChild(note);
-  }
+        // Task management
+        function getNextPosition() {
+            if (tasks.length === 0) {
+                return { x: INITIAL_X, y: INITIAL_Y };
+            }
 
-  document.body.appendChild(div);
-});
+            if (selectedTask) {
+                const selected = tasks.find(t => t.id === selectedTask);
+                if (selected) {
+                    return { x: selected.x + SPACING_X, y: selected.y };
+                }
+            }
 
-document.addEventListener('click', (e) => {
-  const ctx = document.getElementById('ctx-popup');
-  if (ctx && !ctx.contains(e.target)) ctx.remove();
-});
+            const lastTask = tasks[tasks.length - 1];
+            return { x: lastTask.x + SPACING_X, y: lastTask.y };
+        }
 
-document.getElementById('task-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    addNode('task');
-  }
-});
+        function addTask(type) {
+            if (type !== 'start' && tasks.length === 0) {
+                alert('Você precisa iniciar o processo primeiro!');
+                return;
+            }
 
-function clearCanvas() {
-  editor.clear();
-  lastNodeId = null;
-  lastNodeX = 100;
-  lastNodeY = 100;
-  const ctx = document.getElementById('ctx-popup');
-  if (ctx) ctx.remove();
-}
+            if (type === 'task') {
+                const taskInput = document.getElementById('task-input');
+                const taskName = taskInput.value.trim();
+                const actorSelect = document.getElementById('actor-select');
+                const selectedActor = actorSelect.value;
 
-function updateProcessInfo() {
-  const name = document.getElementById('process-name').value.trim();
-  document.getElementById('process-title').textContent = name || 'Processo sem nome';
+                if (!taskName) {
+                    alert('Digite o nome da tarefa!');
+                    return;
+                }
 
-  const legend = document.getElementById('legend');
-  legend.innerHTML = '';
+                if (!selectedActor) {
+                    alert('Selecione um responsável!');
+                    return;
+                }
 
-  Object.entries(actors).forEach(([actor, color]) => {
-    const badge = document.createElement('div');
-    badge.style.backgroundColor = color;
-    badge.style.color = '#fff';
-    badge.style.padding = '4px 8px';
-    badge.style.borderRadius = '6px';
-    badge.style.fontSize = '0.85rem';
-    badge.textContent = actor;
-    legend.appendChild(badge);
-  });
-}
+                const position = getNextPosition();
+                const newTask = {
+                    id: `task-${taskIdCounter++}`,
+                    name: taskName,
+                    actor: selectedActor,
+                    x: position.x,
+                    y: position.y,
+                    type: 'task'
+                };
 
-document.getElementById('process-name').addEventListener('input', updateProcessInfo);
+                tasks.push(newTask);
+                taskInput.value = '';
 
-// Seleção visual ao clicar
-function clearSelection() {
-  document.querySelectorAll('.drawflow-node.selected').forEach(el => el.classList.remove('selected'));
-}
+                // Create connection
+                if (tasks.length > 1) {
+                    const fromTask = selectedTask ? tasks.find(t => t.id === selectedTask) : tasks[tasks.length - 2];
+                    if (fromTask) {
+                        connections.push({
+                            id: `conn-${connectionIdCounter++}`,
+                            from: fromTask.id,
+                            to: newTask.id
+                        });
+                    }
+                }
 
-function selectNode(id) {
-  clearSelection();
-  const nodeEl = document.querySelector(`.drawflow-node[data-nodeid=\"${id}\"]`);
-  if (nodeEl) nodeEl.classList.add('selected');
-}
+                selectedTask = newTask.id;
+            } else if (type === 'start') {
+                const position = { x: INITIAL_X, y: INITIAL_Y };
+                const newTask = {
+                    id: `task-${taskIdCounter++}`,
+                    name: 'Início',
+                    actor: '',
+                    x: position.x,
+                    y: position.y,
+                    type: 'start'
+                };
 
-document.getElementById('drawflow').addEventListener('mousedown', function(e) {
-  if (e.button === 0) {
-    const node = e.target.closest('.drawflow-node');
-    if (node) {
-      const id = node.getAttribute('data-nodeid');
-      if (id) selectNode(id);
-    } else {
-      clearSelection();
-    }
-  }
-});
+                tasks.push(newTask);
+                selectedTask = newTask.id;
+            } else if (type === 'end') {
+                const position = getNextPosition();
+                const newTask = {
+                    id: `task-${taskIdCounter++}`,
+                    name: 'Fim',
+                    actor: '',
+                    x: position.x,
+                    y: position.y,
+                    type: 'end'
+                };
 
-renderColorPicker();
+                tasks.push(newTask);
 
-document.getElementById('drawflow').addEventListener('click', function (e) {
-  const nodeEl = e.target.closest('.drawflow-node');
-  const existingPopup = document.getElementById('popup-left');
-  if (existingPopup) existingPopup.remove();
+                // Create connection
+                if (tasks.length > 1) {
+                    const fromTask = selectedTask ? tasks.find(t => t.id === selectedTask) : tasks[tasks.length - 2];
+                    if (fromTask) {
+                        connections.push({
+                            id: `conn-${connectionIdCounter++}`,
+                            from: fromTask.id,
+                            to: newTask.id
+                        });
+                    }
+                }
 
-  if (!nodeEl) return;
+                selectedTask = newTask.id;
+            }
 
-  const nodeId = parseInt(nodeEl.id.replace('node-', ''));
-  const node = editor.drawflow.drawflow.Home.data[nodeId];
-  if (!node || node.class !== 'task') return;
+            renderCanvas();
+        }
 
-  // Posição do nó na tela
-  const rect = nodeEl.getBoundingClientRect();
-  const popupX = rect.right + 10;
-  const popupY = rect.top + window.scrollY;
+        function selectTask(taskId, event) {
+            selectedTask = taskId;
+            if (tasks.find(t => t.id === taskId && t.type === 'task')) {
+                showTaskPopup(event);
+            }
+            renderCanvas();
+        }
 
-  // Criação do popup
-  const div = document.createElement('div');
-  div.id = 'popup-left';
-  div.className = 'node-popup';
-  div.style.left = `${popupX}px`;
-  div.style.top = `${popupY}px`;
+        function showTaskPopup(event) {
+            // Remove existing popup
+            const existingPopup = document.querySelector('.task-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
 
-  // Aviso de exclusão
-  const note = document.createElement('div');
-  note.style.fontSize = '12px';
-  note.style.color = '#555';
-  note.style.marginLeft = '6px';
-  note.style.marginTop = '2px';
-  note.textContent = 'Clique duas vezes para EDITAR. Para excluir clique em DELETE. E para e para editar o Responsavel, exclua e crie novamente';
+            const popup = document.createElement('div');
+            popup.className = 'task-popup';
+            popup.innerHTML = `
+                <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+                <h4>Tarefa Selecionada</h4>
+                <ul>
+                    <li><strong>Duplo clique</strong> para editar</li>
+                    <li><strong>Botão direito</strong> para excluir</li>
+                    <li><strong>Arraste pontos vermelhos</strong> para conectar</li>
+                </ul>
+            `;
 
-  div.appendChild(note);
-  document.body.appendChild(div);
-});
+            // Position popup near the click
+            const rect = document.getElementById('canvas-viewport').getBoundingClientRect();
+            popup.style.left = (event.clientX - rect.left + 20) + 'px';
+            popup.style.top = (event.clientY - rect.top - 20) + 'px';
 
-// Fecha popup ao clicar fora
-document.addEventListener('click', (e) => {
-  const popup = document.getElementById('popup-left');
-  if (popup && !popup.contains(e.target) && !e.target.closest('.drawflow-node')) {
-    popup.remove();
-  }
-});
+            document.getElementById('canvas-viewport').appendChild(popup);
 
-// Estilo de seleção visual (borda azul)
-const style = document.createElement('style');
-style.textContent = `
-  .drawflow-node.selected {
-    outline: 2px solid #4cafef !important;
-    z-index: 10 !important;
-  }
-`;
-document.head.appendChild(style);
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 3000);
+        }
 
-// Seleção de nós com clique esquerdo
-document.getElementById('drawflow').addEventListener('mousedown', function(e) {
-  if (e.button !== 0) return; // Apenas clique esquerdo
-  const node = e.target.closest('.drawflow-node');
-  document.querySelectorAll('.drawflow-node.selected').forEach(el => el.classList.remove('selected'));
-  if (node) node.classList.add('selected');
-});
+        function deleteTask(taskId) {
+            tasks = tasks.filter(t => t.id !== taskId);
+            connections = connections.filter(c => c.from !== taskId && c.to !== taskId);
+            
+            if (selectedTask === taskId) {
+                selectedTask = null;
+            }
+            
+            renderCanvas();
+        }
 
-// Permite edição inline do texto da tarefa ao dar duplo clique
-document.getElementById('drawflow').addEventListener('dblclick', function (e) {
-  const target = e.target;
-  if (target.classList.contains('task-content')) {
-    target.setAttribute('contenteditable', 'true');
-    target.focus();
+        function handleTaskInputKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                addTask('task');
+            }
+        }
 
-    // Impede Enter de quebrar a linha (finaliza edição)
-    target.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        target.blur();
-      }
-    });
+        // Connection functions
+        function startConnection(taskId, type, event) {
+            event.stopPropagation();
+            if (type === 'output') {
+                isConnecting = true;
+                connectionStart = { taskId, type };
+            }
+        }
 
-    // Ao sair do campo, desabilita a edição
-    target.addEventListener('blur', function () {
-      target.removeAttribute('contenteditable');
-    }, { once: true });
-  }
-});
+        function endConnection(taskId, type, event) {
+            event.stopPropagation();
+            if (isConnecting && connectionStart && type === 'input' && connectionStart.taskId !== taskId) {
+                // Create new connection
+                connections.push({
+                    id: `conn-${connectionIdCounter++}`,
+                    from: connectionStart.taskId,
+                    to: taskId
+                });
+                renderCanvas();
+            }
+            isConnecting = false;
+            connectionStart = null;
+            tempConnectionEnd = null;
+        }
 
-</script>
-</body>
+        function renderTempConnection() {
+            if (!isConnecting || !connectionStart || !tempConnectionEnd) return;
+
+            const svg = document.getElementById('connections-svg');
+            const fromTask = tasks.find(t => t.id === connectionStart.taskId);
+            if (!fromTask) return;
+
+            const fromPoints = getConnectionPoints(fromTask);
+            const fromPoint = fromPoints.output;
+            if (!fromPoint) return;
+
+            // Remove existing temp connection
+            const existingTemp = svg.querySelector('.temp-connection');
+            if (existingTemp) {
+                existingTemp.remove();
+            }
+
+            // Create temp connection line
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('class', 'temp-connection');
+            line.setAttribute('x1', fromPoint.x);
+            line.setAttribute('y1', fromPoint.y);
+            line.setAttribute('x2', tempConnectionEnd.x);
+            line.setAttribute('y2', tempConnectionEnd.y);
+            svg.appendChild(line);
+        }
+
+        // Gateway functions
+        function startGatewayMode() {
+            if (!selectedTask) {
+                alert('Selecione uma tarefa antes de criar um caminho de decisão!');
+                return;
+            }
+            
+            gatewayMode = true;
+            document.getElementById('gateway-panel').style.display = 'block';
+            renderGatewayPaths();
+        }
+
+        function renderGatewayPaths() {
+            const container = document.getElementById('gateway-paths');
+            container.innerHTML = '';
+
+            gatewayPaths.forEach((path, index) => {
+                const pathDiv = document.createElement('div');
+                pathDiv.className = 'path-block';
+                pathDiv.innerHTML = `
+                    <div class="path-header">
+                        <span class="path-label">${path.label}</span>
+                        ${gatewayPaths.length > 2 ? `<button class="remove-path-btn" onclick="removeGatewayPath(${index})">×</button>` : ''}
+                    </div>
+                    <div class="form-group">
+                        <label>Nome do caminho:</label>
+                        <input type="text" value="${path.pathName}" onchange="updateGatewayPath(${index}, 'pathName', this.value)" placeholder="Ex: Sim, Não, Pendente...">
+                        <label>Tarefa:</label>
+                        <textarea placeholder="Tarefa para este caminho" onchange="updateGatewayPath(${index}, 'task', this.value)">${path.task}</textarea>
+                        <label>Responsável:</label>
+                        <select onchange="updateGatewayPath(${index}, 'actor', this.value)">
+                            <option value="">Selecionar responsável...</option>
+                            ${Object.keys(actors).map(actor => 
+                                `<option value="${actor}" ${path.actor === actor ? 'selected' : ''}>${actor}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                `;
+                container.appendChild(pathDiv);
+            });
+        }
+
+        function addGatewayPath() {
+            const pathNumber = gatewayPaths.length + 1;
+            gatewayPaths.push({ 
+                label: `Caminho ${pathNumber}`, 
+                pathName: '', 
+                task: '', 
+                actor: '', 
+                tasks: [] 
+            });
+            renderGatewayPaths();
+        }
+
+        function updateGatewayPath(index, field, value) {
+            gatewayPaths[index][field] = value;
+        }
+
+        function removeGatewayPath(index) {
+            if (gatewayPaths.length > 2) {
+                gatewayPaths.splice(index, 1);
+                // Renumerar os caminhos
+                gatewayPaths.forEach((path, i) => {
+                    path.label = `Caminho ${i + 1}`;
+                });
+                renderGatewayPaths();
+            }
+        }
+
+        function finalizeGateway() {
+            const question = document.getElementById('gateway-question').value.trim();
+            
+            if (!question) {
+                alert('Digite a pergunta da decisão!');
+                return;
+            }
+
+            const validPaths = gatewayPaths.filter(p => p.task.trim() && p.actor && p.pathName.trim());
+            if (validPaths.length === 0) {
+                alert('Adicione pelo menos um caminho com nome, tarefa e responsável!');
+                return;
+            }
+
+            const selectedTaskObj = tasks.find(t => t.id === selectedTask);
+            if (!selectedTaskObj) return;
+
+            // Create gateway
+            const gatewayPosition = { x: selectedTaskObj.x + SPACING_X, y: selectedTaskObj.y };
+            const gatewayTask = {
+                id: `task-${taskIdCounter++}`,
+                name: question,
+                actor: '',
+                x: gatewayPosition.x,
+                y: gatewayPosition.y,
+                type: 'gateway',
+                question: question,
+                paths: validPaths
+            };
+
+            tasks.push(gatewayTask);
+            connections.push({
+                id: `conn-${connectionIdCounter++}`,
+                from: selectedTask,
+                to: gatewayTask.id
+            });
+
+            // Create tasks for each path
+            const totalPaths = validPaths.length;
+            const pathSpacing = 120;
+            const startY = gatewayPosition.y - ((totalPaths - 1) * pathSpacing / 2);
+            
+            validPaths.forEach((path, index) => {
+                const pathTaskPosition = {
+                    x: gatewayPosition.x + SPACING_X,
+                    y: startY + (index * pathSpacing)
+                };
+
+                const pathTask = {
+                    id: `task-${taskIdCounter++}`,
+                    name: path.task,
+                    actor: path.actor,
+                    x: pathTaskPosition.x,
+                    y: pathTaskPosition.y,
+                    type: 'task'
+                };
+
+                tasks.push(pathTask);
+                connections.push({
+                    id: `conn-${connectionIdCounter++}`,
+                    from: gatewayTask.id,
+                    to: pathTask.id,
+                    pathLabel: path.pathName
+                });
+            });
+
+            cancelGateway();
+            renderCanvas();
+        }
+
+        function cancelGateway() {
+            gatewayMode = false;
+            document.getElementById('gateway-panel').style.display = 'none';
+            document.getElementById('gateway-question').value = '';
+            gatewayPaths = [
+                { label: 'Caminho 1', pathName: 'Sim', task: '', actor: '', tasks: [] },
+                { label: 'Caminho 2', pathName: 'Não', task: '', actor: '', tasks: [] }
+            ];
+        }
+
+        // Get precise connection points for each element type
+        function getConnectionPoints(task) {
+            const points = {};
+            
+            if (task.type === 'start') {
+                points.output = { x: task.x + 60, y: task.y + 30 };
+            } else if (task.type === 'end') {
+                points.input = { x: task.x, y: task.y + 30 };
+            } else if (task.type === 'gateway') {
+                points.input = { x: task.x, y: task.y + 40 };
+                points.output = { x: task.x + 80, y: task.y + 40 };
+            } else if (task.type === 'task') {
+                const minWidth = 140;
+                const maxWidth = 280;
+                const textLength = task.name ? task.name.length : 0;
+                const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, textLength * 8 + 48));
+                
+                const taskCenterY = task.y + 40;
+                points.input = { x: task.x, y: taskCenterY };
+                points.output = { x: task.x + estimatedWidth, y: taskCenterY };
+            }
+            
+            return points;
+        }
+
+        // Função para editar labels de conexão
+        function editConnectionLabel(textElement, connectionId, event) {
+            event.stopPropagation();
+            
+            textElement.setAttribute('contenteditable', 'true');
+            textElement.focus();
+
+            // Select all text
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(textElement);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            textElement.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    textElement.blur();
+                }
+            });
+
+            textElement.addEventListener('blur', function() {
+                textElement.removeAttribute('contenteditable');
+                
+                // Update connection data
+                const connection = connections.find(c => c.id === connectionId);
+                if (connection) {
+                    connection.pathLabel = textElement.textContent.trim();
+                    renderCanvas();
+                }
+            }, { once: true });
+        }
+
+        // Canvas rendering
+        function renderCanvas() {
+            const canvas = document.getElementById('canvas');
+            const svg = document.getElementById('connections-svg');
+            
+            // Clear existing tasks
+            const existingTasks = canvas.querySelectorAll('.task-element');
+            existingTasks.forEach(el => el.remove());
+
+            // Render tasks
+            tasks.forEach(task => {
+                const taskEl = document.createElement('div');
+                taskEl.className = 'task-element';
+                taskEl.style.left = task.x + 'px';
+                taskEl.style.top = task.y + 'px';
+                taskEl.onclick = (e) => {
+                    e.stopPropagation();
+                    selectTask(task.id, e);
+                };
+                taskEl.oncontextmenu = (e) => showContextMenu(e, task.id);
+
+                // Add drag functionality
+                taskEl.onmousedown = (e) => {
+                    if (e.button === 0 && !e.target.hasAttribute('contenteditable') && !e.target.classList.contains('connection-point')) {
+                        e.stopPropagation();
+                        isDraggingTask = true;
+                        draggedTask = task;
+                        taskEl.classList.add('dragging');
+                        
+                        const rect = taskEl.getBoundingClientRect();
+                        const canvasRect = document.getElementById('canvas-viewport').getBoundingClientRect();
+                        dragOffsetX = (e.clientX - rect.left) / zoomLevel;
+                        dragOffsetY = (e.clientY - rect.top) / zoomLevel;
+                        
+                        selectTask(task.id, e);
+                    }
+                };
+
+                if (task.id === selectedTask) {
+                    taskEl.classList.add('selected');
+                }
+
+                if (task.type === 'start') {
+                    taskEl.innerHTML = `
+                        <div class="start-node">▶
+                            <div class="output-point connection-point" onmousedown="startConnection('${task.id}', 'output', event)"></div>
+                        </div>
+                    `;
+                } else if (task.type === 'end') {
+                    taskEl.innerHTML = `
+                        <div class="end-node">⏹
+                            <div class="input-point connection-point" onmousedown="endConnection('${task.id}', 'input', event)"></div>
+                        </div>
+                    `;
+                } else if (task.type === 'gateway') {
+                    taskEl.innerHTML = `
+                        <div class="gateway-node">
+                            <div class="gateway-shape">
+                                <div class="gateway-question" ondblclick="editGatewayText(this, '${task.id}')">${task.question || '?'}</div>
+                            </div>
+                            <div class="input-point connection-point" onmousedown="endConnection('${task.id}', 'input', event)"></div>
+                            <div class="output-point connection-point" onmousedown="startConnection('${task.id}', 'output', event)"></div>
+                        </div>
+                    `;
+                } else {
+                    const actorColor = actors[task.actor] || '#2196f3';
+                    taskEl.innerHTML = `
+                        <div class="task-node">
+                            <div class="task-content" style="background-color: ${actorColor}" ondblclick="editTaskText(this, '${task.id}')">
+                                ${task.name}
+                            </div>
+                            <div class="task-actor">${task.actor}</div>
+                            <div class="input-point connection-point" onmousedown="endConnection('${task.id}', 'input', event)"></div>
+                            <div class="output-point connection-point" onmousedown="startConnection('${task.id}', 'output', event)"></div>
+                        </div>
+                    `;
+                }
+
+                canvas.appendChild(taskEl);
+            });
+
+            // Render connections
+            svg.innerHTML = svg.innerHTML.split('</defs>')[0] + '</defs>';
+            
+            connections.forEach(conn => {
+                const fromTask = tasks.find(t => t.id === conn.from);
+                const toTask = tasks.find(t => t.id === conn.to);
+                
+                if (!fromTask || !toTask) return;
+                
+                const fromPoints = getConnectionPoints(fromTask);
+                const toPoints = getConnectionPoints(toTask);
+                
+                const fromPoint = fromPoints.output;
+                const toPoint = toPoints.input;
+                
+                if (!fromPoint || !toPoint) return;
+                
+                // Create curved path
+                const dx = toPoint.x - fromPoint.x;
+                const dy = toPoint.y - fromPoint.y;
+                const curve = Math.abs(dx) * 0.5;
+                
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const pathData = `M ${fromPoint.x} ${fromPoint.y} C ${fromPoint.x + curve} ${fromPoint.y}, ${toPoint.x - curve} ${toPoint.y}, ${toPoint.x} ${toPoint.y}`;
+                
+                path.setAttribute('d', pathData);
+                path.setAttribute('class', 'connection-path');
+                svg.appendChild(path);
+                
+                // Add path label if exists
+                if (conn.pathLabel) {
+                    const midX = (fromPoint.x + toPoint.x) / 2;
+                    const midY = (fromPoint.y + toPoint.y) / 2;
+                    
+                    // Create background rectangle for label
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    const textLength = conn.pathLabel.length * 7;
+                    rect.setAttribute('x', midX - textLength/2 - 6);
+                    rect.setAttribute('y', midY - 12);
+                    rect.setAttribute('width', textLength + 12);
+                    rect.setAttribute('height', 20);
+                    rect.setAttribute('fill', 'white');
+                    rect.setAttribute('stroke', '#e5e7eb');
+                    rect.setAttribute('stroke-width', '1');
+                    rect.setAttribute('rx', '6');
+                    rect.setAttribute('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))');
+                    rect.setAttribute('class', 'connection-label-bg');
+                    rect.setAttribute('onclick', `editConnectionLabel(this.nextSibling, '${conn.id}', event)`);
+                    svg.appendChild(rect);
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', midX);
+                    text.setAttribute('y', midY + 2);
+                    text.setAttribute('class', 'connection-label');
+                    text.setAttribute('ondblclick', `editConnectionLabel(this, '${conn.id}', event)`);
+                    text.textContent = conn.pathLabel;
+                    svg.appendChild(text);
+                }
+            });
+        }
+
+        // Text editing
+        function editTaskText(element, taskId) {
+            element.setAttribute('contenteditable', 'true');
+            element.focus();
+
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            element.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+                e.stopPropagation();
+            });
+
+            element.addEventListener('blur', function() {
+                element.removeAttribute('contenteditable');
+                
+                // Update task data
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.name = element.textContent.trim();
+                    renderCanvas();
+                }
+            }, { once: true });
+        }
+
+        function editGatewayText(element, taskId) {
+            element.setAttribute('contenteditable', 'true');
+            element.focus();
+
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            element.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+                e.stopPropagation();
+            });
+
+            element.addEventListener('blur', function() {
+                element.removeAttribute('contenteditable');
+                
+                // Update gateway data
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.question = element.textContent.trim();
+                    task.name = element.textContent.trim();
+                    renderCanvas();
+                }
+            }, { once: true });
+        }
+
+        // Context menu
+        function showContextMenu(event, taskId) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const existingMenu = document.querySelector('.context-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+            
+            menu.innerHTML = `
+                <button class="delete" onclick="deleteTask('${taskId}'); this.parentElement.remove();">
+                    Excluir tarefa
+                </button>
+            `;
+            
+            document.body.appendChild(menu);
+            
+            // Close menu when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu() {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                });
+            }, 0);
+        }
+
+        // Utility functions
+        function clearAll() {
+            if (confirm('Tem certeza que deseja limpar todo o fluxo?')) {
+                tasks = [];
+                connections = [];
+                selectedTask = null;
+                gatewayMode = false;
+                taskIdCounter = 1;
+                connectionIdCounter = 1;
+                cancelGateway();
+                renderCanvas();
+            }
+        }
+
+        // Event listeners
+        document.getElementById('process-name').addEventListener('input', updateProcessInfo);
+
+        // Click outside to deselect
+        document.getElementById('canvas').addEventListener('click', function(e) {
+            if (e.target === this) {
+                selectedTask = null;
+                renderCanvas();
+            }
+        });
+
+        // Initialize
+        renderColorPicker();
+    </script>
+  </body>
 </html>
 
 
