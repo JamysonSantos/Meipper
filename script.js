@@ -331,7 +331,7 @@ function getNextPosition() {
         const selectedNode = editor.getNodeFromId(selectedNodeId);
         if (selectedNode) {
             return { 
-                x: selectedNode.pos_x + 250, 
+                x: selectedNode.pos_x + 350, // Aumentei de 250 para 350 para maior espaçamento horizontal
                 y: selectedNode.pos_y 
             };
         }
@@ -347,7 +347,7 @@ function getNextPosition() {
         }
     });
     
-    return { x: maxX + 250, y: maxY };
+    return { x: maxX + 350, y: maxY }; // Aumentei de 250 para 350
 }
 
 function deleteNode(nodeId) {
@@ -454,10 +454,20 @@ function finalizeGateway() {
         editor.addConnection(selectedNodeId, gatewayId, 'output_1', 'input_1');
     }
 
-    // Create tasks for each path
+    // Get gateway position for relative positioning
+    const gatewayNode = editor.getNodeFromId(gatewayId);
+    const gatewayY = gatewayNode ? gatewayNode.pos_y : 200;
+    
+    // Create tasks for each path with proper vertical spacing
     validPaths.forEach((path, index) => {
         const actorColor = actors[path.actor] || '#2196f3';
-        const pathTaskId = createTaskNode(path.task, path.actor, actorColor);
+        
+        // Calcula posição Y com espaçamento vertical adequado
+        const offsetY = (index - (validPaths.length - 1) / 2) * 150; // 150px de espaçamento vertical entre os caminhos
+        const pathY = gatewayY + offsetY;
+        
+        // Cria o nó na posição calculada
+        const pathTaskId = createTaskNodeAtPosition(path.task, path.actor, actorColor, gatewayNode.pos_x + 350, pathY);
         
         // Connect gateway to path task
         editor.addConnection(gatewayId, pathTaskId, 'output_1', 'input_1');
@@ -465,6 +475,25 @@ function finalizeGateway() {
 
     cancelGateway();
     selectedNodeId = gatewayId;
+}
+
+function createTaskNodeAtPosition(taskName, actor, color, x, y) {
+    const nodeId = nodeIdCounter++;
+    const html = `
+        <div class="task-node">
+            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
+                ${taskName}
+            </div>
+            <div class="task-actor">${actor}</div>
+        </div>
+    `;
+    
+    editor.addNode('task', 1, 1, x, y, 'task', { 
+        name: taskName, 
+        actor: actor, 
+        color: color 
+    }, html);
+    return nodeId;
 }
 
 function cancelGateway() {
