@@ -602,6 +602,35 @@ body {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    padding: 55px !important; /* Aumenta o espaço interno */
+}
+
+/* Remover fundo e bordas padrão */
+.drawflow .drawflow-node .drawflow_content_node {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* NÓ DE INÍCIO (somente output) */
+.drawflow .drawflow-node.start .output {
+    right: -2px !important;  /* Ajuste fino para o nó de início */
+    top: 50% !important;
+    transform: translateY(15%) !important;
+}
+
+/* NÓ DE FIM (somente input) */
+.drawflow .drawflow-node.end .input {
+    left: -22px !important;  /* Ajuste fino para o nó de fim */
+    top: 50% !important;
+    transform: translateY(15%) !important;
+}
+
+/* NÓS DE TAREFA (tanto input quanto output) */
+.drawflow .drawflow-node.task .input {
+    left: -8px !important;
+    top: 30% !important;  /* Posiciona mais para cima */
 }
 
 .drawflow .drawflow-node.selected {
