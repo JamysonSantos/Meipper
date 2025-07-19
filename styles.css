@@ -32,7 +32,7 @@ body {
     opacity: 0.9;
 }
 
-/* Process Info Card - Horizontal Layout */
+/* Process Info Card */
 .process-info-card {
     background: rgba(255,255,255,0.95);
     backdrop-filter: blur(10px);
@@ -54,12 +54,6 @@ body {
     gap: 24px;
 }
 
-.process-name-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .process-name-section h3 {
     font-size: 14px;
     color: #6b7280;
@@ -70,12 +64,6 @@ body {
     font-size: 18px;
     font-weight: 700;
     color: #1f2937;
-}
-
-.actors-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .actors-section h3 {
@@ -315,7 +303,6 @@ body {
     margin: 16px 0;
 }
 
-
 .path-block {
     background: white;
     border: 1px solid #e2e8f0;
@@ -422,112 +409,56 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.canvas {
-    position: relative;
-    transform-origin: 0 0;
-    transition: transform 0.2s ease;
-    cursor: grab;
+/* Drawflow Container */
+#drawflow {
+    width: 100%;
+    height: 100%;
+    background: #f8fafc;
 }
 
-.canvas-viewport {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: auto;
+/* Custom Node Styles */
+.drawflow-node {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
 }
 
-/* Task Elements */
-.task-element {
-    position: absolute;
-    z-index: 10;
-    transition: transform 0.2s;
-}
-
-.task-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.task-element:hover {
-    transform: scale(1.01);
-    z-index: 15;
-}
-
-.task-element.selected {
-    z-index: 16;
-}
-
-.task-element.selected::after {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: -6px;
-    right: -6px;
-    bottom: -6px;
-    border: 3px solid #3b82f6;
-    border-radius: 16px;
-    pointer-events: none;
-    animation: pulse 2s infinite;
-    background: rgba(59, 130, 246, 0.1);
-}
-
-@keyframes pulse {
-    0%, 100% { 
-        opacity: 1; 
-        transform: scale(1);
-    }
-    50% { 
-        opacity: 0.7;
-        transform: scale(1.02);
-    }
-}
-
-.task-element.dragging {
-    z-index: 1000;
-    transform: scale(1.05) rotate(2deg);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-
-/* Start and End Nodes */
-.start-node,
-.end-node {
+.start-node {
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: bold;
     font-size: 18px;
-    position: relative;
     border: 2px solid rgba(255,255,255,0.4);
     transition: all 0.3s ease;
 }
 
-.start-node:hover,
-.end-node:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-
-.start-node {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
 .end-node {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    border: 2px solid rgba(255,255,255,0.4);
+    transition: all 0.3s ease;
 }
 
-/* Task Nodes */
 .task-node {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    min-width: 120px;
+    max-width: 200px;
 }
 
 .task-content {
@@ -536,17 +467,15 @@ body {
     color: white;
     font-weight: 500;
     text-align: center;
-    min-width: 120px;
-    max-width: 200px;
     word-break: break-word;
     cursor: pointer;
     user-select: none;
+    width: 100%;
 }
 
 .task-content:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    border-color: rgba(255,255,255,0.5);
 }
 
 .task-content[contenteditable="true"] {
@@ -554,7 +483,6 @@ body {
     background: rgba(255,255,255,0.95) !important;
     color: #1f2937 !important;
     box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
-    border-color: #3b82f6;
 }
 
 .task-actor {
@@ -564,7 +492,6 @@ body {
     color: #333;
 }
 
-/* Gateway Nodes */
 .gateway-node {
     width: 50px;
     height: 50px;
@@ -591,19 +518,16 @@ body {
 
 .gateway-label {
     position: absolute;
-    top: 130%; /* coloca abaixo do losango */
-    left: 50%; /* centraliza horizontalmente */
-    transform: translateX(-50%); /* corrige o centro */
-
+    top: 130%;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 12px;
     font-weight: 600;
     color: #374151;
     text-align: center;
-
     min-width: 80px;
     max-width: 280px;
     word-break: break-word;
-
     padding: 4px 10px;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 6px;
@@ -616,123 +540,6 @@ body {
     outline: 2px solid #3b82f6;
     background: rgba(255,255,255,0.95);
     color: #1f2937;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-}
-
-/* Connection Points */
-.connection-point {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid white;
-    cursor: crosshair;
-    z-index: 10;
-}
-
-.connection-point:hover {
-    transform: scale(1.3);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-}
-
-.input-point {
-    background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.output-point {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-
-/* Positioning for different element types */
-.start-node .output-point {
-    right: -12px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.end-node .input-point {
-    left: -12px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.task-node .input-point {
-    left: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #4caf50;
-}
-
-.task-node .output-point {
-    right: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #f44336;
-}
-
-/* Gateway connections */
-.gateway-node .input-point {
-    left: -20px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.gateway-node .output-point {
-    right: -20px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.connection-svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 2;
-    overflow: visible;
-}
-
-.connection-path {
-    stroke: #4b5563;
-    stroke-width: 2;
-    fill: none;
-    marker-end: url(#arrow);
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-    cursor: pointer;
-    pointer-events: stroke;
-}
-
-.connection-path:hover {
-    stroke: #1f2937;
-    stroke-width: 4;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
-}
-
-.connection-label {
-    font-size: 12px;
-    font-weight: 600;
-    fill: #1f2937;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
-    cursor: pointer;
-    pointer-events: all;
-}
-
-.connection-label-bg {
-    cursor: pointer;
-    pointer-events: all;
-}
-
-.connection-label[contenteditable="true"] {
-    outline: 2px solid #3b82f6;
-    background: rgba(255,255,255,0.95);
-    color: #1f2937;
-    padding: 4px 8px;
-    border-radius: 4px;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
@@ -790,21 +597,27 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* Temporary connection line */
-.temp-connection {
-    stroke: #3b82f6;
+/* Drawflow customizations */
+.drawflow .drawflow-node {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.drawflow .drawflow-node.selected {
+    background: rgba(59, 130, 246, 0.1) !important;
+    border: 3px solid #3b82f6 !important;
+    border-radius: 16px !important;
+}
+
+.drawflow .connection .main-path {
+    stroke: #4b5563;
     stroke-width: 2;
-    stroke-dasharray: 5,5;
     fill: none;
-    pointer-events: none;
 }
 
-/* Melhorias adicionais */
-.task-element {
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.1));
-}
-
-.task-element:hover {
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+.drawflow .connection .main-path:hover {
+    stroke: #1f2937;
+    stroke-width: 4;
 }
 
