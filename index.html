@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Meipper - Do zero ao fluxo em poucos cliques.</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Header -->
@@ -13,7 +14,7 @@
         <p>Do zero ao fluxo em poucos cliques.</p>
     </header>
 
-    <!-- Process Info Card - Horizontal Layout -->
+    <!-- Process Info Card -->
     <div class="process-info-card">
         <div class="process-info-content">
             <div class="process-info-left">
@@ -136,23 +137,12 @@
             <!-- Zoom Indicator -->
             <div class="zoom-indicator" id="zoom-indicator">100%</div>
 
-            <!-- Canvas Viewport -->
-            <div class="canvas-viewport" id="canvas-viewport">
-                <!-- Canvas -->
-                <div class="canvas" id="canvas">
-                    <!-- SVG for connections -->
-                    <svg class="connection-svg" id="connections-svg">
-                        <defs>
-                            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563" />
-                            </marker>
-                        </defs>
-                    </svg>
-                </div>
-            </div>
+            <!-- Drawflow Container -->
+            <div id="drawflow"></div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
     <script src="script.js"></script>
 </body>
-</html>
+</html
