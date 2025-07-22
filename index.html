@@ -54,9 +54,9 @@
                 
                 <label>Cor:</label>
                 <div class="color-picker" id="color-picker"></div>
-                <button class="more-colors-btn" onclick="addMoreColors()">Mais cores</button>
+                <button class="more-colors-btn">Mais cores</button>
                 
-                <button class="btn btn-primary" onclick="addActor()">Salvar Responsável</button>
+                <button class="btn btn-primary">Salvar Responsável</button>
 
                 <div class="actors-list" id="actors-list"></div>
 
@@ -70,21 +70,21 @@
             <div class="form-group">
                 <label>Tarefa:</label>
                 
-                <button class="btn btn-success" onclick="addTask('start')">
+                <button class="btn btn-success">
                     ▶ Iniciar Processo
                 </button>
 
-                <textarea id="task-input" placeholder="Digite a tarefa..." onkeydown="handleTaskInputKeydown(event)"></textarea>
+                <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
 
-                <button class="btn btn-primary" onclick="addTask('task')">
+                <button class="btn btn-primary">
                     ➕ Adicionar Tarefa
                 </button>
 
-                <button class="btn btn-purple" onclick="startGatewayMode()">
+                <button class="btn btn-purple">
                     ◆ Essa tarefa possui mais de um caminho
                 </button>
 
-                <button class="btn btn-danger" onclick="addTask('end')">
+                <button class="btn btn-danger">
                     ⏹ Finalizar Processo
                 </button>
             </div>
@@ -101,9 +101,9 @@
                 <div class="gateway-paths" id="gateway-paths"></div>
 
                 <div class="gateway-buttons">
-                    <button class="btn btn-primary" onclick="addGatewayPath()">➕ Adicionar caminho</button>
-                    <button class="btn btn-success" onclick="finalizeGateway()">✅ Fechar caminho de decisão</button>
-                    <button class="btn btn-secondary" onclick="cancelGateway()">❌ Cancelar</button>
+                    <button class="btn btn-primary">➕ Adicionar caminho</button>
+                    <button class="btn btn-success">✅ Fechar caminho de decisão</button>
+                    <button class="btn btn-secondary">❌ Cancelar</button>
                 </div>
             </div>
 
@@ -112,7 +112,7 @@
                 <h4>💡 Como usar:</h4>
                 <ul>
                     <li>Clique em uma tarefa para selecioná-la</li>
-                    <li>Duplo clique para editar texto das tarefas</li>
+                    <li>Duplo clique para editar texto das tarefas e labels</li>
                     <li>Novas tarefas serão adicionadas após a selecionada</li>
                     <li>Clique no botão direito ou em DELETE para excluir tarefas</li>
                     <li>Arraste tarefas para reposicioná-las</li>
@@ -120,7 +120,7 @@
                 </ul>
             </div>
 
-            <button class="btn btn-secondary" onclick="clearAll()">
+            <button class="btn btn-secondary">
                 🔄 Limpar Tudo
             </button>
         </div>
@@ -129,9 +129,9 @@
         <div class="canvas-container">
             <!-- Canvas Controls -->
             <div class="canvas-controls">
-                <button onclick="zoomIn()">🔍 +</button>
-                <button onclick="zoomOut()">🔍 -</button>
-                <button onclick="resetZoom()">⌂ Reset</button>
+                <button>🔍 +</button>
+                <button>🔍 -</button>
+                <button>⌂ Reset</button>
             </div>
 
             <!-- Zoom Indicator -->
