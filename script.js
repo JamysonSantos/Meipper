@@ -13,14 +13,9 @@ let gatewayPaths = [
 ];
 let nodeIdCounter = 1;
 
-// Sistema melhorado de gerenciamento de labels
-let connectionLabels = new Map(); // Mapeia connectionId -> labelElement
-let labelUpdateCallbacks = new Map(); // Mapeia labelId -> função de atualização
-
 // Drawflow instance
 let editor;
 let currentZoom = 1;
-let container;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -31,18 +26,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeDrawflow() {
-    container = document.getElementById('drawflow');
+    const container = document.getElementById('drawflow');
     editor = new Drawflow(container);
     editor.reroute = true;
     editor.reroute_fix_curvature = true;
     editor.force_first_input = false;
     editor.start();
 
-    setupDrawflowEvents();
-}
-
-function setupDrawflowEvents() {
-    // Event listeners originais
+    // Event listeners
     editor.on('nodeSelected', function(id) {
         selectedNodeId = id;
         updateZoomDisplay();
@@ -55,43 +46,16 @@ function setupDrawflowEvents() {
     editor.on('zoom', function(zoom) {
         currentZoom = zoom;
         updateZoomDisplay();
-        // Atualizar posições dos labels quando há zoom
-        updateAllLabelPositions();
     });
 
-    // Novos event listeners para gerenciar labels
-    editor.on('nodeRemoved', function(id) {
-        removeLabelsForNode(id);
-    });
-
-    editor.on('connectionRemoved', function(connection) {
-        removeLabelForConnection(connection.output_id, connection.input_id);
-    });
-
-    // Atualizar labels quando nós são movidos
-    editor.on('nodeMoved', function(id) {
-        setTimeout(updateAllLabelPositions, 10); // Pequeno delay para garantir que a posição foi atualizada
-    });
-
-    // Usar MutationObserver para detectar mudanças no DOM mais eficientemente
-    const observer = new MutationObserver(function(mutations) {
-        let shouldUpdate = false;
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'attributes' && 
-                (mutation.attributeName === 'style' || mutation.attributeName === 'transform')) {
-                shouldUpdate = true;
-            }
-        });
-        if (shouldUpdate) {
-            updateAllLabelPositions();
+    // Context menu
+    container.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        const nodeElement = e.target.closest('.drawflow-node');
+        if (nodeElement) {
+            const nodeId = nodeElement.parentElement.id.replace('node-', '');
+            showContextMenu(e, nodeId);
         }
-    });
-
-    // Observar mudanças nos nós
-    observer.observe(container, {
-        attributes: true,
-        subtree: true,
-        attributeFilter: ['style', 'transform']
     });
 }
 
@@ -290,8 +254,8 @@ function createStartNode() {
         </div>
     `;
     
-    const posX = getNextPosition().x - 100;
-    const posY = getNextPosition().y - 60;
+    const posX = getNextPosition().x;
+    const posY = getNextPosition().y;
     
     editor.addNode('start', 0, 1, posX, posY, 'start', { name: 'Início' }, html);
     return nodeId;
@@ -305,7 +269,7 @@ function createEndNode() {
         </div>
     `;
     
-    const posX = getNextPosition().x + 50; // Ajuste aqui a distância extra para o fim
+    const posX = getNextPosition().x;
     const posY = getNextPosition().y;
     
     editor.addNode('end', 1, 0, posX, posY, 'end', { name: 'Fim' }, html);
@@ -343,7 +307,7 @@ function createGatewayNode(question) {
         </div>
     `;
     
-    const posX = getNextPosition().x + 25; // Ajuste aqui a distância do gateway
+    const posX = getNextPosition().x;
     const posY = getNextPosition().y;
     
     editor.addNode('gateway', 1, 1, posX, posY, 'gateway', { 
@@ -367,7 +331,7 @@ function getNextPosition() {
         const selectedNode = editor.getNodeFromId(selectedNodeId);
         if (selectedNode) {
             return { 
-                x: selectedNode.pos_x + 150,
+                x: selectedNode.pos_x + 150, // controla a distância entre os elementos
                 y: selectedNode.pos_y 
             };
         }
@@ -383,13 +347,10 @@ function getNextPosition() {
         }
     });
     
-    return { x: maxX + 350, y: maxY };
+    return { x: maxX + 350, y: maxY }; // Aumentei de 250 para 350
 }
 
 function deleteNode(nodeId) {
-    // Remover labels associados antes de deletar o nó
-    removeLabelsForNode(nodeId);
-    
     editor.removeNodeId('node-' + nodeId);
     if (selectedNodeId === nodeId) {
         selectedNodeId = null;
@@ -493,27 +454,23 @@ function finalizeGateway() {
         editor.addConnection(selectedNodeId, gatewayId, 'output_1', 'input_1');
     }
 
+    // Get gateway position for relative positioning
     const gatewayNode = editor.getNodeFromId(gatewayId);
-    const gatewayY = gatewayNode ? gatewayNode.pos_y : 0;
+    const gatewayY = gatewayNode ? gatewayNode.pos_y : 00;
     
-    // Criar container para labels se não existir
-    let labelContainer = document.querySelector('.connection-label-container');
-    if (!labelContainer) {
-        labelContainer = document.createElement('div');
-        labelContainer.className = 'connection-label-container';
-        document.getElementById('drawflow').appendChild(labelContainer);
-    }
-
+    // Create tasks for each path with proper vertical spacing
     validPaths.forEach((path, index) => {
         const actorColor = actors[path.actor] || '#2196f3';
-        const offsetY = (index - (validPaths.length - 1) / 2) * 150;
+        
+        // Calcula posição Y com espaçamento vertical adequado
+        const offsetY = (index - (validPaths.length - 1) / 2) * 150; // 150px de espaçamento vertical entre os caminhos
         const pathY = gatewayY + offsetY;
+        
+        // Cria o nó na posição calculada
         const pathTaskId = createTaskNodeAtPosition(path.task, path.actor, actorColor, gatewayNode.pos_x + 150, pathY);
         
+        // Connect gateway to path task
         editor.addConnection(gatewayId, pathTaskId, 'output_1', 'input_1');
-
-        // Criar label com sistema melhorado
-        createConnectionLabel(gatewayId, pathTaskId, path.pathName, labelContainer);
     });
 
     cancelGateway();
@@ -547,155 +504,6 @@ function cancelGateway() {
         { label: 'Caminho 1', pathName: 'Sim', task: '', actor: '', tasks: [] },
         { label: 'Caminho 2', pathName: 'Não', task: '', actor: '', tasks: [] }
     ];
-}
-
-// Sistema melhorado de gerenciamento de labels
-function createConnectionLabel(sourceId, targetId, labelText, container) {
-    const connectionKey = `${sourceId}-${targetId}`;
-    
-    // Criar elemento do label
-    const label = document.createElement('div');
-    label.className = 'connection-label';
-    label.textContent = labelText;
-    label.id = `connection-label-${connectionKey}`;
-    label.dataset.sourceId = sourceId;
-    label.dataset.targetId = targetId;
-    
-    // Adicionar funcionalidade de edição
-    label.addEventListener('dblclick', function(event) {
-        editConnectionLabel(event, label);
-    });
-    
-    container.appendChild(label);
-    
-    // Armazenar referência
-    connectionLabels.set(connectionKey, label);
-    
-    // Função de atualização otimizada
-    const updatePosition = () => {
-        updateSingleLabelPosition(label, sourceId, targetId);
-    };
-    
-    labelUpdateCallbacks.set(label.id, updatePosition);
-    
-    // Posição inicial
-    updatePosition();
-    
-    return label;
-}
-
-function updateSingleLabelPosition(label, sourceId, targetId) {
-    const sourceNode = document.getElementById(`node-${sourceId}`);
-    const targetNode = document.getElementById(`node-${targetId}`);
-    
-    if (!sourceNode || !targetNode || !label.parentElement) {
-        return;
-    }
-    
-    const containerRect = document.getElementById('drawflow').getBoundingClientRect();
-    const sourceRect = sourceNode.getBoundingClientRect();
-    const targetRect = targetNode.getBoundingClientRect();
-    
-    // Calcular ponto médio com transformação de zoom
-    const midX = ((sourceRect.right + targetRect.left) / 2 - containerRect.left) / currentZoom;
-    const midY = (((sourceRect.top + sourceRect.bottom) / 2 + (targetRect.top + targetRect.bottom) / 2) / 2 - containerRect.top) / currentZoom;
-    
-    label.style.left = `${midX}px`;
-    label.style.top = `${midY}px`;
-}
-
-function updateAllLabelPositions() {
-    // Usar requestAnimationFrame para otimizar performance
-    requestAnimationFrame(() => {
-        labelUpdateCallbacks.forEach((updateFn, labelId) => {
-            updateFn();
-        });
-    });
-}
-
-function removeLabelsForNode(nodeId) {
-    const labelsToRemove = [];
-    
-    // Encontrar todos os labels associados ao nó
-    connectionLabels.forEach((label, connectionKey) => {
-        const [sourceId, targetId] = connectionKey.split('-');
-        if (sourceId == nodeId || targetId == nodeId) {
-            labelsToRemove.push({ label, connectionKey });
-        }
-    });
-    
-    // Remover labels
-    labelsToRemove.forEach(({ label, connectionKey }) => {
-        removeLabelElement(label, connectionKey);
-    });
-}
-
-function removeLabelForConnection(outputNodeId, inputNodeId) {
-    const connectionKey = `${outputNodeId}-${inputNodeId}`;
-    const label = connectionLabels.get(connectionKey);
-    
-    if (label) {
-        removeLabelElement(label, connectionKey);
-    }
-}
-
-function removeLabelElement(label, connectionKey) {
-    // Limpar callback de atualização
-    if (labelUpdateCallbacks.has(label.id)) {
-        labelUpdateCallbacks.delete(label.id);
-    }
-    
-    // Remover do mapa
-    connectionLabels.delete(connectionKey);
-    
-    // Remover do DOM
-    if (label.parentElement) {
-        label.parentElement.removeChild(label);
-    }
-}
-
-// Função de edição para labels de conexão
-function editConnectionLabel(event, labelElement) {
-    event.stopPropagation();
-    const originalText = labelElement.textContent;
-    
-    labelElement.setAttribute('contenteditable', 'true');
-    labelElement.focus();
-    
-    // Selecionar todo o texto
-    const range = document.createRange();
-    range.selectNodeContents(labelElement);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-
-    function finishEditing() {
-        labelElement.removeAttribute('contenteditable');
-        const newText = labelElement.textContent.trim();
-        if (!newText || newText === originalText) {
-            labelElement.textContent = originalText;
-        }
-        cleanup();
-    }
-
-    function handleKeydown(e) {
-        e.stopPropagation();
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            finishEditing();
-        } else if (e.key === 'Escape') {
-            labelElement.textContent = originalText;
-            finishEditing();
-        }
-    }
-
-    function cleanup() {
-        labelElement.removeEventListener('blur', finishEditing);
-        labelElement.removeEventListener('keydown', handleKeydown);
-    }
-
-    labelElement.addEventListener('blur', finishEditing);
-    labelElement.addEventListener('keydown', handleKeydown);
 }
 
 // Text editing functions
@@ -799,41 +607,46 @@ function editGatewayText(event, nodeId) {
     element.addEventListener('keydown', handleKeydown);
 }
 
+// Context menu
+function showContextMenu(event, nodeId) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const existingMenu = document.querySelector('.context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.style.left = event.pageX + 'px';
+    menu.style.top = event.pageY + 'px';
+    
+    menu.innerHTML = `
+        <button class="delete" onclick="deleteNode('${nodeId}'); this.parentElement.remove();">
+            Excluir tarefa
+        </button>
+    `;
+    
+    document.body.appendChild(menu);
+    
+    // Close menu when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', function closeMenu() {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+        });
+    }, 0);
+}
+
 // Utility functions
 function clearAll() {
     if (confirm('Tem certeza que deseja limpar todo o fluxo?')) {
-        // Limpar todos os labels e callbacks
-        connectionLabels.clear();
-        labelUpdateCallbacks.clear();
-        
-        // Destrói completamente a instância do Drawflow
         editor.clear();
-        
-        // Remove todos os labels de conexão
-        const labelContainer = document.querySelector('.connection-label-container');
-        if (labelContainer) {
-            labelContainer.remove();
-        }
-        
-        // Reinicializa o Drawflow do zero
-        const container = document.getElementById('drawflow');
-        container.innerHTML = '';
-        
-        editor = new Drawflow(container);
-        editor.start();
-        
-        // Reconfigurações essenciais
-        editor.reroute = true;
-        editor.reroute_fix_curvature = true;
-        editor.force_first_input = false;
-        
-        // Reseta todas as variáveis globais
         selectedNodeId = null;
         gatewayMode = false;
         nodeIdCounter = 1;
-        
-        // Reativa eventos
-        setupDrawflowEvents();
+        cancelGateway();
     }
 }
 
