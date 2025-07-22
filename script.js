@@ -1,4 +1,5 @@
-// Global variables
+<script>
+    // Global variables
 const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
 const EXTENDED_COLORS = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
 
@@ -839,22 +840,4 @@ function clearAll() {
 
 // Event listeners
 document.getElementById('process-name').addEventListener('input', updateProcessInfo);
-
-// Exporta funções para o escopo global (permite chamadas via onclick no HTML)
-window.removeActor = removeActor;
-window.editTaskText = editTaskText;
-window.editGatewayText = editGatewayText;
-window.addTask = addTask;
-window.startGatewayMode = startGatewayMode;
-window.addGatewayPath = addGatewayPath;
-window.removeGatewayPath = removeGatewayPath;
-window.finalizeGateway = finalizeGateway;
-window.cancelGateway = cancelGateway;
-window.zoomIn = zoomIn;
-window.zoomOut = zoomOut;
-window.resetZoom = resetZoom;
-window.clearAll = clearAll;
-window.handleTaskInputKeydown = handleTaskInputKeydown;
-window.addMoreColors = addMoreColors;
-window.selectColor = selectColor;
-window.addActor = addActor;
+</script>
