@@ -85,7 +85,6 @@
                 if (mutation.type === 'attributes' && 
                     (mutation.attributeName === 'style' || mutation.attributeName === 'transform')) {
                     updateAllLabelPositions();
-                    break;
                 }
             });
         });
