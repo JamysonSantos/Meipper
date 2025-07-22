@@ -32,6 +32,19 @@ body {
     opacity: 0.9;
 }
 
+.header img {
+  width: auto;       /* Largura ajustável conforme a altura */
+  height: 20px;     /* Altura padrão (equivalente a h-36) */
+  margin: 0 auto;    /* Centraliza */
+}
+
+/* Media query para telas maiores */
+@media (min-width: 768px) {
+  .header img {
+    height: 40px;   /* Altura em desktop (equivalente a md:h-44) */
+  }
+}
+
 /* Process Info Card */
 .process-info-card {
     background: rgba(255,255,255,0.95);
