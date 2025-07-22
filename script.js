@@ -839,3 +839,22 @@ function clearAll() {
 
 // Event listeners
 document.getElementById('process-name').addEventListener('input', updateProcessInfo);
+
+// Exporta funções para o escopo global (permite chamadas via onclick no HTML)
+window.removeActor = removeActor;
+window.editTaskText = editTaskText;
+window.editGatewayText = editGatewayText;
+window.addTask = addTask;
+window.startGatewayMode = startGatewayMode;
+window.addGatewayPath = addGatewayPath;
+window.removeGatewayPath = removeGatewayPath;
+window.finalizeGateway = finalizeGateway;
+window.cancelGateway = cancelGateway;
+window.zoomIn = zoomIn;
+window.zoomOut = zoomOut;
+window.resetZoom = resetZoom;
+window.clearAll = clearAll;
+window.handleTaskInputKeydown = handleTaskInputKeydown;
+window.addMoreColors = addMoreColors;
+window.selectColor = selectColor;
+window.addActor = addActor;
