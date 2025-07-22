@@ -496,16 +496,16 @@ body {
     width: 50px;
     height: 50px;
     position: relative;
-}
-
-.gateway-shape {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    transform: rotate(45deg);
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.gateway-shape {
+    width: 80%;
+    height: 80%;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    transform: rotate(45deg);
     cursor: pointer;
     box-shadow: 0 6px 20px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
@@ -536,49 +536,51 @@ body {
     cursor: text;
 }
 
+/* Botão de Exclusão de Nós (X preto) */
+.drawflow-delete {
+    position: absolute;
+    display: block;
+    width: 24px;
+    height: 24px;
+    background: #1f2937;
+    color: white;
+    z-index: 4;
+    border: 2px solid #f3f4f6;
+    line-height: 17px;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 50%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: pointer;
+    right: -12px;
+    top: -12px;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+.parent-node .drawflow-delete {
+    right: -15px !important;
+    top: 35px !important;
+}
+
+.drawflow-delete:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.drawflow-node.selected .drawflow-delete {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+}
+
 .gateway-label[contenteditable="true"] {
     outline: 2px solid #3b82f6;
     background: rgba(255,255,255,0.95);
     color: #1f2937;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-}
-
-/* Context Menu */
-.context-menu {
-    position: absolute;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    padding: 8px;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
-}
-
-.context-menu button {
-    display: block;
-    width: 100%;
-    padding: 10px 16px;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-}
-
-.context-menu button:hover {
-    background: #f3f4f6;
-    transform: translateX(2px);
-}
-
-.context-menu button.delete {
-    color: #ef4444;
-}
-
-.context-menu button.delete:hover {
-    background: #fef2f2;
 }
 
 /* Zoom indicator */
@@ -602,10 +604,56 @@ body {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 55px !important; /* Aumenta o espaço interno */
+    padding: 55px !important;
 }
 
-/* Remover fundo e bordas padrão */
+.drawflow .drawflow-node.selected {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.drawflow .drawflow-node.task.selected .task-node {
+    position: relative;
+    z-index: 0;
+}
+
+.drawflow .drawflow-node.task.selected .task-node::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -28px;
+    border: 3px solid #F0E68C;
+    border-radius: 10px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.drawflow .drawflow-node.gateway.selected .gateway-node {
+    position: relative;
+}
+
+.drawflow .drawflow-node.gateway.selected .gateway-node::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -40px;
+    border: 2px solid #F0E68C;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.drawflow .drawflow-node.start.selected .start-node,
+.drawflow .drawflow-node.end.selected .end-node {
+    box-shadow: 0 0 0 3px #F0E68C, 0 0 0 6px rgba(239, 68, 68, 0.3);
+}
+
 .drawflow .drawflow-node .drawflow_content_node {
     background: transparent !important;
     border: none !important;
@@ -613,30 +661,67 @@ body {
     padding: 0 !important;
 }
 
-/* NÓ DE INÍCIO (somente output) */
+.drawflow .drawflow-node .input, .drawflow .drawflow-node .output {
+    width: 14px !important;
+    height: 14px !important;
+    margin: -7px 0 0 -7px !important;
+}
+
 .drawflow .drawflow-node.start .output {
-    right: -2px !important;  /* Ajuste fino para o nó de início */
+    right: -10px !important;
     top: 50% !important;
     transform: translateY(15%) !important;
+    background: white !important;
+    border: 2px solid #00774f !important;
+    border-color: #10B981 !important;
 }
 
-/* NÓ DE FIM (somente input) */
 .drawflow .drawflow-node.end .input {
-    left: -22px !important;  /* Ajuste fino para o nó de fim */
+    left: -10px !important;
+    top: 50% !important;
+    transform: translateY(30%) !important;
+    background: white !important;
+    border: 2px solid #a73030 !important;
+}
+
+.drawflow .drawflow-node.task .input {
+    width: 14px !important;
+    height: 14px !important;
+    left: -10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: white !important;
+    border: 2px solid #4CAF50 !important;
+}
+
+.drawflow .drawflow-node.task .output {
+    width: 14px !important;
+    height: 14px !important;
+    right: -80px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: white !important;
+    border: 2px solid #FF5252 !important;
+}
+
+.drawflow .drawflow-node.gateway .input {
+    width: 14px !important;
+    height: 14px !important;
+    left: -0px !important;
     top: 50% !important;
     transform: translateY(15%) !important;
+    background: white !important;
+    border: 2px solid #f59e0b !important;
 }
 
-/* NÓS DE TAREFA (tanto input quanto output) */
-.drawflow .drawflow-node.task .input {
-    left: -8px !important;
-    top: 30% !important;  /* Posiciona mais para cima */
-}
-
-.drawflow .drawflow-node.selected {
-    background: rgba(59, 130, 246, 0.1) !important;
-    border: 3px solid #3b82f6 !important;
-    border-radius: 16px !important;
+.drawflow .drawflow-node.gateway .output {
+    width: 14px !important;
+    height: 14px !important;
+    right: 0px !important;
+    top: 50% !important;
+    transform: translateY(15%) !important;
+    background: white !important;
+    border: 2px solid #f59e0b !important;
 }
 
 .drawflow .connection .main-path {
@@ -650,3 +735,44 @@ body {
     stroke-width: 4;
 }
 
+.connection-label-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: visible;
+}
+
+.connection-label {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.95);
+    color: #ef4444;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.connection-label:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
+.connection-label[contenteditable="true"] {
+    outline: 2px solid #3b82f6;
+    background: rgba(255, 255, 255, 0.98) !important;
+    color: #1f2937 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    user-select: text;
+}
