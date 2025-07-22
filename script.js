@@ -23,7 +23,6 @@ let currentZoom = 1;
 let container;
 
 // Initialize
-document.addEventListener('DOMContentLoaded', function() {
     initializeDrawflow();
     renderColorPicker();
     updateProcessInfo();
