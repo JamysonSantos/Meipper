@@ -573,8 +573,8 @@ body {
 }
 
 .parent-node .drawflow-delete {
-    right: -15px !important;
-    top: 35px !important;
+    right: 45px !important;
+    top: 40px !important;
 }
 
 .drawflow-delete:hover {
