@@ -52,13 +52,6 @@ function setupDrawflowEvents() {
         selectedNodeId = null;
     });
 
-    editor.on('zoom', function(zoom) {
-        currentZoom = zoom;
-        updateZoomDisplay();
-        // Atualizar posições dos labels quando há zoom
-        updateAllLabelPositions();
-    });
-
     // Novos event listeners para gerenciar labels
     editor.on('nodeRemoved', function(id) {
         removeLabelsForNode(id);
