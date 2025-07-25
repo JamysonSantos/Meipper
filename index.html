@@ -12,7 +12,6 @@
     <header class="header">
         <img src="logomeipper02.png" alt="Logo Meipper" class="mx-auto h-8 md:h-16" />
     </header>
-    </header>
 
     <!-- Process Info Card -->
     <div class="process-info-card">
@@ -47,6 +46,16 @@
                 <input type="text" id="process-name" placeholder="Ex: Aprovação de Faturas">
             </div>
 
+            <!-- Undo/Redo Controls -->
+            <div class="history-controls">
+                <button class="btn btn-warning" id="undo-btn" disabled>
+                    ↶ Desfazer
+                </button>
+                <button class="btn btn-warning" id="redo-btn" disabled>
+                    ↷ Refazer
+                </button>
+            </div>
+
             <!-- Actor Management -->
             <div class="form-group">
                 <label for="actor-input">Responsável/Setor/Cargo:</label>
@@ -54,9 +63,9 @@
                 
                 <label>Cor:</label>
                 <div class="color-picker" id="color-picker"></div>
-                <button class="more-colors-btn" onclick="addMoreColors()">Mais cores</button>
+                <button class="more-colors-btn">Mais cores</button>
                 
-                <button class="btn btn-primary" onclick="addActor()">Salvar Responsável</button>
+                <button class="btn btn-primary">Salvar Responsável</button>
 
                 <div class="actors-list" id="actors-list"></div>
 
@@ -70,21 +79,21 @@
             <div class="form-group">
                 <label>Tarefa:</label>
                 
-                <button class="btn btn-success" onclick="addTask('start')">
+                <button class="btn btn-success">
                     ▶ Iniciar Processo
                 </button>
 
-                <textarea id="task-input" placeholder="Digite a tarefa..." onkeydown="handleTaskInputKeydown(event)"></textarea>
+                <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
 
-                <button class="btn btn-primary" onclick="addTask('task')">
+                <button class="btn btn-primary">
                     ➕ Adicionar Tarefa
                 </button>
 
-                <button class="btn btn-purple" onclick="startGatewayMode()">
+                <button class="btn btn-purple">
                     ◆ Essa tarefa possui mais de um caminho
                 </button>
 
-                <button class="btn btn-danger" onclick="addTask('end')">
+                <button class="btn btn-danger">
                     ⏹ Finalizar Processo
                 </button>
             </div>
@@ -101,9 +110,9 @@
                 <div class="gateway-paths" id="gateway-paths"></div>
 
                 <div class="gateway-buttons">
-                    <button class="btn btn-primary" onclick="addGatewayPath()">➕ Adicionar caminho</button>
-                    <button class="btn btn-success" onclick="finalizeGateway()">✅ Fechar caminho de decisão</button>
-                    <button class="btn btn-secondary" onclick="cancelGateway()">❌ Cancelar</button>
+                    <button class="btn btn-primary">➕ Adicionar caminho</button>
+                    <button class="btn btn-success">✅ Fechar caminho de decisão</button>
+                    <button class="btn btn-secondary">❌ Cancelar</button>
                 </div>
             </div>
 
@@ -117,11 +126,29 @@
                     <li>Clique no botão direito ou em DELETE para excluir tarefas</li>
                     <li>Arraste tarefas para reposicioná-las</li>
                     <li>Use scroll do mouse para zoom</li>
+                    <li>Use Ctrl+Z/Ctrl+Y para desfazer/refazer</li>
                 </ul>
             </div>
 
-            <button class="btn btn-secondary" onclick="clearAll()">
+            <button class="btn btn-secondary">
                 🔄 Limpar Tudo
+            </button>
+            <button class="btn btn-primary">
+                💾 Salvar Fluxo
+            </button>
+            <button class="btn btn-secondary">
+                📂 Carregar Fluxo
+            </button>
+            
+            <div class="export-title">Exportar</div>
+            <button class="export-btn export-png">
+                📷 PNG
+            </button>
+            <button class="export-btn export-pdf">
+                📄 PDF
+            </button>
+            <button class="export-btn export-presentation">
+                📊 Apresentação
             </button>
         </div>
 
@@ -129,9 +156,9 @@
         <div class="canvas-container">
             <!-- Canvas Controls -->
             <div class="canvas-controls">
-                <button onclick="zoomIn()">🔍 +</button>
-                <button onclick="zoomOut()">🔍 -</button>
-                <button onclick="resetZoom()">⌂ Reset</button>
+                <button>🔍 +</button>
+                <button>🔍 -</button>
+                <button>⌂ Reset</button>
             </div>
 
             <!-- Zoom Indicator -->
@@ -142,7 +169,18 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3 id="loading-text">Processando...</h3>
+            <p id="loading-subtitle">Aguarde um momento</p>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
