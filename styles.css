@@ -249,12 +249,19 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .btn-primary {
     background: #3b82f6;
     color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background: #2563eb;
 }
 
@@ -263,7 +270,7 @@ body {
     color: white;
 }
 
-.btn-success:hover {
+.btn-success:hover:not(:disabled) {
     background: #059669;
 }
 
@@ -272,7 +279,7 @@ body {
     color: white;
 }
 
-.btn-purple:hover {
+.btn-purple:hover:not(:disabled) {
     background: #7c3aed;
 }
 
@@ -281,7 +288,7 @@ body {
     color: white;
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
     background: #dc2626;
 }
 
@@ -290,8 +297,30 @@ body {
     color: white;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
     background: #4b5563;
+}
+
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: #d97706;
+}
+
+/* Undo/Redo Controls */
+.history-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.history-controls .btn {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 12px;
 }
 
 /* Gateway Panel */
@@ -788,4 +817,220 @@ body {
     color: #1f2937 !important;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
     user-select: text;
+}
+
+/* Botões de Exportação */
+.export-btn {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin: 4px 0;
+}
+
+.export-btn:hover {
+    background-color: #f3f4f6;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Cores específicas para cada tipo de exportação */
+.export-png {
+    background-color: #ec4899;
+    color: white;
+    border-color: #db2777;
+}
+
+.export-png:hover {
+    background-color: #db2777;
+}
+
+.export-pdf {
+    background-color: #ef4444;
+    color: white;
+    border-color: #dc2626;
+}
+
+.export-pdf:hover {
+    background-color: #dc2626;
+}
+
+.export-presentation {
+    background-color: #8b5cf6;
+    color: white;
+    border-color: #7c3aed;
+}
+
+.export-presentation:hover {
+    background-color: #7c3aed;
+}
+
+/* Container para os botões de exportação */
+.export-controls {
+    position: absolute;
+    top: 60px; /* Abaixo dos controles de zoom */
+    right: 16px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    border: 1px solid #e5e7eb;
+}
+
+/* Título do grupo de exportação */
+.export-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 4px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Versão para sidebar (opcional) */
+.sidebar .export-btn {
+    width: 100%;
+    margin: 4px 0;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+/* Ícones nos botões */
+.export-btn::before {
+    display: inline-block;
+    font-size: 16px;
+}
+
+/* Media query para telas menores */
+@media (max-width: 768px) {
+    .export-controls {
+        flex-direction: row;
+        flex-wrap: wrap;
+        bottom: 16px;
+        top: auto;
+        right: 50%;
+        transform: translateX(50%);
+    }
+    
+    .export-btn {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .export-title {
+        display: none;
+    }
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+}
+
+.loading-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e7eb;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Temporary Export Container */
+.export-container {
+    position: absolute;
+    left: -20000px;
+    top: -20000px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.export-header {
+    background: linear-gradient(135deg, #ffffff 0%, #2a9ebd 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.export-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.export-header .process-info {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.export-header .actors-info {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.export-actors-list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.export-actor-badge {
+    padding: 4px 12px;
+    border-radius: 15px;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.export-flow-content {
+    padding: 20px;
+    min-height: 400px;
 }
