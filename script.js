@@ -1420,4 +1420,4 @@ window.addEventListener("DOMContentLoaded", () => {
           saveState();
       }, 1000);
   });
-
+}
