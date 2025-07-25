@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     renderColorPicker();
     updateProcessInfo();
     setupKeyboardEvents();
-    setupButtonListeners();
     saveState();
 });
 
