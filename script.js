@@ -1,8 +1,4 @@
 // Global variables
-console.log("Script carregado!");
-
-document.addEventListener('DOMContentLoaded', function() {
-
 const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
 const EXTENDED_COLORS = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
 
@@ -33,11 +29,13 @@ const MAX_HISTORY = 50;
 let isPerformingUndoRedo = false;
 
 // Initialize
-initializeDrawflow();
-renderColorPicker();
-updateProcessInfo();
-setupKeyboardEvents();
-saveState(); // Salvar estado inicial
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDrawflow();
+    renderColorPicker();
+    updateProcessInfo();
+    setupKeyboardEvents();
+    saveState(); // Salvar estado inicial
+});
 
 function initializeDrawflow() {
     container = document.getElementById('drawflow');
@@ -1367,46 +1365,55 @@ async function exportToPresentation() {
 // Utility functions
 function clearAll() {
     if (confirm('Tem certeza que deseja limpar todo o fluxo?')) {
+        // Limpar todos os labels e callbacks
         connectionLabels.clear();
         labelUpdateCallbacks.clear();
+        
+        // Destrói completamente a instância do Drawflow
         editor.clear();
         
+        // Remove todos os labels de conexão
         const labelContainer = document.querySelector('.connection-label-container');
         if (labelContainer) {
             labelContainer.remove();
         }
-
+        
+        // Reinicializa o Drawflow do zero
         const container = document.getElementById('drawflow');
         container.innerHTML = '';
-
+        
         editor = new Drawflow(container);
         editor.start();
-
+        
+        // Reconfigurações essenciais
         editor.reroute = true;
         editor.reroute_fix_curvature = true;
         editor.force_first_input = false;
-
+        
+        // Reseta todas as variáveis globais
         selectedNodeId = null;
         gatewayMode = false;
         nodeIdCounter = 1;
-
+        
+        // Resetar histórico
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
-
+        
+        // Reativa eventos
         setupDrawflowEvents();
+        
+        // Salvar estado inicial
         saveState();
     }
 }
 
 // Event listeners
-document.getElementById('process-name').addEventListener('input', function () {
+document.getElementById('process-name').addEventListener('input', function() {
     updateProcessInfo();
+    // Salvar estado após alterar nome do processo (com debounce)
     clearTimeout(this.saveTimeout);
     this.saveTimeout = setTimeout(() => {
         saveState();
     }, 1000);
-});
-
-// 🔥 ADICIONE essa linha se você estiver usando `DOMContentLoaded`
 });
