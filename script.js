@@ -1367,57 +1367,46 @@ async function exportToPresentation() {
 // Utility functions
 function clearAll() {
     if (confirm('Tem certeza que deseja limpar todo o fluxo?')) {
-        // Limpar todos os labels e callbacks
         connectionLabels.clear();
         labelUpdateCallbacks.clear();
-
-        // Destrói completamente a instância do Drawflow
         editor.clear();
-
-        // Remove todos os labels de conexão
+        
         const labelContainer = document.querySelector('.connection-label-container');
         if (labelContainer) {
             labelContainer.remove();
         }
 
-        // Reinicializa o Drawflow do zero
         const container = document.getElementById('drawflow');
         container.innerHTML = '';
 
         editor = new Drawflow(container);
         editor.start();
 
-        // Reconfigurações essenciais
         editor.reroute = true;
         editor.reroute_fix_curvature = true;
         editor.force_first_input = false;
 
-        // Reseta todas as variáveis globais
         selectedNodeId = null;
         gatewayMode = false;
         nodeIdCounter = 1;
 
-        // Resetar histórico
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
 
-        // Reativa eventos
         setupDrawflowEvents();
-
-        // Salvar estado inicial
         saveState();
     }
 }
 
 // Event listeners
-window.addEventListener("DOMContentLoaded", () => {
-  document.getElementById('process-name').addEventListener('input', function() {
-      updateProcessInfo();
-      // Salvar estado após alterar nome do processo (com debounce)
-      clearTimeout(this.saveTimeout);
-      this.saveTimeout = setTimeout(() => {
-          saveState();
-      }, 1000);
-  });
-}
+document.getElementById('process-name').addEventListener('input', function () {
+    updateProcessInfo();
+    clearTimeout(this.saveTimeout);
+    this.saveTimeout = setTimeout(() => {
+        saveState();
+    }, 1000);
+});
+
+// 🔥 ADICIONE essa linha se você estiver usando `DOMContentLoaded`
+});
