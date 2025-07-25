@@ -1,4 +1,3 @@
-// Global variables
 const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
 const EXTENDED_COLORS = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
 
@@ -22,12 +21,19 @@ let editor;
 let currentZoom = 1;
 let container;
 
+// Sistema de histórico melhorado
+let history = [];
+let historyIndex = -1;
+const MAX_HISTORY = 50;
+let isPerformingUndoRedo = false;
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initializeDrawflow();
     renderColorPicker();
     updateProcessInfo();
     setupKeyboardEvents();
+    saveState(); // Salvar estado inicial
 });
 
 function initializeDrawflow() {
@@ -52,18 +58,40 @@ function setupDrawflowEvents() {
         selectedNodeId = null;
     });
 
-    // Novos event listeners para gerenciar labels
+    // Eventos para o sistema de histórico
+    editor.on('nodeCreated', function(id) {
+        if (!isPerformingUndoRedo) {
+            saveState();
+        }
+    });
+
     editor.on('nodeRemoved', function(id) {
         removeLabelsForNode(id);
+        if (!isPerformingUndoRedo) {
+            saveState();
+        }
+    });
+
+    editor.on('nodeMoved', function(id) {
+        setTimeout(() => {
+            updateAllLabelPositions();
+            if (!isPerformingUndoRedo) {
+                saveState();
+            }
+        }, 100);
+    });
+
+    editor.on('connectionCreated', function(connection) {
+        if (!isPerformingUndoRedo) {
+            saveState();
+        }
     });
 
     editor.on('connectionRemoved', function(connection) {
         removeLabelForConnection(connection.output_id, connection.input_id);
-    });
-
-    // Atualizar labels quando nós são movidos
-    editor.on('nodeMoved', function(id) {
-        setTimeout(updateAllLabelPositions, 10); // Pequeno delay para garantir que a posição foi atualizada
+        if (!isPerformingUndoRedo) {
+            saveState();
+        }
     });
 
     // Usar MutationObserver para detectar mudanças no DOM mais eficientemente
@@ -88,6 +116,118 @@ function setupDrawflowEvents() {
     });
 }
 
+// Sistema de Histórico Melhorado
+function saveState() {
+    if (isPerformingUndoRedo) return;
+    
+    const state = {
+        drawflow: editor.export(),
+        actors: JSON.parse(JSON.stringify(actors)),
+        nodeIdCounter: nodeIdCounter,
+        processName: document.getElementById('process-name').value,
+        selectedColor: selectedColor,
+        colors: [...colors],
+        connectionLabels: Array.from(connectionLabels.entries()),
+        timestamp: Date.now()
+    };
+    
+    // Remove estados futuros se estamos no meio do histórico
+    if (historyIndex < history.length - 1) {
+        history = history.slice(0, historyIndex + 1);
+    }
+    
+    history.push(state);
+    
+    // Limita o tamanho do histórico
+    if (history.length > MAX_HISTORY) {
+        history.shift();
+    } else {
+        historyIndex++;
+    }
+    
+    updateHistoryButtons();
+}
+
+function undo() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        restoreState(history[historyIndex]);
+    }
+}
+
+function redo() {
+    if (historyIndex < history.length - 1) {
+        historyIndex++;
+        restoreState(history[historyIndex]);
+    }
+}
+
+function restoreState(state) {
+    isPerformingUndoRedo = true;
+    
+    try {
+        // Limpar estado atual
+        editor.clear();
+        connectionLabels.clear();
+        labelUpdateCallbacks.clear();
+        
+        // Remover container de labels existente
+        const existingLabelContainer = document.querySelector('.connection-label-container');
+        if (existingLabelContainer) {
+            existingLabelContainer.remove();
+        }
+        
+        // Restaurar dados
+        actors = state.actors;
+        nodeIdCounter = state.nodeIdCounter;
+        selectedColor = state.selectedColor;
+        colors = state.colors;
+        
+        // Restaurar interface
+        document.getElementById('process-name').value = state.processName;
+        updateActorSelect();
+        updateActorsList();
+        updateProcessInfo();
+        renderColorPicker();
+        
+        // Restaurar drawflow
+        if (state.drawflow && state.drawflow.drawflow) {
+            editor.import(state.drawflow);
+        }
+        
+        // Restaurar labels de conexão
+        if (state.connectionLabels && state.connectionLabels.length > 0) {
+            const labelContainer = document.createElement('div');
+            labelContainer.className = 'connection-label-container';
+            document.getElementById('drawflow').appendChild(labelContainer);
+            
+            setTimeout(() => {
+                state.connectionLabels.forEach(([connectionKey, labelData]) => {
+                    const [sourceId, targetId] = connectionKey.split('-');
+                    if (labelData && labelData.textContent) {
+                        createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+                    }
+                });
+            }, 100);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao restaurar estado:', error);
+        alert('Erro ao desfazer/refazer operação');
+    } finally {
+        isPerformingUndoRedo = false;
+        updateHistoryButtons();
+    }
+}
+
+function updateHistoryButtons() {
+    const undoBtn = document.getElementById('undo-btn');
+    const redoBtn = document.getElementById('redo-btn');
+    
+    undoBtn.disabled = historyIndex <= 0;
+    redoBtn.disabled = historyIndex >= history.length - 1;
+}
+
 function updateZoomDisplay() {
     const zoomPercentage = Math.round(currentZoom * 100);
     document.getElementById('zoom-indicator').textContent = zoomPercentage + '%';
@@ -97,8 +237,26 @@ function updateZoomDisplay() {
 // Keyboard events
 function setupKeyboardEvents() {
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Delete' && selectedNodeId) {
-            deleteNode(selectedNodeId);
+        // Verifica se não está editando um campo de texto
+        if (document.activeElement.tagName !== 'INPUT' && 
+            document.activeElement.tagName !== 'TEXTAREA' && 
+            !document.activeElement.hasAttribute('contenteditable')) {
+            
+            if (e.key === 'Delete' && selectedNodeId) {
+                e.preventDefault();
+                deleteNode(selectedNodeId);
+            }
+            
+            // Atalhos Ctrl+Z e Ctrl+Y
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    undo();
+                } else if ((e.key === 'y') || (e.key === 'z' && e.shiftKey)) {
+                    e.preventDefault();
+                    redo();
+                }
+            }
         }
     });
 }
@@ -106,14 +264,17 @@ function setupKeyboardEvents() {
 // Zoom functions
 function zoomIn() {
     editor.zoom_in();
+    setTimeout(updateAllLabelPositions, 100);
 }
 
 function zoomOut() {
     editor.zoom_out();
+    setTimeout(updateAllLabelPositions, 100);
 }
 
 function resetZoom() {
     editor.zoom_reset();
+    setTimeout(updateAllLabelPositions, 100);
 }
 
 // Color picker functions
@@ -169,6 +330,7 @@ function addActor() {
     updateActorSelect();
     updateActorsList();
     updateProcessInfo();
+    saveState(); // Salvar estado após adicionar ator
 }
 
 function removeActor(name) {
@@ -176,6 +338,7 @@ function removeActor(name) {
     updateActorSelect();
     updateActorsList();
     updateProcessInfo();
+    saveState(); // Salvar estado após remover ator
 }
 
 function updateActorSelect() {
@@ -298,7 +461,7 @@ function createEndNode() {
         </div>
     `;
     
-    const posX = getNextPosition().x + 50; // Ajuste aqui a distância extra para o fim
+    const posX = getNextPosition().x + 50;
     const posY = getNextPosition().y;
     
     editor.addNode('end', 1, 0, posX, posY, 'end', { name: 'Fim' }, html);
@@ -336,7 +499,7 @@ function createGatewayNode(question) {
         </div>
     `;
     
-    const posX = getNextPosition().x + 25; // Ajuste aqui a distância do gateway
+    const posX = getNextPosition().x + 25;
     const posY = getNextPosition().y;
     
     editor.addNode('gateway', 1, 1, posX, posY, 'gateway', { 
@@ -669,6 +832,7 @@ function editConnectionLabel(event, labelElement) {
             labelElement.textContent = originalText;
         }
         cleanup();
+        saveState(); // Salvar estado após editar label
     }
 
     function handleKeydown(e) {
@@ -716,6 +880,7 @@ function editTaskText(event, nodeId) {
             if (nodeData) {
                 nodeData.data.name = newText;
             }
+            saveState(); // Salvar estado após editar texto
         } else {
             element.textContent = originalText;
         }
@@ -766,6 +931,7 @@ function editGatewayText(event, nodeId) {
             if (nodeData) {
                 nodeData.data.question = newText;
             }
+            saveState(); // Salvar estado após editar gateway
         } else {
             element.textContent = originalText;
         }
@@ -790,6 +956,409 @@ function editGatewayText(event, nodeId) {
 
     element.addEventListener('blur', finishEditing);
     element.addEventListener('keydown', handleKeydown);
+}
+
+// LocalStorage functions aprimoradas
+function saveToLocalStorage() {
+    try {
+        const data = {
+            drawflow: editor.export(),
+            actors: actors,
+            nodeIdCounter: nodeIdCounter,
+            processName: document.getElementById('process-name').value,
+            selectedColor: selectedColor,
+            colors: colors,
+            connectionLabels: Array.from(connectionLabels.entries()).map(([key, label]) => [
+                key, 
+                {
+                    textContent: label.textContent,
+                    sourceId: label.dataset.sourceId,
+                    targetId: label.dataset.targetId
+                }
+            ]),
+            history: history.slice(0, historyIndex + 1), // Salvar apenas o histórico até o ponto atual
+            historyIndex: historyIndex,
+            timestamp: Date.now(),
+            version: '2.0'
+        };
+        
+        localStorage.setItem('meipperFlow', JSON.stringify(data));
+        alert('Fluxo salvo com sucesso!');
+    } catch (error) {
+        console.error('Erro ao salvar:', error);
+        alert('Erro ao salvar o fluxo. Verifique se há espaço suficiente no navegador.');
+    }
+}
+
+function loadFromLocalStorage() {
+    try {
+        const savedData = localStorage.getItem('meipperFlow');
+        if (savedData) {
+            if (confirm('Carregar fluxo salvo? Isso substituirá o fluxo atual.')) {
+                const data = JSON.parse(savedData);
+                
+                // Limpar tudo primeiro
+                clearAll();
+                
+                // Restaurar dados básicos
+                actors = data.actors || {};
+                nodeIdCounter = data.nodeIdCounter || 1;
+                selectedColor = data.selectedColor || COLORS[0];
+                colors = data.colors || [...COLORS];
+                
+                // Restaurar interface
+                document.getElementById('process-name').value = data.processName || '';
+                updateActorSelect();
+                updateActorsList();
+                updateProcessInfo();
+                renderColorPicker();
+                
+                // Restaurar drawflow
+                if (data.drawflow) {
+                    editor.import(data.drawflow);
+                }
+                
+                // Restaurar labels de conexão
+                if (data.connectionLabels && data.connectionLabels.length > 0) {
+                    setTimeout(() => {
+                        let labelContainer = document.querySelector('.connection-label-container');
+                        if (!labelContainer) {
+                            labelContainer = document.createElement('div');
+                            labelContainer.className = 'connection-label-container';
+                            document.getElementById('drawflow').appendChild(labelContainer);
+                        }
+                        
+                        data.connectionLabels.forEach(([connectionKey, labelData]) => {
+                            const [sourceId, targetId] = connectionKey.split('-');
+                            if (labelData && labelData.textContent) {
+                                createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+                            }
+                        });
+                    }, 200);
+                }
+                
+                // Restaurar histórico se disponível
+                if (data.history && data.version === '2.0') {
+                    history = data.history;
+                    historyIndex = data.historyIndex || 0;
+                    updateHistoryButtons();
+                } else {
+                    // Reinicializar histórico
+                    history = [];
+                    historyIndex = -1;
+                    saveState();
+                }
+                
+                alert('Fluxo carregado com sucesso!');
+            }
+        } else {
+            alert('Nenhum fluxo salvo encontrado.');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar:', error);
+        alert('Erro ao carregar o fluxo salvo.');
+    }
+}
+
+// Funções de Loading
+function showLoading(title = 'Processando...', subtitle = 'Aguarde um momento') {
+    const overlay = document.getElementById('loading-overlay');
+    document.getElementById('loading-text').textContent = title;
+    document.getElementById('loading-subtitle').textContent = subtitle;
+    overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// Função para calcular o bounding box do fluxo
+function getFlowBoundingBox() {
+    const nodes = document.querySelectorAll('#drawflow .drawflow-node');
+    if (nodes.length === 0) {
+        return { minX: 0, minY: 0, maxX: 800, maxY: 600 };
+    }
+    
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    
+    nodes.forEach(node => {
+        const rect = node.getBoundingClientRect();
+        const containerRect = document.getElementById('drawflow').getBoundingClientRect();
+        
+        // Converter para coordenadas relativas ao container, considerando zoom
+        const transform = editor.precanvas.style.transform;
+        const scale = currentZoom || 1;
+        
+        const x = (rect.left - containerRect.left) / scale;
+        const y = (rect.top - containerRect.top) / scale;
+        const width = rect.width / scale;
+        const height = rect.height / scale;
+        
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + width);
+        maxY = Math.max(maxY, y + height);
+    });
+    
+    // Adicionar margem
+    const margin = 50;
+    return {
+        minX: minX - margin,
+        minY: minY - margin,
+        maxX: maxX + margin,
+        maxY: maxY + margin
+    };
+}
+
+// Função para exportar PNG com posicionamento perfeito
+async function exportToPNG() {
+    showLoading('Exportando PNG...', 'Preparando imagem fiel do fluxo');
+    
+    try {
+        // 1. Obter informações do processo
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
+        
+        // 2. Criar container de exportação
+        const exportContainer = document.createElement('div');
+        exportContainer.style.position = 'absolute';
+        exportContainer.style.left = '-9999px';
+        exportContainer.style.background = '#f8fafc';
+        exportContainer.style.padding = '20px';
+        document.body.appendChild(exportContainer);
+        
+        // 3. Adicionar cabeçalho com metadados
+        const header = document.createElement('div');
+        header.style.padding = '20px';
+        header.style.background = 'white';
+        header.style.borderRadius = '8px';
+        header.style.marginBottom = '20px';
+        header.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        header.innerHTML = `
+            <h2 style="color: #1f2937; margin-bottom: 10px;">${processName}</h2>
+            <div style="color: #6b7280;">
+                <strong>Responsáveis:</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    ${actorsList.map(actor => `
+                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            ${actor.name}
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        exportContainer.appendChild(header);
+        
+        // 4. Capturar o estado atual do zoom/pan
+        const originalTransform = document.querySelector('#drawflow .drawflow').style.transform;
+        const originalOverflow = document.getElementById('drawflow').style.overflow;
+        
+        // 5. Resetar transformações temporariamente para captura precisa
+        document.querySelector('#drawflow .drawflow').style.transform = 'none';
+        document.getElementById('drawflow').style.overflow = 'visible';
+        
+        // 6. Clonar todo o conteúdo do drawflow
+        const drawflowContent = document.querySelector('#drawflow .drawflow').cloneNode(true);
+        
+        // 7. Clonar manualmente todos os connection labels
+        const originalLabels = document.querySelectorAll('.connection-label');
+        originalLabels.forEach(label => {
+            const labelClone = label.cloneNode(true);
+            labelClone.style.position = 'absolute';
+            labelClone.style.left = label.style.left;
+            labelClone.style.top = label.style.top;
+            drawflowContent.appendChild(labelClone);
+        });
+        
+        // 8. Criar container para o fluxo clonado
+        const flowContainer = document.createElement('div');
+        flowContainer.style.position = 'relative';
+        flowContainer.style.width = document.querySelector('#drawflow .drawflow').scrollWidth + 'px';
+        flowContainer.style.height = document.querySelector('#drawflow .drawflow').scrollHeight + 'px';
+        flowContainer.appendChild(drawflowContent);
+        
+        exportContainer.appendChild(flowContainer);
+        
+        // 9. Aguardar renderização
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // 10. Capturar imagem
+        const canvas = await html2canvas(exportContainer, {
+            scale: 2,
+            logging: true,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#f8fafc',
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: exportContainer.scrollWidth,
+            windowHeight: exportContainer.scrollHeight,
+            ignoreElements: (element) => {
+                return element.style.opacity === '0' || element.style.display === 'none';
+            }
+        });
+        
+        // 11. Restaurar transformações originais
+        document.querySelector('#drawflow .drawflow').style.transform = originalTransform;
+        document.getElementById('drawflow').style.overflow = originalOverflow;
+        
+        // 12. Criar download
+        const link = document.createElement('a');
+        link.download = `${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        // 13. Limpar
+        document.body.removeChild(exportContainer);
+        hideLoading();
+        
+    } catch (error) {
+        console.error('Erro ao exportar PNG:', error);
+        hideLoading();
+        alert('Erro ao exportar para PNG. Consulte o console para detalhes.');
+    }
+}
+
+// Função para exportar PDF com posicionamento perfeito
+async function exportToPDF() {
+    showLoading('Exportando PDF...', 'Preparando documento fiel do fluxo');
+    
+    try {
+        const { jsPDF } = window.jspdf;
+        
+        // 1. Obter informações do processo
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
+        
+        // 2. Criar container de exportação
+        const exportContainer = document.createElement('div');
+        exportContainer.style.position = 'absolute';
+        exportContainer.style.left = '-9999px';
+        exportContainer.style.background = '#f8fafc';
+        exportContainer.style.padding = '20px';
+        document.body.appendChild(exportContainer);
+        
+        // 3. Adicionar cabeçalho com metadados
+        const header = document.createElement('div');
+        header.style.padding = '20px';
+        header.style.background = 'white';
+        header.style.borderRadius = '8px';
+        header.style.marginBottom = '20px';
+        header.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        header.innerHTML = `
+            <h2 style="color: #1f2937; margin-bottom: 10px;">${processName}</h2>
+            <div style="color: #6b7280;">
+                <strong>Responsáveis:</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    ${actorsList.map(actor => `
+                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            ${actor.name}
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        exportContainer.appendChild(header);
+        
+        // 4. Capturar o estado atual do zoom/pan
+        const originalTransform = document.querySelector('#drawflow .drawflow').style.transform;
+        const originalOverflow = document.getElementById('drawflow').style.overflow;
+        
+        // 5. Resetar transformações temporariamente para captura precisa
+        document.querySelector('#drawflow .drawflow').style.transform = 'none';
+        document.getElementById('drawflow').style.overflow = 'visible';
+        
+        // 6. Clonar todo o conteúdo do drawflow
+        const drawflowContent = document.querySelector('#drawflow .drawflow').cloneNode(true);
+        
+        // 7. Clonar manualmente todos os connection labels
+        const originalLabels = document.querySelectorAll('.connection-label');
+        originalLabels.forEach(label => {
+            const labelClone = label.cloneNode(true);
+            labelClone.style.position = 'absolute';
+            labelClone.style.left = label.style.left;
+            labelClone.style.top = label.style.top;
+            drawflowContent.appendChild(labelClone);
+        });
+        
+        // 8. Criar container para o fluxo clonado
+        const flowContainer = document.createElement('div');
+        flowContainer.style.position = 'relative';
+        flowContainer.style.width = document.querySelector('#drawflow .drawflow').scrollWidth + 'px';
+        flowContainer.style.height = document.querySelector('#drawflow .drawflow').scrollHeight + 'px';
+        flowContainer.appendChild(drawflowContent);
+        
+        exportContainer.appendChild(flowContainer);
+        
+        // 9. Aguardar renderização
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // 10. Capturar imagem
+        const canvas = await html2canvas(exportContainer, {
+            scale: 1.5,
+            logging: true,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#f8fafc',
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: exportContainer.scrollWidth,
+            windowHeight: exportContainer.scrollHeight
+        });
+        
+        // 11. Restaurar transformações originais
+        document.querySelector('#drawflow .drawflow').style.transform = originalTransform;
+        document.getElementById('drawflow').style.overflow = originalOverflow;
+        
+        // 12. Criar PDF com tamanho proporcional
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const widthInMM = imgWidth * 0.264583; // px to mm
+        const heightInMM = imgHeight * 0.264583;
+        
+        const pdf = new jsPDF({
+            orientation: widthInMM > heightInMM ? 'landscape' : 'portrait',
+            unit: 'mm',
+            format: [widthInMM + 20, heightInMM + 20]
+        });
+        
+        pdf.setProperties({
+            title: processName,
+            subject: `Fluxo exportado do Meipper - ${new Date().toLocaleDateString()}`,
+            creator: 'Meipper'
+        });
+        
+        pdf.addImage(canvas, 'PNG', 10, 10, widthInMM, heightInMM);
+        pdf.save(`${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+        
+        // 13. Limpar
+        document.body.removeChild(exportContainer);
+        hideLoading();
+        
+    } catch (error) {
+        console.error('Erro ao exportar PDF:', error);
+        hideLoading();
+        alert('Erro ao exportar para PDF. Consulte o console para detalhes.');
+    }
+}
+
+// Função básica para exportar apresentação
+async function exportToPresentation() {
+    showLoading('Preparando apresentação...', 'Esta função será implementada em breve');
+    
+    try {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Por ora, vamos fazer o download de um PNG otimizado para apresentação
+        await exportToPNG();
+        
+        hideLoading();
+        alert('Por enquanto, use o arquivo PNG gerado em sua apresentação. Exportação direta para PowerPoint será implementada em breve!');
+        
+    } catch (error) {
+        hideLoading();
+        alert('Erro ao preparar apresentação.');
+    }
 }
 
 // Utility functions
@@ -825,10 +1394,25 @@ function clearAll() {
         gatewayMode = false;
         nodeIdCounter = 1;
         
+        // Resetar histórico
+        history = [];
+        historyIndex = -1;
+        updateHistoryButtons();
+        
         // Reativa eventos
         setupDrawflowEvents();
+        
+        // Salvar estado inicial
+        saveState();
     }
 }
 
 // Event listeners
-document.getElementById('process-name').addEventListener('input', updateProcessInfo);
+document.getElementById('process-name').addEventListener('input', function() {
+    updateProcessInfo();
+    // Salvar estado após alterar nome do processo (com debounce)
+    clearTimeout(this.saveTimeout);
+    this.saveTimeout = setTimeout(() => {
+        saveState();
+    }, 1000);
+});
