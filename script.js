@@ -95,8 +95,7 @@ function setupButtonListeners() {
     
     // Botões de exportação
     document.querySelector('[data-action="export-png"]').addEventListener('click', exportToPNG);
-    document.querySelector('[data-action="export-pdf"]').addEventListener('click', exportToPDF);
-    document.querySelector('[data-action="export-presentation"]').addEventListener('click', exportToPresentation);
+    document.querySelector('[data-action="export-pdf"]').addEventListener('click', exportToPDF);;
     
     // Botões de zoom
     document.querySelector('[data-action="zoom-in"]').addEventListener('click', zoomIn);
