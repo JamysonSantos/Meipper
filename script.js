@@ -83,45 +83,36 @@ function setupButtonListeners() {
     document.getElementById('redo-btn').addEventListener('click', redo);
     
     // Botão de mais cores
-    document.querySelector('.more-colors-btn').addEventListener('click', addMoreColors);
+    document.querySelector('[data-action="more-colors"]').addEventListener('click', addMoreColors);
     
     // Botão de salvar ator
-    document.querySelector('.form-group .btn-primary').addEventListener('click', addActor);
+    document.querySelector('[data-action="add-actor"]').addEventListener('click', addActor);
     
     // Botões de tarefa
-    document.querySelector('.btn-success').addEventListener('click', () => addTask('start'));
-    document.querySelectorAll('.btn-primary')[1].addEventListener('click', () => addTask('task'));
-    document.querySelector('.btn-purple').addEventListener('click', startGatewayMode);
-    document.querySelector('.btn-danger').addEventListener('click', () => addTask('end'));
+    document.querySelector('[data-action="add-start-task"]').addEventListener('click', () => addTask('start'));
+    document.querySelector('[data-action="add-task"]').addEventListener('click', () => addTask('task'));
+    document.querySelector('[data-action="start-gateway"]').addEventListener('click', startGatewayMode);
+    document.querySelector('[data-action="add-end-task"]').addEventListener('click', () => addTask('end'));
     
     // Botões de exportação
-    document.querySelector('.export-png').addEventListener('click', exportToPNG);
-    document.querySelector('.export-pdf').addEventListener('click', exportToPDF);
-    document.querySelector('.export-presentation').addEventListener('click', exportToPresentation);
+    document.querySelector('[data-action="export-png"]').addEventListener('click', exportToPNG);
+    document.querySelector('[data-action="export-pdf"]').addEventListener('click', exportToPDF);
+    document.querySelector('[data-action="export-presentation"]').addEventListener('click', exportToPresentation);
     
     // Botões de zoom
-    const zoomButtons = document.querySelectorAll('.canvas-controls button');
-    if (zoomButtons.length >= 3) {
-        zoomButtons[0].addEventListener('click', zoomIn);
-        zoomButtons[1].addEventListener('click', zoomOut);
-        zoomButtons[2].addEventListener('click', resetZoom);
-    }
+    document.querySelector('[data-action="zoom-in"]').addEventListener('click', zoomIn);
+    document.querySelector('[data-action="zoom-out"]').addEventListener('click', zoomOut);
+    document.querySelector('[data-action="reset-zoom"]').addEventListener('click', resetZoom);
     
     // Botões de gateway
-    const gatewayButtons = document.querySelectorAll('.gateway-buttons button');
-    if (gatewayButtons.length >= 3) {
-        gatewayButtons[0].addEventListener('click', addGatewayPath);
-        gatewayButtons[1].addEventListener('click', finalizeGateway);
-        gatewayButtons[2].addEventListener('click', cancelGateway);
-    }
+    document.querySelector('[data-action="add-gateway-path"]').addEventListener('click', addGatewayPath);
+    document.querySelector('[data-action="finalize-gateway"]').addEventListener('click', finalizeGateway);
+    document.querySelector('[data-action="cancel-gateway"]').addEventListener('click', cancelGateway);
     
-    // Botões de ação
-    const actionButtons = document.querySelectorAll('.sidebar .btn-secondary, .sidebar .btn-primary');
-    if (actionButtons.length >= 4) {
-        actionButtons[0].addEventListener('click', clearAll);
-        actionButtons[2].addEventListener('click', saveToLocalStorage);
-        actionButtons[3].addEventListener('click', loadFromLocalStorage);
-    }
+    // Botões de ação principais
+    document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
+    document.querySelector('[data-action="save-flow"]').addEventListener('click', saveToLocalStorage);
+    document.querySelector('[data-action="load-flow"]').addEventListener('click', loadFromLocalStorage);
 }
 
 // ======================
