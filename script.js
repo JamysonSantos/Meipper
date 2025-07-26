@@ -47,7 +47,6 @@ window.saveToLocalStorage = saveToLocalStorage;
 window.loadFromLocalStorage = loadFromLocalStorage;
 window.exportToPNG = exportToPNG;
 window.exportToPDF = exportToPDF;
-window.exportToPresentation = exportToPresentation;
 window.zoomIn = zoomIn;
 window.zoomOut = zoomOut;
 window.resetZoom = resetZoom;
