@@ -49,10 +49,10 @@
 
             <!-- Undo/Redo Controls -->
             <div class="history-controls">
-                <button class="btn btn-warning" id="undo-btn" disabled>
+                <button class="btn btn-warning" id="undo-btn" data-action="undo" disabled>
                     ↶ Desfazer
                 </button>
-                <button class="btn btn-warning" id="redo-btn" disabled>
+                <button class="btn btn-warning" id="redo-btn" data-action="redo" disabled>
                     ↷ Refazer
                 </button>
             </div>
@@ -64,9 +64,9 @@
                 
                 <label>Cor:</label>
                 <div class="color-picker" id="color-picker"></div>
-                <button class="more-colors-btn">Mais cores</button>
+                <button class="more-colors-btn" data-action="more-colors">Mais cores</button>
                 
-                <button class="btn btn-primary">Salvar Responsável</button>
+                <button class="btn btn-primary" data-action="add-actor">Salvar Responsável</button>
 
                 <div class="actors-list" id="actors-list"></div>
 
@@ -80,21 +80,21 @@
             <div class="form-group">
                 <label>Tarefa:</label>
                 
-                <button class="btn btn-success">
+                <button class="btn btn-success" data-action="add-start-task">
                     ▶ Iniciar Processo
                 </button>
 
                 <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
 
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" data-action="add-task">
                     ➕ Adicionar Tarefa
                 </button>
 
-                <button class="btn btn-purple">
+                <button class="btn btn-purple" data-action="start-gateway">
                     ◆ Essa tarefa possui mais de um caminho
                 </button>
 
-                <button class="btn btn-danger">
+                <button class="btn btn-danger" data-action="add-end-task">
                     ⏹ Finalizar Processo
                 </button>
             </div>
@@ -111,9 +111,9 @@
                 <div class="gateway-paths" id="gateway-paths"></div>
 
                 <div class="gateway-buttons">
-                    <button class="btn btn-primary">➕ Adicionar caminho</button>
-                    <button class="btn btn-success">✅ Fechar caminho de decisão</button>
-                    <button class="btn btn-secondary">❌ Cancelar</button>
+                    <button class="btn btn-primary" data-action="add-gateway-path">➕ Adicionar caminho</button>
+                    <button class="btn btn-success" data-action="finalize-gateway">✅ Fechar caminho de decisão</button>
+                    <button class="btn btn-secondary" data-action="cancel-gateway">❌ Cancelar</button>
                 </div>
             </div>
 
@@ -131,24 +131,24 @@
                 </ul>
             </div>
 
-            <button class="btn btn-secondary">
+            <button class="btn btn-secondary" data-action="clear-all">
                 🔄 Limpar Tudo
             </button>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" data-action="save-flow">
                 💾 Salvar Fluxo
             </button>
-            <button class="btn btn-secondary">
+            <button class="btn btn-secondary" data-action="load-flow">
                 📂 Carregar Fluxo
             </button>
             
             <div class="export-title">Exportar</div>
-            <button class="export-btn export-png">
+            <button class="export-btn export-png" data-action="export-png">
                 📷 PNG
             </button>
-            <button class="export-btn export-pdf">
+            <button class="export-btn export-pdf" data-action="export-pdf">
                 📄 PDF
             </button>
-            <button class="export-btn export-presentation">
+            <button class="export-btn export-presentation" data-action="export-presentation">
                 📊 Apresentação
             </button>
         </div>
@@ -157,9 +157,9 @@
         <div class="canvas-container">
             <!-- Canvas Controls -->
             <div class="canvas-controls">
-                <button>🔍 +</button>
-                <button>🔍 -</button>
-                <button>⌂ Reset</button>
+                <button data-action="zoom-in">🔍 +</button>
+                <button data-action="zoom-out">🔍 -</button>
+                <button data-action="reset-zoom">⌂ Reset</button>
             </div>
 
             <!-- Zoom Indicator -->
