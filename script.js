@@ -1276,20 +1276,6 @@ async function exportToPDF() {
     }
 }
 
-async function exportToPresentation() {
-    showLoading('Preparando apresentação...', 'Esta função será implementada em breve');
-    
-    try {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await exportToPNG();
-        hideLoading();
-        alert('Por enquanto, use o arquivo PNG gerado em sua apresentação. Exportação direta para PowerPoint será implementada em breve!');
-    } catch (error) {
-        hideLoading();
-        alert('Erro ao preparar apresentação.');
-    }
-}
-
 // ======================
 // FUNÇÕES UTILITÁRIAS
 // ======================
