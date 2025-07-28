@@ -1081,62 +1081,20 @@ async function exportToPNG() {
     showLoading('Exportando PNG...', 'Preparando imagem fiel do fluxo');
     
     try {
-        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
-        const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
-        
+        // 1. Criar container de exportação
         const exportContainer = document.createElement('div');
-        exportContainer.style.position = 'absolute';
-        exportContainer.style.left = '-9999px';
-        exportContainer.style.background = '#f8fafc';
-        exportContainer.style.padding = '20px';
+        exportContainer.className = 'export-container';
         document.body.appendChild(exportContainer);
+
+        // 2. Clonar todo o conteúdo do drawflow
+        const drawflowClone = document.getElementById('drawflow').cloneNode(true);
         
-        const header = document.createElement('div');
-        header.style.padding = '20px';
-        header.style.background = 'white';
-        header.style.borderRadius = '8px';
-        header.style.marginBottom = '20px';
-        header.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-        header.innerHTML = `
-            <h2 style="color: #1f2937; margin-bottom: 10px;">${processName}</h2>
-            <div style="color: #6b7280;">
-                <strong>Responsáveis:</strong>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                    ${actorsList.map(actor => `
-                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
-                            ${actor.name}
-                        </span>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-        exportContainer.appendChild(header);
+        // 3. Ajustar todos os elementos dinâmicos
+        adjustDynamicElementsForExport(drawflowClone);
         
-        const originalTransform = document.querySelector('#drawflow .drawflow').style.transform;
-        const originalOverflow = document.getElementById('drawflow').style.overflow;
-        
-        document.querySelector('#drawflow .drawflow').style.transform = 'none';
-        document.getElementById('drawflow').style.overflow = 'visible';
-        
-        const drawflowContent = document.querySelector('#drawflow .drawflow').cloneNode(true);
-        
-        document.querySelectorAll('.connection-label').forEach(label => {
-            const labelClone = label.cloneNode(true);
-            labelClone.style.position = 'absolute';
-            labelClone.style.left = label.style.left;
-            labelClone.style.top = label.style.top;
-            drawflowContent.appendChild(labelClone);
-        });
-        
-        const flowContainer = document.createElement('div');
-        flowContainer.style.position = 'relative';
-        flowContainer.style.width = document.querySelector('#drawflow .drawflow').scrollWidth + 'px';
-        flowContainer.style.height = document.querySelector('#drawflow .drawflow').scrollHeight + 'px';
-        flowContainer.appendChild(drawflowContent);
-        
-        exportContainer.appendChild(flowContainer);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
+        exportContainer.appendChild(drawflowClone);
+
+        // 4. Configurações do html2canvas
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             logging: true,
@@ -1145,16 +1103,13 @@ async function exportToPNG() {
             backgroundColor: '#f8fafc',
             scrollX: 0,
             scrollY: 0,
-            windowWidth: exportContainer.scrollWidth,
-            windowHeight: exportContainer.scrollHeight,
-            ignoreElements: (element) => element.style.opacity === '0' || element.style.display === 'none'
+            ignoreElements: (element) => element.classList.contains('canvas-controls') || 
+                                      element.classList.contains('zoom-indicator')
         });
-        
-        document.querySelector('#drawflow .drawflow').style.transform = originalTransform;
-        document.getElementById('drawflow').style.overflow = originalOverflow;
-        
+
+        // 5. Gerar e limpar
         const link = document.createElement('a');
-        link.download = `${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.png`;
+        link.download = `${document.getElementById('process-name').value.trim() || 'processo'}_${new Date().toISOString().slice(0,10)}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
         
@@ -1173,30 +1128,23 @@ async function exportToPDF() {
     
     try {
         const { jsPDF } = window.jspdf;
-        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
-        const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
         
+        // 1. Criar container de exportação
         const exportContainer = document.createElement('div');
-        exportContainer.style.position = 'absolute';
-        exportContainer.style.left = '-9999px';
-        exportContainer.style.background = '#f8fafc';
-        exportContainer.style.padding = '20px';
+        exportContainer.className = 'export-container';
         document.body.appendChild(exportContainer);
-        
+
+        // 2. Adicionar cabeçalho
         const header = document.createElement('div');
-        header.style.padding = '20px';
-        header.style.background = 'white';
-        header.style.borderRadius = '8px';
-        header.style.marginBottom = '20px';
-        header.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        header.className = 'export-header';
         header.innerHTML = `
-            <h2 style="color: #1f2937; margin-bottom: 10px;">${processName}</h2>
-            <div style="color: #6b7280;">
+            <h2>${document.getElementById('process-name').value.trim() || 'Processo sem nome'}</h2>
+            <div class="export-actors">
                 <strong>Responsáveis:</strong>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                    ${actorsList.map(actor => `
-                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
-                            ${actor.name}
+                <div class="export-actors-list">
+                    ${Object.entries(actors).map(([name, color]) => `
+                        <span class="export-actor-badge" style="background: ${color}">
+                            ${name}
                         </span>
                     `).join('')}
                 </div>
@@ -1204,31 +1152,17 @@ async function exportToPDF() {
         `;
         exportContainer.appendChild(header);
         
-        const originalTransform = document.querySelector('#drawflow .drawflow').style.transform;
-        const originalOverflow = document.getElementById('drawflow').style.overflow;
-        
-        document.querySelector('#drawflow .drawflow').style.transform = 'none';
-        document.getElementById('drawflow').style.overflow = 'visible';
-        
-        const drawflowContent = document.querySelector('#drawflow .drawflow').cloneNode(true);
-        
-        document.querySelectorAll('.connection-label').forEach(label => {
-            const labelClone = label.cloneNode(true);
-            labelClone.style.position = 'absolute';
-            labelClone.style.left = label.style.left;
-            labelClone.style.top = label.style.top;
-            drawflowContent.appendChild(labelClone);
-        });
+        // 3. Clonar e ajustar o drawflow
+        const drawflowClone = document.getElementById('drawflow').cloneNode(true);
+        adjustDynamicElementsForExport(drawflowClone);
         
         const flowContainer = document.createElement('div');
-        flowContainer.style.position = 'relative';
-        flowContainer.style.width = document.querySelector('#drawflow .drawflow').scrollWidth + 'px';
-        flowContainer.style.height = document.querySelector('#drawflow .drawflow').scrollHeight + 'px';
-        flowContainer.appendChild(drawflowContent);
-        
+        flowContainer.className = 'export-flow-content';
+        flowContainer.appendChild(drawflowClone);
         exportContainer.appendChild(flowContainer);
-        await new Promise(resolve => setTimeout(resolve, 300));
         
+        // 4. Configurações do html2canvas
+        await new Promise(resolve => setTimeout(resolve, 300));
         const canvas = await html2canvas(exportContainer, {
             scale: 1.5,
             logging: true,
@@ -1241,9 +1175,7 @@ async function exportToPDF() {
             windowHeight: exportContainer.scrollHeight
         });
         
-        document.querySelector('#drawflow .drawflow').style.transform = originalTransform;
-        document.getElementById('drawflow').style.overflow = originalOverflow;
-        
+        // 5. Gerar PDF
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
         const widthInMM = imgWidth * 0.264583;
@@ -1256,13 +1188,13 @@ async function exportToPDF() {
         });
         
         pdf.setProperties({
-            title: processName,
+            title: document.getElementById('process-name').value.trim() || 'Processo sem nome',
             subject: `Fluxo exportado do Meipper - ${new Date().toLocaleDateString()}`,
             creator: 'Meipper'
         });
         
         pdf.addImage(canvas, 'PNG', 10, 10, widthInMM, heightInMM);
-        pdf.save(`${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+        pdf.save(`${document.getElementById('process-name').value.trim().replace(/[^a-z0-9]/gi, '_') || 'processo'}_${new Date().toISOString().slice(0,10)}.pdf`);
         
         document.body.removeChild(exportContainer);
         hideLoading();
