@@ -1089,9 +1089,6 @@ async function exportToPNG() {
         // 2. Clonar todo o conteúdo do drawflow
         const drawflowClone = document.getElementById('drawflow').cloneNode(true);
         
-        // 3. Ajustar todos os elementos dinâmicos
-        adjustDynamicElementsForExport(drawflowClone);
-        
         exportContainer.appendChild(drawflowClone);
 
         // 4. Configurações do html2canvas
