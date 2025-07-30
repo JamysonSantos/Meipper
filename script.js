@@ -1161,24 +1161,24 @@ async function exportToPNG() {
         document.body.appendChild(exportContainer);
 
         // Cabeçalho
-const header = document.createElement('div');
-header.style.margin = '0';
-header.style.marginBottom = '40px';
-header.style.textAlign = 'left';
-header.style.width = '100%';
-header.innerHTML = `
-    <h2 style="font-size: 20px; color: #1f2937; margin-bottom: 10px;">${processName}</h2>
-    <div style="font-size: 14px; color: #6b7280;">
-        <strong>Responsáveis:</strong>
-        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-            ${actorsList.map(actor => `
-                <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
-                    ${actor.name}
-                </span>
-            `).join('')}
-        </div>
-    </div>
-`;
+        const header = document.createElement('div');
+        header.style.margin = '0';
+        header.style.marginBottom = '40px';
+        header.style.textAlign = 'left';
+        header.style.width = '100%';
+        header.innerHTML = `
+            <h2 style="font-size: 20px; color: #1f2937; margin-bottom: 10px;">${processName}</h2>
+            <div style="font-size: 14px; color: #6b7280;">
+                <strong>Responsáveis:</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    ${actorsList.map(actor => `
+                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            ${actor.name}
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
         exportContainer.appendChild(header);
 
         // Desativa zoom e rolagem do drawflow
@@ -1191,6 +1191,13 @@ header.innerHTML = `
         // Clona o fluxo
         const drawflowElement = document.querySelector('#drawflow .drawflow');
         const drawflowContent = drawflowElement.cloneNode(true);
+
+        // Oculta inputs e outputs no clone
+        const inputsOutputs = drawflowContent.querySelectorAll('.input, .output');
+        inputsOutputs.forEach(el => {
+            el.style.opacity = '0';
+            el.style.pointerEvents = 'none';
+        });
 
         // Posicionamento base
         const drawflowRect = drawflowElement.getBoundingClientRect();
@@ -1228,7 +1235,10 @@ header.innerHTML = `
             scrollY: 0,
             windowWidth: exportContainer.scrollWidth,
             windowHeight: exportContainer.scrollHeight,
-            ignoreElements: el => el.style.opacity === '0' || el.style.display === 'none'
+            ignoreElements: el => {
+                // Ignora elementos com opacidade 0 ou display none
+                return el.style.opacity === '0' || el.style.display === 'none';
+            }
         });
 
         // Restaura o drawflow original
