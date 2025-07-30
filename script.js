@@ -95,7 +95,8 @@ function setupButtonListeners() {
     
     // Botões de exportação
     document.querySelector('[data-action="export-png"]').addEventListener('click', exportToPNG);
-    document.querySelector('[data-action="export-pdf"]').addEventListener('click', exportToPDF);;
+    document.querySelector('[data-action="export-pdf"]').addEventListener('click', exportToPDF);
+
     
     // Botões de zoom
     document.querySelector('[data-action="zoom-in"]').addEventListener('click', zoomIn);
@@ -717,23 +718,35 @@ function finalizeGateway() {
     }
 
     validPaths.forEach((path, index) => {
-        const actorColor = actors[path.actor] || '#2196f3';
-        const offsetY = (index - (validPaths.length - 1) / 2) * 150;
-        const pathY = gatewayY + offsetY;
-        const pathTaskId = createTaskNodeAtPosition(path.task, path.actor, actorColor, gatewayNode.pos_x + 150, pathY);
-        
-        editor.addConnection(gatewayId, pathTaskId, 'output_1', 'input_1');
-        createConnectionLabel(gatewayId, pathTaskId, path.pathName, labelContainer);
-    });
+    const actorColor = actors[path.actor] || '#2196f3';
+    const offsetY = (index - (validPaths.length - 1) / 2) * 150;
+    const pathY = gatewayY + offsetY;
+    
+    // Adicionando o pathName como parâmetro
+    const pathTaskId = createTaskNodeAtPosition(
+        path.task, 
+        path.actor, 
+        actorColor, 
+        gatewayNode.pos_x + 150, 
+        pathY,
+        path.pathName // Nome do caminho passado aqui
+    );
+    
+    editor.addConnection(gatewayId, pathTaskId, 'output_1', 'input_1');
+    
+    // Remover a criação do label flutuante
+    // createConnectionLabel(gatewayId, pathTaskId, path.pathName, labelContainer);
+});
 
     cancelGateway();
     selectedNodeId = gatewayId;
 }
 
-function createTaskNodeAtPosition(taskName, actor, color, x, y) {
+function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName) {
     const nodeId = nodeIdCounter++;
     const html = `
         <div class="task-node">
+            <div class="path-label" ondblclick="editPathLabel(event, ${nodeId})">${pathName}</div>
             <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
                 ${taskName}
             </div>
@@ -742,11 +755,60 @@ function createTaskNodeAtPosition(taskName, actor, color, x, y) {
     `;
     
     editor.addNode('task', 1, 1, x, y, 'task', { 
-        name: taskName, 
-        actor: actor, 
-        color: color 
+        name: taskName,
+        actor: actor,
+        color: color,
+        pathName: pathName // Adicionando o nome do caminho aos dados do nó
     }, html);
+    
     return nodeId;
+}
+
+function editPathLabel(event, nodeId) {
+    event.stopPropagation();
+    const element = event.target;
+    const originalText = element.textContent;
+    
+    element.setAttribute('contenteditable', 'true');
+    element.focus();
+    
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    function finishEditing() {
+        element.removeAttribute('contenteditable');
+        const newText = element.textContent.trim();
+        if (newText && newText !== originalText) {
+            const nodeData = editor.getNodeFromId(nodeId);
+            if (nodeData) nodeData.data.pathName = newText;
+            saveState();
+        } else {
+            element.textContent = originalText;
+        }
+        cleanup();
+    }
+
+    function handleKeydown(e) {
+        e.stopPropagation();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            finishEditing();
+        } else if (e.key === 'Escape') {
+            element.textContent = originalText;
+            finishEditing();
+        }
+    }
+
+    function cleanup() {
+        element.removeEventListener('blur', finishEditing);
+        element.removeEventListener('keydown', handleKeydown);
+    }
+
+    element.addEventListener('blur', finishEditing);
+    element.addEventListener('keydown', handleKeydown);
 }
 
 function cancelGateway() {
@@ -1077,21 +1139,85 @@ function loadFromLocalStorage() {
 // ======================
 // FUNÇÕES DE EXPORTAÇÃO
 // ======================
+
 async function exportToPNG() {
     showLoading('Exportando PNG...', 'Preparando imagem fiel do fluxo');
-    
+
     try {
-        // 1. Criar container de exportação
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
+
+        // Container fora da tela
         const exportContainer = document.createElement('div');
-        exportContainer.className = 'export-container';
+        exportContainer.style.position = 'absolute';
+        exportContainer.style.left = '-9999px';
+        exportContainer.style.top = '0';
+        exportContainer.style.background = '#f8fafc';
+        exportContainer.style.padding = '40px';
+        exportContainer.style.minHeight = '18cm';
+        exportContainer.style.display = 'flex';
+        exportContainer.style.flexDirection = 'column';
+        exportContainer.style.alignItems = 'center';
         document.body.appendChild(exportContainer);
 
-        // 2. Clonar todo o conteúdo do drawflow
-        const drawflowClone = document.getElementById('drawflow').cloneNode(true);
-        
-        exportContainer.appendChild(drawflowClone);
+        // Cabeçalho
+const header = document.createElement('div');
+header.style.margin = '0';
+header.style.marginBottom = '40px';
+header.style.textAlign = 'left';
+header.style.width = '100%';
+header.innerHTML = `
+    <h2 style="font-size: 20px; color: #1f2937; margin-bottom: 10px;">${processName}</h2>
+    <div style="font-size: 14px; color: #6b7280;">
+        <strong>Responsáveis:</strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+            ${actorsList.map(actor => `
+                <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                    ${actor.name}
+                </span>
+            `).join('')}
+        </div>
+    </div>
+`;
+        exportContainer.appendChild(header);
 
-        // 4. Configurações do html2canvas
+        // Desativa zoom e rolagem do drawflow
+        const originalTransform = document.querySelector('#drawflow .drawflow').style.transform;
+        const originalOverflow = document.getElementById('drawflow').style.overflow;
+
+        document.querySelector('#drawflow .drawflow').style.transform = 'none';
+        document.getElementById('drawflow').style.overflow = 'visible';
+
+        // Clona o fluxo
+        const drawflowElement = document.querySelector('#drawflow .drawflow');
+        const drawflowContent = drawflowElement.cloneNode(true);
+
+        // Posicionamento base
+        const drawflowRect = drawflowElement.getBoundingClientRect();
+
+        // Clona os labels dos caminhos e insere dentro do clone do drawflow
+        document.querySelectorAll('.connection-label').forEach(label => {
+            const labelRect = label.getBoundingClientRect();
+            const labelClone = label.cloneNode(true);
+            labelClone.style.position = 'absolute';
+            labelClone.style.left = (labelRect.left - drawflowRect.left) + 'px';
+            labelClone.style.top = (labelRect.top - drawflowRect.top) + 'px';
+            drawflowContent.appendChild(labelClone);
+        });
+
+        // Container com tamanho do fluxo
+        const flowContainer = document.createElement('div');
+        flowContainer.style.position = 'relative';
+        flowContainer.style.width = drawflowElement.scrollWidth + 'px';
+        flowContainer.style.height = drawflowElement.scrollHeight + 'px';
+        flowContainer.appendChild(drawflowContent);
+
+        exportContainer.appendChild(flowContainer);
+
+        // Espera o DOM atualizar
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Gera a imagem
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             logging: true,
@@ -1100,19 +1226,25 @@ async function exportToPNG() {
             backgroundColor: '#f8fafc',
             scrollX: 0,
             scrollY: 0,
-            ignoreElements: (element) => element.classList.contains('canvas-controls') || 
-                                      element.classList.contains('zoom-indicator')
+            windowWidth: exportContainer.scrollWidth,
+            windowHeight: exportContainer.scrollHeight,
+            ignoreElements: el => el.style.opacity === '0' || el.style.display === 'none'
         });
 
-        // 5. Gerar e limpar
+        // Restaura o drawflow original
+        document.querySelector('#drawflow .drawflow').style.transform = originalTransform;
+        document.getElementById('drawflow').style.overflow = originalOverflow;
+
+        // Cria o link de download
         const link = document.createElement('a');
-        link.download = `${document.getElementById('process-name').value.trim() || 'processo'}_${new Date().toISOString().slice(0,10)}.png`;
+        link.download = `${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        
+
+        // Limpa o container temporário
         document.body.removeChild(exportContainer);
         hideLoading();
-        
+
     } catch (error) {
         console.error('Erro ao exportar PNG:', error);
         hideLoading();
@@ -1120,88 +1252,118 @@ async function exportToPNG() {
     }
 }
 
+
 async function exportToPDF() {
     showLoading('Exportando PDF...', 'Preparando documento fiel do fluxo');
-    
+
     try {
         const { jsPDF } = window.jspdf;
-        
-        // 1. Criar container de exportação
-        const exportContainer = document.createElement('div');
-        exportContainer.className = 'export-container';
-        document.body.appendChild(exportContainer);
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
 
-        // 2. Adicionar cabeçalho
+        // Clonar fluxo
+        const drawflowElement = document.querySelector('#drawflow .drawflow');
+        const originalTransform = drawflowElement.style.transform;
+        const originalOverflow = document.getElementById('drawflow').style.overflow;
+        drawflowElement.style.transform = 'none';
+        document.getElementById('drawflow').style.overflow = 'visible';
+
+        const clone = drawflowElement.cloneNode(true);
+        clone.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); // remove seleção
+
+        // Clonar labels das conexões
+        document.querySelectorAll('.connection-label').forEach(label => {
+            const labelClone = label.cloneNode(true);
+            labelClone.style.position = 'absolute';
+            labelClone.style.left = label.style.left;
+            labelClone.style.top = label.style.top;
+            clone.appendChild(labelClone);
+        });
+
+        // Criar container de exportação
+        const exportContainer = document.createElement('div');
+        exportContainer.style.position = 'absolute';
+        exportContainer.style.left = '-9999px';
+        exportContainer.style.top = '0';
+        exportContainer.style.background = '#f8fafc';
+        exportContainer.style.padding = '40px 60px';
+        exportContainer.style.boxSizing = 'border-box';
+        exportContainer.style.minHeight = '1275px'; // ~18cm em px
+        exportContainer.style.width = (drawflowElement.scrollWidth + 300) + 'px';
+
+        // Cabeçalho
         const header = document.createElement('div');
-        header.className = 'export-header';
+        header.style.marginBottom = '40px';
         header.innerHTML = `
-            <h2>${document.getElementById('process-name').value.trim() || 'Processo sem nome'}</h2>
-            <div class="export-actors">
+            <h2 style="font-size: 20px; color: #1f2937; margin-bottom: 10px;">${processName}</h2>
+            <div style="font-size: 14px; color: #6b7280;">
                 <strong>Responsáveis:</strong>
-                <div class="export-actors-list">
-                    ${Object.entries(actors).map(([name, color]) => `
-                        <span class="export-actor-badge" style="background: ${color}">
-                            ${name}
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    ${actorsList.map(actor => `
+                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            ${actor.name}
                         </span>
                     `).join('')}
                 </div>
             </div>
         `;
         exportContainer.appendChild(header);
-        
-        // 3. Clonar e ajustar o drawflow
-        const drawflowClone = document.getElementById('drawflow').cloneNode(true);
-        adjustDynamicElementsForExport(drawflowClone);
-        
-        const flowContainer = document.createElement('div');
-        flowContainer.className = 'export-flow-content';
-        flowContainer.appendChild(drawflowClone);
-        exportContainer.appendChild(flowContainer);
-        
-        // 4. Configurações do html2canvas
+
+        // Centralizar fluxo
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.overflow = 'visible';
+        wrapper.style.position = 'relative';
+        wrapper.style.width = drawflowElement.scrollWidth + 'px';
+        wrapper.style.height = drawflowElement.scrollHeight + 'px';
+        wrapper.appendChild(clone);
+
+        exportContainer.appendChild(wrapper);
+        document.body.appendChild(exportContainer);
+
         await new Promise(resolve => setTimeout(resolve, 300));
+
         const canvas = await html2canvas(exportContainer, {
-            scale: 1.5,
-            logging: true,
-            useCORS: true,
-            allowTaint: true,
+            scale: 2,
             backgroundColor: '#f8fafc',
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: exportContainer.scrollWidth,
-            windowHeight: exportContainer.scrollHeight
+            useCORS: true
         });
-        
-        // 5. Gerar PDF
+
+        drawflowElement.style.transform = originalTransform;
+        document.getElementById('drawflow').style.overflow = originalOverflow;
+        document.body.removeChild(exportContainer);
+
+        // Converter tamanho da imagem para mm
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
         const widthInMM = imgWidth * 0.264583;
         const heightInMM = imgHeight * 0.264583;
-        
+
         const pdf = new jsPDF({
             orientation: widthInMM > heightInMM ? 'landscape' : 'portrait',
             unit: 'mm',
             format: [widthInMM + 20, heightInMM + 20]
         });
-        
+
         pdf.setProperties({
-            title: document.getElementById('process-name').value.trim() || 'Processo sem nome',
+            title: processName,
             subject: `Fluxo exportado do Meipper - ${new Date().toLocaleDateString()}`,
             creator: 'Meipper'
         });
-        
+
         pdf.addImage(canvas, 'PNG', 10, 10, widthInMM, heightInMM);
-        pdf.save(`${document.getElementById('process-name').value.trim().replace(/[^a-z0-9]/gi, '_') || 'processo'}_${new Date().toISOString().slice(0,10)}.pdf`);
-        
-        document.body.removeChild(exportContainer);
+        pdf.save(`${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+
         hideLoading();
-        
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
         hideLoading();
         alert('Erro ao exportar para PDF. Consulte o console para detalhes.');
     }
 }
+
 
 // ======================
 // FUNÇÕES UTILITÁRIAS
