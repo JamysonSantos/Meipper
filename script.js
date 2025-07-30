@@ -1262,7 +1262,6 @@ async function exportToPNG() {
     }
 }
 
-
 async function exportToPDF() {
     showLoading('Exportando PDF...', 'Preparando documento fiel do fluxo');
 
@@ -1279,7 +1278,14 @@ async function exportToPDF() {
         document.getElementById('drawflow').style.overflow = 'visible';
 
         const clone = drawflowElement.cloneNode(true);
-        clone.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); // remove seleção
+        clone.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+
+        // OCULTAR INPUTS/OUTPUTS - NOVO CÓDIGO ADICIONADO
+        const inputsOutputs = clone.querySelectorAll('.input, .output');
+        inputsOutputs.forEach(el => {
+            el.style.opacity = '0';
+            el.style.pointerEvents = 'none';
+        });
 
         // Clonar labels das conexões
         document.querySelectorAll('.connection-label').forEach(label => {
@@ -1338,7 +1344,11 @@ async function exportToPDF() {
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             backgroundColor: '#f8fafc',
-            useCORS: true
+            useCORS: true,
+            // ADICIONADO PARA IGNORAR ELEMENTOS OCULTOS
+            ignoreElements: el => {
+                return el.style.opacity === '0' || el.style.display === 'none';
+            }
         });
 
         drawflowElement.style.transform = originalTransform;
@@ -1373,7 +1383,6 @@ async function exportToPDF() {
         alert('Erro ao exportar para PDF. Consulte o console para detalhes.');
     }
 }
-
 
 // ======================
 // FUNÇÕES UTILITÁRIAS
