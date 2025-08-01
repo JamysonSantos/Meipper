@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateProcessInfo();
     setupKeyboardEvents();
     setupButtonListeners();
+    setupExportDropdown();
     saveState();
 });
 
@@ -74,6 +75,34 @@ function initializeDrawflow() {
     editor.start();
 
     setupDrawflowEvents();
+}
+
+function setupExportDropdown() {
+    const exportBtn = document.querySelector('[data-action="toggle-export"]');
+    const exportDropdown = document.querySelector('.export-dropdown');
+    const exportMenu = document.getElementById('export-menu');
+
+    if (exportBtn && exportDropdown) {
+        exportBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            exportDropdown.classList.toggle('active');
+        });
+
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (!exportDropdown.contains(e.target)) {
+                exportDropdown.classList.remove('active');
+            }
+        });
+
+        // Fechar dropdown ao selecionar uma opção
+        const exportOptions = exportMenu.querySelectorAll('.export-option');
+        exportOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                exportDropdown.classList.remove('active');
+            });
+        });
+    }
 }
 
 function setupButtonListeners() {
