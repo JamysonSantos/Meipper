@@ -1148,246 +1148,350 @@ function loadFromLocalStorage() {
 // ======================
 
 async function exportToPNG() {
-    showLoading('Exportando PNG...', 'Preparando imagem fiel do fluxo');
+    showLoading('Exportando PNG...', 'Renderizando fluxo completo...');
 
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
         const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
 
-        // Container fora da tela
+        // 1. Save original state
+        const originalState = {
+            transform: document.querySelector('#drawflow').style.transform,
+            overflow: document.getElementById('drawflow').style.overflow,
+            scrollTop: document.querySelector('.drawflow').scrollTop,
+            scrollLeft: document.querySelector('.drawflow').scrollLeft
+        };
+
+        // 2. Reset zoom/scroll
+        document.querySelector('#drawflow').style.transform = 'none';
+        document.getElementById('drawflow').style.overflow = 'visible';
+        document.querySelector('.drawflow').scrollTop = 0;
+        document.querySelector('.drawflow').scrollLeft = 0;
+
+        // 3. Calculate total flow dimensions
+        const { minX, minY, totalWidth, totalHeight } = calculateTotalFlowDimensions();
+
+        // 4. Margin settings
+        const margin = {
+            top: 180,    // Header + space
+            right: 60,
+            bottom: 60,
+            left: 60
+        };
+
+        // 5. Create export container
         const exportContainer = document.createElement('div');
-        exportContainer.style.position = 'absolute';
-        exportContainer.style.left = '-9999px';
-        exportContainer.style.top = '0';
-        exportContainer.style.background = '#f8fafc';
-        exportContainer.style.padding = '40px';
-        exportContainer.style.minHeight = '18cm';
-        exportContainer.style.display = 'flex';
-        exportContainer.style.flexDirection = 'column';
-        exportContainer.style.alignItems = 'center';
+        Object.assign(exportContainer.style, {
+            position: 'absolute',
+            left: '-9999px',
+            width: `${totalWidth + margin.left + margin.right}px`,
+            height: `${totalHeight + margin.top + margin.bottom}px`,
+            backgroundColor: '#f8fafc',
+            overflow: 'visible'
+        });
         document.body.appendChild(exportContainer);
 
-        // Cabeçalho
+        // 6. Add header
         const header = document.createElement('div');
-        header.style.margin = '0';
-        header.style.marginBottom = '40px';
-        header.style.textAlign = 'left';
-        header.style.width = '100%';
         header.innerHTML = `
-            <h2 style="font-size: 20px; color: #1f2937; margin-bottom: 10px;">${processName}</h2>
-            <div style="font-size: 14px; color: #6b7280;">
+            <h2 style="font-size: 20px; margin: 0 0 10px 0;">${processName}</h2>
+            <div style="font-size: 14px;">
                 <strong>Responsáveis:</strong>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                     ${actorsList.map(actor => `
-                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px;">
                             ${actor.name}
                         </span>
                     `).join('')}
                 </div>
             </div>
         `;
+        header.style.position = 'absolute';
+        header.style.top = '20px';
+        header.style.left = `${margin.left}px`;
+        header.style.right = `${margin.right}px`;
         exportContainer.appendChild(header);
 
-        // Desativa zoom e rolagem do drawflow
-        const originalTransform = document.querySelector('#drawflow .drawflow').style.transform;
-        const originalOverflow = document.getElementById('drawflow').style.overflow;
+        // 7. Clone entire drawflow content
+        const drawflowClone = document.querySelector('#drawflow').cloneNode(true);
+        drawflowClone.style.transform = 'none';
+        drawflowClone.style.position = 'absolute';
+        drawflowClone.style.left = `${margin.left - minX}px`;
+        drawflowClone.style.top = `${margin.top - minY}px`;
+        drawflowClone.style.width = `${totalWidth}px`;
+        drawflowClone.style.height = `${totalHeight}px`;
+        drawflowClone.style.overflow = 'visible';
 
-        document.querySelector('#drawflow .drawflow').style.transform = 'none';
-        document.getElementById('drawflow').style.overflow = 'visible';
+        // 8. Force render all connections
+        await forceRenderAllConnections(drawflowClone);
 
-        // Clona o fluxo
-        const drawflowElement = document.querySelector('#drawflow .drawflow');
-        const drawflowContent = drawflowElement.cloneNode(true);
+        exportContainer.appendChild(drawflowClone);
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Oculta inputs e outputs no clone
-        const inputsOutputs = drawflowContent.querySelectorAll('.input, .output');
-        inputsOutputs.forEach(el => {
-            el.style.opacity = '0';
-            el.style.pointerEvents = 'none';
-        });
-
-        // Posicionamento base
-        const drawflowRect = drawflowElement.getBoundingClientRect();
-
-        // Clona os labels dos caminhos e insere dentro do clone do drawflow
-        document.querySelectorAll('.connection-label').forEach(label => {
-            const labelRect = label.getBoundingClientRect();
-            const labelClone = label.cloneNode(true);
-            labelClone.style.position = 'absolute';
-            labelClone.style.left = (labelRect.left - drawflowRect.left) + 'px';
-            labelClone.style.top = (labelRect.top - drawflowRect.top) + 'px';
-            drawflowContent.appendChild(labelClone);
-        });
-
-        // Container com tamanho do fluxo
-        const flowContainer = document.createElement('div');
-        flowContainer.style.position = 'relative';
-        flowContainer.style.width = drawflowElement.scrollWidth + 'px';
-        flowContainer.style.height = drawflowElement.scrollHeight + 'px';
-        flowContainer.appendChild(drawflowContent);
-
-        exportContainer.appendChild(flowContainer);
-
-        // Espera o DOM atualizar
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Gera a imagem
+        // 9. Generate image
         const canvas = await html2canvas(exportContainer, {
-            scale: 2,
-            logging: true,
-            useCORS: true,
-            allowTaint: true,
+            scale: 3,
             backgroundColor: '#f8fafc',
-            scrollX: 0,
-            scrollY: 0,
+            logging: false,
+            useCORS: true,
             windowWidth: exportContainer.scrollWidth,
             windowHeight: exportContainer.scrollHeight,
-            ignoreElements: el => {
-                // Ignora elementos com opacidade 0 ou display none
-                return el.style.opacity === '0' || el.style.display === 'none';
-            }
+            ignoreElements: el => el.classList.contains('input') || 
+                              el.classList.contains('output') ||
+                              el.classList.contains('drawflow-delete')
         });
 
-        // Restaura o drawflow original
-        document.querySelector('#drawflow .drawflow').style.transform = originalTransform;
-        document.getElementById('drawflow').style.overflow = originalOverflow;
-
-        // Cria o link de download
+        // 10. Create download
         const link = document.createElement('a');
-        link.download = `${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.png`;
+        link.download = `${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
 
-        // Limpa o container temporário
+        // 11. Restore original state
+        document.querySelector('#drawflow').style.transform = originalState.transform;
+        document.getElementById('drawflow').style.overflow = originalState.overflow;
+        document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
+        document.querySelector('.drawflow').scrollLeft = originalState.scrollLeft;
         document.body.removeChild(exportContainer);
-        hideLoading();
 
     } catch (error) {
         console.error('Erro ao exportar PNG:', error);
+        alert('Erro ao exportar: ' + error.message);
+    } finally {
         hideLoading();
-        alert('Erro ao exportar para PNG. Consulte o console para detalhes.');
     }
 }
 
+function calculateTotalFlowDimensions() {
+    const nodes = Array.from(document.querySelectorAll('.drawflow-node'));
+    const container = document.querySelector('#drawflow');
+    const containerRect = container.getBoundingClientRect();
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    nodes.forEach(node => {
+        const rect = node.getBoundingClientRect();
+        const x = rect.left - containerRect.left;
+        const y = rect.top - containerRect.top;
+        
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + rect.width);
+        maxY = Math.max(maxY, y + rect.height);
+    });
+
+    return {
+        minX: Math.min(minX, 0),
+        minY: Math.min(minY, 0),
+        totalWidth: Math.max(800, maxX - minX),
+        totalHeight: Math.max(600, maxY - minY)
+    };
+}
+
+async function forceRenderAllConnections(container) {
+    // 1. Force SVG recalculation
+    const svgElements = container.querySelectorAll('svg.drawflow-connection');
+    svgElements.forEach(svg => {
+        svg.style.display = 'none';
+        void svg.offsetHeight; // Trigger reflow
+        svg.style.display = '';
+    });
+
+    // 2. Delay for async rendering
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // 3. Check for missing connections
+    const missingConnections = [];
+    container.querySelectorAll('.drawflow-node').forEach(node => {
+        const nodeId = node.id.replace('node-', '');
+        const outputs = node.querySelectorAll('.output .connection');
+        
+        outputs.forEach(output => {
+            const connectionId = output.getAttribute('data-id');
+            if (!container.querySelector(`path[data-id="${connectionId}"]`)) {
+                missingConnections.push({
+                    source: nodeId,
+                    target: output.getAttribute('data-node-id')
+                });
+            }
+        });
+    });
+
+    // 4. Recreate missing connections
+    if (missingConnections.length > 0) {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        document.body.appendChild(tempDiv);
+
+        missingConnections.forEach(conn => {
+            const sourceNode = container.querySelector(`#node-${conn.source}`);
+            const targetNode = container.querySelector(`#node-${conn.target}`);
+            
+            if (sourceNode && targetNode) {
+                const pathData = calculateConnectionPath(sourceNode, targetNode);
+                const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                newPath.setAttribute('d', pathData);
+                newPath.setAttribute('class', 'main-path');
+                newPath.setAttribute('data-id', `temp-${Date.now()}`);
+                
+                const svg = container.querySelector('svg.drawflow-connection') || 
+                            createNewSvg(container);
+                svg.appendChild(newPath);
+            }
+        });
+
+        document.body.removeChild(tempDiv);
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+}
+
+function calculateConnectionPath(sourceNode, targetNode) {
+    const sourceRect = sourceNode.getBoundingClientRect();
+    const targetRect = targetNode.getBoundingClientRect();
+    
+    const startX = sourceRect.right;
+    const startY = sourceRect.top + sourceRect.height / 2;
+    const endX = targetRect.left;
+    const endY = targetRect.top + targetRect.height / 2;
+
+    // Bezier curve for smooth connection
+    const cpX1 = startX + Math.max(100, (endX - startX) / 2);
+    const cpX2 = endX - Math.max(100, (endX - startX) / 2);
+
+    return `M${startX},${startY} C${cpX1},${startY} ${cpX2},${endY} ${endX},${endY}`;
+}
+
+function createNewSvg(container) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'drawflow-connection');
+    svg.style.position = 'absolute';
+    svg.style.top = '0';
+    svg.style.left = '0';
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    svg.style.pointerEvents = 'none';
+    container.appendChild(svg);
+    return svg;
+}
+
 async function exportToPDF() {
-    showLoading('Exportando PDF...', 'Preparando documento fiel do fluxo');
+    showLoading('Exportando PDF...', 'Renderizando fluxo completo...');
 
     try {
         const { jsPDF } = window.jspdf;
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
         const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
 
-        // Clonar fluxo
-        const drawflowElement = document.querySelector('#drawflow .drawflow');
-        const originalTransform = drawflowElement.style.transform;
-        const originalOverflow = document.getElementById('drawflow').style.overflow;
-        drawflowElement.style.transform = 'none';
+        // 1. Save original state (mesmo que PNG)
+        const originalState = {
+            transform: document.querySelector('#drawflow').style.transform,
+            overflow: document.getElementById('drawflow').style.overflow,
+            scrollTop: document.querySelector('.drawflow').scrollTop,
+            scrollLeft: document.querySelector('.drawflow').scrollLeft
+        };
+
+        // 2. Reset zoom/scroll (mesmo que PNG)
+        document.querySelector('#drawflow').style.transform = 'none';
         document.getElementById('drawflow').style.overflow = 'visible';
+        document.querySelector('.drawflow').scrollTop = 0;
+        document.querySelector('.drawflow').scrollLeft = 0;
 
-        const clone = drawflowElement.cloneNode(true);
-        clone.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+        // 3. Calculate total flow dimensions (mesmo que PNG)
+        const { minX, minY, totalWidth, totalHeight } = calculateTotalFlowDimensions();
 
-        // OCULTAR INPUTS/OUTPUTS - NOVO CÓDIGO ADICIONADO
-        const inputsOutputs = clone.querySelectorAll('.input, .output');
-        inputsOutputs.forEach(el => {
-            el.style.opacity = '0';
-            el.style.pointerEvents = 'none';
-        });
+        // 4. Margin settings (mesmo que PNG)
+        const margin = {
+            top: 180,    // Header + space
+            right: 60,
+            bottom: 60,
+            left: 60
+        };
 
-        // Clonar labels das conexões
-        document.querySelectorAll('.connection-label').forEach(label => {
-            const labelClone = label.cloneNode(true);
-            labelClone.style.position = 'absolute';
-            labelClone.style.left = label.style.left;
-            labelClone.style.top = label.style.top;
-            clone.appendChild(labelClone);
-        });
-
-        // Criar container de exportação
+        // 5. Create export container (mesmo que PNG)
         const exportContainer = document.createElement('div');
-        exportContainer.style.position = 'absolute';
-        exportContainer.style.left = '-9999px';
-        exportContainer.style.top = '0';
-        exportContainer.style.background = '#f8fafc';
-        exportContainer.style.padding = '40px 60px';
-        exportContainer.style.boxSizing = 'border-box';
-        exportContainer.style.minHeight = '1275px'; // ~18cm em px
-        exportContainer.style.width = (drawflowElement.scrollWidth + 300) + 'px';
+        Object.assign(exportContainer.style, {
+            position: 'absolute',
+            left: '-9999px',
+            width: `${totalWidth + margin.left + margin.right}px`,
+            height: `${totalHeight + margin.top + margin.bottom}px`,
+            backgroundColor: '#f8fafc',
+            overflow: 'visible'
+        });
+        document.body.appendChild(exportContainer);
 
-        // Cabeçalho
+        // 6. Add header (mesmo que PNG)
         const header = document.createElement('div');
-        header.style.marginBottom = '40px';
         header.innerHTML = `
-            <h2 style="font-size: 20px; color: #1f2937; margin-bottom: 10px;">${processName}</h2>
-            <div style="font-size: 14px; color: #6b7280;">
+            <h2 style="font-size: 20px; margin: 0 0 10px 0;">${processName}</h2>
+            <div style="font-size: 14px;">
                 <strong>Responsáveis:</strong>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                     ${actorsList.map(actor => `
-                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px;">
                             ${actor.name}
                         </span>
                     `).join('')}
                 </div>
             </div>
         `;
+        header.style.position = 'absolute';
+        header.style.top = '20px';
+        header.style.left = `${margin.left}px`;
+        header.style.right = `${margin.right}px`;
         exportContainer.appendChild(header);
 
-        // Centralizar fluxo
-        const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex';
-        wrapper.style.justifyContent = 'center';
-        wrapper.style.alignItems = 'center';
-        wrapper.style.overflow = 'visible';
-        wrapper.style.position = 'relative';
-        wrapper.style.width = drawflowElement.scrollWidth + 'px';
-        wrapper.style.height = drawflowElement.scrollHeight + 'px';
-        wrapper.appendChild(clone);
+        // 7. Clone entire drawflow content (mesmo que PNG)
+        const drawflowClone = document.querySelector('#drawflow').cloneNode(true);
+        drawflowClone.style.transform = 'none';
+        drawflowClone.style.position = 'absolute';
+        drawflowClone.style.left = `${margin.left - minX}px`;
+        drawflowClone.style.top = `${margin.top - minY}px`;
+        drawflowClone.style.width = `${totalWidth}px`;
+        drawflowClone.style.height = `${totalHeight}px`;
+        drawflowClone.style.overflow = 'visible';
 
-        exportContainer.appendChild(wrapper);
-        document.body.appendChild(exportContainer);
+        // 8. Force render all connections (mesmo que PNG)
+        await forceRenderAllConnections(drawflowClone);
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        exportContainer.appendChild(drawflowClone);
+        await new Promise(resolve => setTimeout(resolve, 500));
 
+        // 9. Generate image (mesmo que PNG)
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             backgroundColor: '#f8fafc',
+            logging: false,
             useCORS: true,
-            // ADICIONADO PARA IGNORAR ELEMENTOS OCULTOS
-            ignoreElements: el => {
-                return el.style.opacity === '0' || el.style.display === 'none';
-            }
+            windowWidth: exportContainer.scrollWidth,
+            windowHeight: exportContainer.scrollHeight,
+            ignoreElements: el => el.classList.contains('input') || 
+                              el.classList.contains('output') ||
+                              el.classList.contains('drawflow-delete')
         });
 
-        drawflowElement.style.transform = originalTransform;
-        document.getElementById('drawflow').style.overflow = originalOverflow;
-        document.body.removeChild(exportContainer);
-
-        // Converter tamanho da imagem para mm
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const widthInMM = imgWidth * 0.264583;
-        const heightInMM = imgHeight * 0.264583;
-
+        // 10. Create PDF (única parte diferente)
         const pdf = new jsPDF({
-            orientation: widthInMM > heightInMM ? 'landscape' : 'portrait',
-            unit: 'mm',
-            format: [widthInMM + 20, heightInMM + 20]
+            orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
         });
 
-        pdf.setProperties({
-            title: processName,
-            subject: `Fluxo exportado do Meipper - ${new Date().toLocaleDateString()}`,
-            creator: 'Meipper'
-        });
-
-        pdf.addImage(canvas, 'PNG', 10, 10, widthInMM, heightInMM);
+        pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height);
         pdf.save(`${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
 
-        hideLoading();
+        // 11. Restore original state (mesmo que PNG)
+        document.querySelector('#drawflow').style.transform = originalState.transform;
+        document.getElementById('drawflow').style.overflow = originalState.overflow;
+        document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
+        document.querySelector('.drawflow').scrollLeft = originalState.scrollLeft;
+        document.body.removeChild(exportContainer);
+
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
+        alert('Erro ao exportar: ' + error.message);
+    } finally {
         hideLoading();
-        alert('Erro ao exportar para PDF. Consulte o console para detalhes.');
     }
 }
 
