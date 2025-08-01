@@ -62,7 +62,7 @@ body {
     gap: 6px;
     padding: 2px 8px;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -261,7 +261,7 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 320px;
+    width: 300px;
     background: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     padding: 20px;
