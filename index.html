@@ -3,16 +3,52 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:">
     <title>Meipper - Do zero ao fluxo em poucos cliques.</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.css">
-    <link rel="icon" href="faviconmeipper02.png" type="image/png">
+    <link rel="icon" href="faviconmeipper.png" type="image/png">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
-        <img src="logomeipper02.png" alt="Logo Meipper" class="mx-auto h-8 md:h-16" />
+        <div class="header-content">
+            <div class="header-left">
+                <img src="logomeipper02.png" alt="Logo Meipper" class="logo" />
+            </div>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="header-btn secondary" data-action="clear-all">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">Limpar</span>
+                    </button>
+                    <button class="header-btn secondary" data-action="load-flow">
+                        <span class="btn-icon">📂</span>
+                        <span class="btn-text">Carregar</span>
+                    </button>
+                    <button class="header-btn primary" data-action="save-flow">
+                        <span class="btn-icon">💾</span>
+                        <span class="btn-text">Salvar</span>
+                    </button>
+                    <div class="export-dropdown">
+                        <button class="header-btn export" data-action="toggle-export">
+                            <span class="btn-icon">📥</span>
+                            <span class="btn-text">Exportar</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="export-menu" id="export-menu">
+                            <button class="export-option" data-action="export-png">
+                                <span class="btn-icon">📷</span>
+                                <span class="btn-text">PNG</span>
+                            </button>
+                            <button class="export-option" data-action="export-pdf">
+                                <span class="btn-icon">📄</span>
+                                <span class="btn-text">PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </header>
 
     <!-- Process Info Card -->
@@ -50,11 +86,13 @@
 
             <!-- Undo/Redo Controls -->
             <div class="history-controls">
-                <button class="btn btn-warning" id="undo-btn" data-action="undo" disabled>
-                    ↶ Desfazer
+                <button class="modern-btn warning" id="undo-btn" data-action="undo" disabled>
+                    <span class="btn-icon">↶</span>
+                    <span class="btn-text">Desfazer</span>
                 </button>
-                <button class="btn btn-warning" id="redo-btn" data-action="redo" disabled>
-                    ↷ Refazer
+                <button class="modern-btn warning" id="redo-btn" data-action="redo" disabled>
+                    <span class="btn-icon">↷</span>
+                    <span class="btn-text">Refazer</span>
                 </button>
             </div>
 
@@ -65,9 +103,15 @@
                 
                 <label>Cor:</label>
                 <div class="color-picker" id="color-picker"></div>
-                <button class="more-colors-btn" data-action="more-colors">Mais cores</button>
+                <button class="modern-btn secondary small" data-action="more-colors">
+                    <span class="btn-icon">🎨</span>
+                    <span class="btn-text">Mais cores</span>
+                </button>
                 
-                <button class="btn btn-primary" data-action="add-actor">Salvar Responsável</button>
+                <button class="modern-btn primary" data-action="add-actor">
+                    <span class="btn-icon">👤</span>
+                    <span class="btn-text">Salvar Responsável</span>
+                </button>
 
                 <div class="actors-list" id="actors-list"></div>
 
@@ -79,24 +123,28 @@
 
             <!-- Task Management -->
             <div class="form-group">
-                <label>Tarefa:</label>
+                <label>Gerenciar Tarefas:</label>
                 
-                <button class="btn btn-success" data-action="add-start-task">
-                    ▶ Iniciar Processo
+                <button class="modern-btn success large" data-action="add-start-task">
+                    <span class="btn-icon">▶</span>
+                    <span class="btn-text">Iniciar Processo</span>
                 </button>
 
                 <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
 
-                <button class="btn btn-primary" data-action="add-task">
-                    ➕ Adicionar Tarefa
+                <button class="modern-btn primary" data-action="add-task">
+                    <span class="btn-icon">➕</span>
+                    <span class="btn-text">Adicionar Tarefa</span>
                 </button>
 
-                <button class="btn btn-purple" data-action="start-gateway">
-                    ◆ Essa tarefa possui mais de um caminho
+                <button class="modern-btn purple" data-action="start-gateway">
+                    <span class="btn-icon">◆</span>
+                    <span class="btn-text">Criar Decisão</span>
                 </button>
 
-                <button class="btn btn-danger" data-action="add-end-task">
-                    ⏹ Finalizar Processo
+                <button class="modern-btn danger" data-action="add-end-task">
+                    <span class="btn-icon">⏹</span>
+                    <span class="btn-text">Finalizar Processo</span>
                 </button>
             </div>
 
@@ -112,9 +160,18 @@
                 <div class="gateway-paths" id="gateway-paths"></div>
 
                 <div class="gateway-buttons">
-                    <button class="btn btn-primary" data-action="add-gateway-path">➕ Adicionar caminho</button>
-                    <button class="btn btn-success" data-action="finalize-gateway">✅ Fechar caminho de decisão</button>
-                    <button class="btn btn-secondary" data-action="cancel-gateway">❌ Cancelar</button>
+                    <button class="modern-btn primary" data-action="add-gateway-path">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">Adicionar caminho</span>
+                    </button>
+                    <button class="modern-btn success" data-action="finalize-gateway">
+                        <span class="btn-icon">✅</span>
+                        <span class="btn-text">Confirmar</span>
+                    </button>
+                    <button class="modern-btn secondary" data-action="cancel-gateway">
+                        <span class="btn-icon">❌</span>
+                        <span class="btn-text">Cancelar</span>
+                    </button>
                 </div>
             </div>
 
@@ -131,24 +188,6 @@
                     <li>Use Ctrl+Z/Ctrl+Y para desfazer/refazer</li>
                 </ul>
             </div>
-
-            <button class="btn btn-secondary" data-action="clear-all">
-                🔄 Limpar Tudo
-            </button>
-            <button class="btn btn-primary" data-action="save-flow">
-                💾 Salvar Fluxo
-            </button>
-            <button class="btn btn-secondary" data-action="load-flow">
-                📂 Carregar Fluxo
-            </button>
-            
-            <div class="export-title">Exportar</div>
-            <button class="export-btn export-png" data-action="export-png">
-                📷 PNG
-            </button>
-            <button class="export-btn export-pdf" data-action="export-pdf">
-                📄 PDF
-            </button>
         </div>
 
         <!-- Canvas Area -->
@@ -180,6 +219,6 @@
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="script.js" defer></script>
+    <script src="script.js"></script>
 </body>
 </html>
