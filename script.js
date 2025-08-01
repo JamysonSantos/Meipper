@@ -97,7 +97,6 @@ function setupButtonListeners() {
     document.querySelector('[data-action="export-png"]').addEventListener('click', exportToPNG);
     document.querySelector('[data-action="export-pdf"]').addEventListener('click', exportToPDF);
 
-    
     // Botões de zoom
     document.querySelector('[data-action="zoom-in"]').addEventListener('click', zoomIn);
     document.querySelector('[data-action="zoom-out"]').addEventListener('click', zoomOut);
@@ -112,6 +111,14 @@ function setupButtonListeners() {
     document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
     document.querySelector('[data-action="save-flow"]').addEventListener('click', saveToLocalStorage);
     document.querySelector('[data-action="load-flow"]').addEventListener('click', loadFromLocalStorage);
+
+    // Adicionar tarefa ao pressionar Enter
+    document.getElementById('task-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTask('task');
+        }
+    });
 }
 
 // ======================
