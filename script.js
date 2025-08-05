@@ -9,18 +9,14 @@ let colors = [...COLORS];
 let selectedNodeId = null;
 let gatewayMode = false;
 let gatewayPaths = [
-    { label: 'Caminho 1', pathName: 'Sim', task: '', description: '', actor: '', tasks: [] },
-    { label: 'Caminho 2', pathName: 'Não', task: '', description: '', actor: '', tasks: [] }
+    { label: 'Caminho 1', pathName: 'Sim', task: '', actor: '', tasks: [] },
+    { label: 'Caminho 2', pathName: 'Não', task: '', actor: '', tasks: [] }
 ];
 let nodeIdCounter = 1;
 
 // Sistema melhorado de gerenciamento de labels
 let connectionLabels = new Map();
 let labelUpdateCallbacks = new Map();
-
-// Sistema de descrições de tarefas
-let taskDescriptions = new Map();
-let currentEditingTask = null;
 
 // Drawflow instance
 let editor;
@@ -56,8 +52,6 @@ window.zoomOut = zoomOut;
 window.resetZoom = resetZoom;
 window.addMoreColors = addMoreColors;
 window.addActor = addActor;
-window.showTaskDescription = showTaskDescription;
-window.editPathLabel = editPathLabel;
 
 // ======================
 // INICIALIZAÇÃO
@@ -69,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupKeyboardEvents();
     setupButtonListeners();
     setupExportDropdown();
-    setupDescriptionPopup();
     saveState();
 });
 
@@ -158,94 +151,6 @@ function setupButtonListeners() {
 }
 
 // ======================
-// SISTEMA DE DESCRIÇÕES
-// ======================
-function setupDescriptionPopup() {
-    const popup = document.getElementById('description-popup');
-    const closeBtn = document.getElementById('description-popup-close');
-    const cancelBtn = document.getElementById('description-popup-cancel');
-    const saveBtn = document.getElementById('description-popup-save');
-
-    closeBtn.addEventListener('click', hideDescriptionPopup);
-    cancelBtn.addEventListener('click', hideDescriptionPopup);
-    saveBtn.addEventListener('click', saveTaskDescription);
-
-    // Fechar popup ao clicar fora
-    popup.addEventListener('click', function(e) {
-        if (e.target === popup) {
-            hideDescriptionPopup();
-        }
-    });
-
-    // ESC para fechar
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && popup.classList.contains('active')) {
-            hideDescriptionPopup();
-        }
-    });
-}
-
-function showTaskDescription(nodeId, taskName) {
-    currentEditingTask = nodeId;
-    const popup = document.getElementById('description-popup');
-    const title = document.getElementById('description-popup-title');
-    const textarea = document.getElementById('description-popup-textarea');
-
-    title.textContent = `Descrição: ${taskName}`;
-    textarea.value = taskDescriptions.get(nodeId) || '';
-    
-    popup.classList.add('active');
-    
-    // Focus no textarea após a animação
-    setTimeout(() => {
-        textarea.focus();
-    }, 300);
-}
-
-function hideDescriptionPopup() {
-    const popup = document.getElementById('description-popup');
-    popup.classList.remove('active');
-    currentEditingTask = null;
-}
-
-function saveTaskDescription() {
-    if (!currentEditingTask) return;
-
-    const textarea = document.getElementById('description-popup-textarea');
-    const description = textarea.value.trim();
-    
-    if (description) {
-        taskDescriptions.set(currentEditingTask, description);
-    } else {
-        taskDescriptions.delete(currentEditingTask);
-    }
-
-    // Atualizar o botão de descrição
-    updateDescriptionButton(currentEditingTask);
-    
-    hideDescriptionPopup();
-    saveState();
-}
-
-function updateDescriptionButton(nodeId) {
-    const node = document.getElementById(`node-${nodeId}`);
-    if (!node) return;
-
-    const btn = node.querySelector('.task-description-btn');
-    if (!btn) return;
-
-    const hasDescription = taskDescriptions.has(nodeId);
-    
-    if (hasDescription) {
-        btn.classList.add('has-description');
-        btn.textContent = '+'; // Mantém o mesmo sinal de "+"
-    } else {
-        btn.classList.remove('has-description');
-        btn.textContent = '+';
-    }
-}
-
-// ======================
 // FUNÇÕES DO DRAWFLOW
 // ======================
 function setupDrawflowEvents() {
@@ -264,7 +169,6 @@ function setupDrawflowEvents() {
 
     editor.on('nodeRemoved', function(id) {
         removeLabelsForNode(id);
-        taskDescriptions.delete(parseInt(id));
         if (!isPerformingUndoRedo) saveState();
     });
 
@@ -316,7 +220,6 @@ function saveState() {
         selectedColor: selectedColor,
         colors: [...colors],
         connectionLabels: Array.from(connectionLabels.entries()),
-        taskDescriptions: Array.from(taskDescriptions.entries()),
         timestamp: Date.now()
     };
     
@@ -356,7 +259,6 @@ function restoreState(state) {
         editor.clear();
         connectionLabels.clear();
         labelUpdateCallbacks.clear();
-        taskDescriptions.clear();
         
         const existingLabelContainer = document.querySelector('.connection-label-container');
         if (existingLabelContainer) existingLabelContainer.remove();
@@ -389,18 +291,6 @@ function restoreState(state) {
                     }
                 });
             }, 100);
-        }
-
-        if (state.taskDescriptions && state.taskDescriptions.length > 0) {
-            state.taskDescriptions.forEach(([nodeId, description]) => {
-                taskDescriptions.set(parseInt(nodeId), description);
-            });
-            
-            setTimeout(() => {
-                state.taskDescriptions.forEach(([nodeId]) => {
-                    updateDescriptionButton(parseInt(nodeId));
-                });
-            }, 200);
         }
         
     } catch (error) {
@@ -613,8 +503,6 @@ function addTask(type) {
         const taskName = taskInput.value.trim();
         const actorSelect = document.getElementById('actor-select');
         const selectedActor = actorSelect.value;
-        const descriptionInput = document.getElementById('task-description-input');
-        const description = descriptionInput.value.trim();
 
         if (!taskName) {
             alert('Digite o nome da tarefa!');
@@ -628,15 +516,7 @@ function addTask(type) {
 
         const actorColor = actors[selectedActor] || '#2196f3';
         const nodeId = createTaskNode(taskName, selectedActor, actorColor);
-        
-        // Salvar descrição se fornecida
-        if (description) {
-            taskDescriptions.set(nodeId, description);
-            updateDescriptionButton(nodeId);
-        }
-        
         taskInput.value = '';
-        descriptionInput.value = '';
         
         if (selectedNodeId) {
             editor.addConnection(selectedNodeId, nodeId, 'output_1', 'input_1');
@@ -664,7 +544,7 @@ function createStartNode() {
     const html = `<div class="start-node">▶</div>`;
     const pos = getNextPosition();
     
-    editor.addNode('start', 0, 1, pos.x - 100, pos.y - 1, 'start', { name: 'Início' }, html);
+    editor.addNode('start', 0, 1, pos.x - 100, pos.y - 60, 'start', { name: 'Início' }, html);
     return nodeId;
 }
 
@@ -683,7 +563,6 @@ function createTaskNode(taskName, actor, color) {
         <div class="task-node">
             <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
                 ${taskName}
-                <button class="task-description-btn" onclick="showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')">+</button>
             </div>
             <div class="task-actor">${actor}</div>
         </div>
@@ -741,7 +620,6 @@ function getNextPosition() {
 
 function deleteNode(nodeId) {
     removeLabelsForNode(nodeId);
-    taskDescriptions.delete(nodeId);
     editor.removeNodeId('node-' + nodeId);
     if (selectedNodeId === nodeId) selectedNodeId = null;
 }
@@ -779,11 +657,6 @@ function renderGatewayPaths() {
                 <input type="text" value="${path.pathName}" data-index="${index}" data-field="pathName" placeholder="Ex: Sim, Não, Pendente...">
                 <label>Tarefa:</label>
                 <textarea placeholder="Tarefa para este caminho" data-index="${index}" data-field="task">${path.task}</textarea>
-                <label>Descrição da Tarefa (opcional):</label>
-                <textarea placeholder="Descreva detalhadamente como executar esta tarefa..." 
-                          data-index="${index}" 
-                          data-field="description"
-                          style="min-height: 80px;">${path.description || ''}</textarea>
                 <label>Responsável:</label>
                 <select data-index="${index}" data-field="actor">
                     <option value="">Selecionar responsável...</option>
@@ -796,17 +669,30 @@ function renderGatewayPaths() {
         container.appendChild(pathDiv);
     });
 
-    document.querySelectorAll('input, textarea, select').forEach(element => {
-    element.addEventListener('change', function() {
-        const index = parseInt(this.dataset.index);
-        const field = this.dataset.field;
-        const value = this.value;
-        
-        if (gatewayPaths[index]) {
-            gatewayPaths[index][field] = value;
-        }
+    // Adicionar listeners dinamicamente
+    document.querySelectorAll('.remove-path-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            removeGatewayPath(parseInt(this.dataset.index));
+        });
     });
-});
+
+    document.querySelectorAll('input[data-field="pathName"]').forEach(input => {
+        input.addEventListener('change', function() {
+            updateGatewayPath(parseInt(this.dataset.index), this.dataset.field, this.value);
+        });
+    });
+
+    document.querySelectorAll('textarea[data-field="task"]').forEach(textarea => {
+        textarea.addEventListener('change', function() {
+            updateGatewayPath(parseInt(this.dataset.index), this.dataset.field, this.value);
+        });
+    });
+
+    document.querySelectorAll('select[data-field="actor"]').forEach(select => {
+        select.addEventListener('change', function() {
+            updateGatewayPath(parseInt(this.dataset.index), this.dataset.field, this.value);
+        });
+    });
 }
 
 function addGatewayPath() {
@@ -845,9 +731,6 @@ function finalizeGateway() {
         return;
     }
 
-    // Atualiza os paths com os valores dos campos antes de criar o gateway
-    updateAllGatewayPathsFromUI();
-
     const validPaths = gatewayPaths.filter(p => p.task.trim() && p.actor && p.pathName.trim());
     if (validPaths.length === 0) {
         alert('Adicione pelo menos um caminho com nome, tarefa e responsável!');
@@ -871,58 +754,37 @@ function finalizeGateway() {
     }
 
     validPaths.forEach((path, index) => {
-        const actorColor = actors[path.actor] || '#2196f3';
-        const offsetY = (index - (validPaths.length - 1)/2) * 150;
-        const pathY = gatewayY + offsetY;
-        
-        const pathTaskId = createTaskNodeAtPosition(
-            path.task, 
-            path.actor, 
-            actorColor, 
-            gatewayNode.pos_x + 150, 
-            pathY,
-            path.pathName,
-            path.description // Passando a descrição
-        );
-        
-        // Salvando a descrição no mapa global
-        if (path.description && path.description.trim()) {
-            taskDescriptions.set(pathTaskId, path.description.trim());
-            updateDescriptionButton(pathTaskId);
-        }
-        
-        editor.addConnection(gatewayId, pathTaskId, 'output_1', 'input_1');
-    });
+    const actorColor = actors[path.actor] || '#2196f3';
+    const offsetY = (index - (validPaths.length - 1) / 2) * 150;
+    const pathY = gatewayY + offsetY;
+    
+    // Adicionando o pathName como parâmetro
+    const pathTaskId = createTaskNodeAtPosition(
+        path.task, 
+        path.actor, 
+        actorColor, 
+        gatewayNode.pos_x + 150, 
+        pathY,
+        path.pathName // Nome do caminho passado aqui
+    );
+    
+    editor.addConnection(gatewayId, pathTaskId, 'output_1', 'input_1');
+    
+    // Remover a criação do label flutuante
+    // createConnectionLabel(gatewayId, pathTaskId, path.pathName, labelContainer);
+});
 
     cancelGateway();
     selectedNodeId = gatewayId;
-    saveState(); // Garantindo que o estado seja salvo
 }
 
-function updateAllGatewayPathsFromUI() {
-    document.querySelectorAll('.path-block').forEach((block, index) => {
-        if (gatewayPaths[index]) {
-            gatewayPaths[index].pathName = block.querySelector('[data-field="pathName"]').value;
-            gatewayPaths[index].task = block.querySelector('[data-field="task"]').value;
-            gatewayPaths[index].description = block.querySelector('[data-field="description"]').value;
-            gatewayPaths[index].actor = block.querySelector('[data-field="actor"]').value;
-        }
-    });
-}
-
-function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName, description = '') {
+function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName) {
     const nodeId = nodeIdCounter++;
-    const hasDescription = description && description.trim() !== '';
-    
     const html = `
-        <div class="task-node" id="node-${nodeId}">
+        <div class="task-node">
             <div class="path-label" ondblclick="editPathLabel(event, ${nodeId})">${pathName}</div>
             <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
                 ${taskName}
-                <button class="task-description-btn ${hasDescription ? 'has-description' : ''}" 
-                        onclick="showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')">
-                    +
-                </button>
             </div>
             <div class="task-actor">${actor}</div>
         </div>
@@ -932,14 +794,8 @@ function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName, descri
         name: taskName,
         actor: actor,
         color: color,
-        pathName: pathName,
-        description: description
+        pathName: pathName // Adicionando o nome do caminho aos dados do nó
     }, html);
-    
-    // Se já tiver descrição, salva no mapa global
-    if (hasDescription) {
-        taskDescriptions.set(nodeId, description.trim());
-    }
     
     return nodeId;
 }
@@ -996,18 +852,13 @@ function cancelGateway() {
     const panel = document.getElementById('gateway-panel');
     if (panel) panel.style.display = 'none';
     
-    document.getElementById('gateway-question').value = '';
+    const questionInput = document.getElementById('gateway-question');
+    if (questionInput) questionInput.value = '';
     
-    // Reset completo mantendo a estrutura
-    gatewayPaths = gatewayPaths.map(path => ({
-        ...path,
-        task: '',
-        description: '',
-        actor: ''
-    }));
-    
-    // Forçar nova renderização
-    renderGatewayPaths();
+    gatewayPaths = [
+        { label: 'Caminho 1', pathName: 'Sim', task: '', actor: '', tasks: [] },
+        { label: 'Caminho 2', pathName: 'Não', task: '', actor: '', tasks: [] }
+    ];
 }
 
 // ======================
@@ -1247,11 +1098,10 @@ function saveToLocalStorage() {
                     targetId: label.dataset.targetId
                 }
             ]),
-            taskDescriptions: Array.from(taskDescriptions.entries()),
             history: history.slice(0, historyIndex + 1),
             historyIndex: historyIndex,
             timestamp: Date.now(),
-            version: '2.1'
+            version: '2.0'
         };
         
         localStorage.setItem('meipperFlow', JSON.stringify(data));
@@ -1300,20 +1150,8 @@ function loadFromLocalStorage() {
                         });
                     }, 200);
                 }
-
-                if (data.taskDescriptions && data.taskDescriptions.length > 0) {
-                    data.taskDescriptions.forEach(([nodeId, description]) => {
-                        taskDescriptions.set(parseInt(nodeId), description);
-                    });
-                    
-                    setTimeout(() => {
-                        data.taskDescriptions.forEach(([nodeId]) => {
-                            updateDescriptionButton(parseInt(nodeId));
-                        });
-                    }, 300);
-                }
                 
-                if (data.history && data.version >= '2.0') {
+                if (data.history && data.version === '2.0') {
                     history = data.history;
                     historyIndex = data.historyIndex || 0;
                     updateHistoryButtons();
@@ -1419,17 +1257,13 @@ async function exportToPNG() {
         drawflowClone.style.height = `${totalHeight}px`;
         drawflowClone.style.overflow = 'visible';
 
-        // 8. Hide description buttons for export
-        const descriptionBtns = drawflowClone.querySelectorAll('.task-description-btn');
-        descriptionBtns.forEach(btn => btn.style.display = 'none');
-
-        // 9. Force render all connections
+        // 8. Force render all connections
         await forceRenderAllConnections(drawflowClone);
 
         exportContainer.appendChild(drawflowClone);
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 10. Generate image
+        // 9. Generate image
         const canvas = await html2canvas(exportContainer, {
             scale: 3,
             backgroundColor: '#f8fafc',
@@ -1439,28 +1273,27 @@ async function exportToPNG() {
             windowHeight: exportContainer.scrollHeight,
             ignoreElements: el => el.classList.contains('input') || 
                               el.classList.contains('output') ||
-                              el.classList.contains('drawflow-delete') ||
-                              el.classList.contains('task-description-btn')
+                              el.classList.contains('drawflow-delete')
         });
 
-        // 11. Create download
-        const link = document.createElement('a');
+        /// 10. Create download
+const link = document.createElement('a');
 
-        // Format process name (replace underscores with spaces)
-        const formattedProcessName = processName.replace(/[^a-z0-9]/gi, ' ');
+// Format process name (replace underscores with spaces)
+const formattedProcessName = processName.replace(/[^a-z0-9]/gi, ' ');
 
-        // Format date in Brazilian format (DD/MM/YYYY)
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const year = today.getFullYear();
-        const formattedDate = `(${day}/${month}/${year})`;
+// Format date in Brazilian format (DD/MM/YYYY)
+const today = new Date();
+const day = String(today.getDate()).padStart(2, '0');
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const year = today.getFullYear();
+const formattedDate = `(${day}/${month}/${year})`;
 
-        link.download = `${formattedProcessName} ${formattedDate}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+link.download = `${formattedProcessName} ${formattedDate}.png`;
+link.href = canvas.toDataURL('image/png');
+link.click();
 
-        // 12. Restore original state
+        // 11. Restore original state
         document.querySelector('#drawflow').style.transform = originalState.transform;
         document.getElementById('drawflow').style.overflow = originalState.overflow;
         document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
@@ -1671,17 +1504,13 @@ async function exportToPDF() {
         drawflowClone.style.height = `${totalHeight}px`;
         drawflowClone.style.overflow = 'visible';
 
-        // 8. Hide description buttons for export
-        const descriptionBtns = drawflowClone.querySelectorAll('.task-description-btn');
-        descriptionBtns.forEach(btn => btn.style.display = 'none');
-
-        // 9. Force render all connections
+        // 8. Force render all connections
         await forceRenderAllConnections(drawflowClone);
 
         exportContainer.appendChild(drawflowClone);
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 10. Generate image
+        // 9. Generate image
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             backgroundColor: '#f8fafc',
@@ -1691,11 +1520,10 @@ async function exportToPDF() {
             windowHeight: exportContainer.scrollHeight,
             ignoreElements: el => el.classList.contains('input') || 
                               el.classList.contains('output') ||
-                              el.classList.contains('drawflow-delete') ||
-                              el.classList.contains('task-description-btn')
+                              el.classList.contains('drawflow-delete')
         });
 
-        // 11. Create PDF
+        // 10. Create PDF
         const pdf = new jsPDF({
             orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
             unit: 'px',
@@ -1714,18 +1542,31 @@ async function exportToPDF() {
 
         pdf.save(fileName);
 
-        // 12. Restore original state
-        document.querySelector('#drawflow').style.transform = originalState.transform;
-        document.getElementById('drawflow').style.overflow = originalState.overflow;
-        document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
-        document.querySelector('.drawflow').scrollLeft = originalState.scrollLeft;
-        document.body.removeChild(exportContainer);
-
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
         alert('Erro ao exportar: ' + error.message);
     } finally {
+        // Garantir que o loading seja sempre escondido
         hideLoading();
+        
+        // Restaurar seleção se existia antes
+        if (previouslySelectedNode) {
+            selectedNodeId = previouslySelectedNode;
+            editor.addNodeId('node-' + selectedNodeId);
+        }
+        
+        // Remover o container de exportação se ele foi criado
+        if (exportContainer && exportContainer.parentNode) {
+            document.body.removeChild(exportContainer);
+        }
+        
+        // Restaurar estado original
+        if (originalState) {
+            document.querySelector('#drawflow').style.transform = originalState.transform;
+            document.getElementById('drawflow').style.overflow = originalState.overflow;
+            document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
+            document.querySelector('.drawflow').scrollLeft = originalState.scrollLeft;
+        }
     }
 }
 
@@ -1753,7 +1594,6 @@ function clearAll() {
     if (confirm('Tem certeza que deseja limpar todo o fluxo?')) {
         connectionLabels.clear();
         labelUpdateCallbacks.clear();
-        taskDescriptions.clear();
         editor.clear();
         
         const labelContainer = document.querySelector('.connection-label-container');
