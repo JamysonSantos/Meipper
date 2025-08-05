@@ -261,7 +261,7 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 280px;
+    width: 315px;
     background: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     padding: 20px;
@@ -722,6 +722,7 @@ body {
     align-items: center;
     min-width: 120px;
     max-width: 280px;
+    position: relative;
 }
 
 .task-content {
@@ -739,6 +740,7 @@ body {
     user-select: none;
     width: auto;
     display: inline-block;
+    position: relative;
 }
 
 .task-content:hover {
@@ -758,6 +760,163 @@ body {
     font-size: 14px;
     font-weight: bold;
     color: #333;
+}
+
+/* Task Description Button */
+.task-description-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 18px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #d1d5db;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.task-description-btn:hover {
+    background: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transform: scale(1.1);
+}
+
+.task-description-btn.has-description {
+    background: #a7f3d0 !important; /* Verde claro */
+    color: #065f46 !important; /* Verde escuro para contraste */
+    border-color: #34d399 !important;
+}
+
+.task-description-btn.has-description:hover {
+    background: #2563eb;
+}
+
+/* Description Popup */
+.description-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.description-popup.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.description-popup-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.description-popup.active .description-popup-content {
+    transform: scale(1) translateY(0);
+}
+
+.description-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.description-popup-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.description-popup-close {
+    background: #f3f4f6;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.description-popup-close:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.description-popup-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.description-popup-body label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.description-popup-body textarea {
+    width: 100%;
+    min-height: 200px;
+    max-height: 400px;
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.description-popup-body textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.description-popup-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 2px solid #f3f4f6;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
 }
 
 .gateway-node {
@@ -830,7 +989,7 @@ body {
 }
 
 .parent-node .drawflow-delete {
-    right: 90px !important;
+    right: 45px !important;
     top: 40px !important;
 }
 
@@ -1143,4 +1302,29 @@ body {
 
 .no-export {
     display: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .description-popup-content {
+        width: 95%;
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .description-popup-title {
+        font-size: 18px;
+    }
+    
+    .description-popup-body textarea {
+        min-height: 150px;
+    }
+    
+    .description-popup-footer {
+        flex-direction: column;
+    }
+    
+    .description-popup-footer .modern-btn {
+        width: 100%;
+    }
 }
