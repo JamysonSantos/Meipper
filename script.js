@@ -1177,6 +1177,7 @@ function loadFromLocalStorage() {
 // ======================
 
 async function exportToPNG() {
+    resetZoom();
     showLoading('Exportando PNG...', 'Renderizando fluxo completo...');
 
     try {
@@ -1405,6 +1406,13 @@ function createNewSvg(container) {
 }
 
 async function exportToPDF() {
+    // Desselecionar qualquer nó selecionado antes de exportar
+    const previouslySelectedNode = selectedNodeId;
+    if (selectedNodeId) {
+        editor.removeNodeId('node-' + selectedNodeId);
+    }
+
+    resetZoom();
     showLoading('Exportando PDF...', 'Renderizando fluxo completo...');
 
     try {
@@ -1412,7 +1420,7 @@ async function exportToPDF() {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
         const actorsList = Object.entries(actors).map(([name, color]) => ({ name, color }));
 
-        // 1. Save original state (mesmo que PNG)
+        // 1. Save original state
         const originalState = {
             transform: document.querySelector('#drawflow').style.transform,
             overflow: document.getElementById('drawflow').style.overflow,
@@ -1420,16 +1428,16 @@ async function exportToPDF() {
             scrollLeft: document.querySelector('.drawflow').scrollLeft
         };
 
-        // 2. Reset zoom/scroll (mesmo que PNG)
+        // 2. Reset zoom/scroll
         document.querySelector('#drawflow').style.transform = 'none';
         document.getElementById('drawflow').style.overflow = 'visible';
         document.querySelector('.drawflow').scrollTop = 0;
         document.querySelector('.drawflow').scrollLeft = 0;
 
-        // 3. Calculate total flow dimensions (mesmo que PNG)
+        // 3. Calculate total flow dimensions
         const { minX, minY, totalWidth, totalHeight } = calculateTotalFlowDimensions();
 
-        // 4. Margin settings (mesmo que PNG)
+        // 4. Margin settings
         const margin = {
             top: 180,    // Header + space
             right: 60,
@@ -1437,7 +1445,7 @@ async function exportToPDF() {
             left: 60
         };
 
-        // 5. Create export container (mesmo que PNG)
+        // 5. Create export container
         const exportContainer = document.createElement('div');
         Object.assign(exportContainer.style, {
             position: 'absolute',
@@ -1449,7 +1457,7 @@ async function exportToPDF() {
         });
         document.body.appendChild(exportContainer);
 
-        // 6. Add header (mesmo que PNG)
+        // 6. Add header
         const header = document.createElement('div');
         header.innerHTML = `
             <h2 style="font-size: 20px; margin: 0 0 10px 0;">${processName}</h2>
@@ -1470,7 +1478,7 @@ async function exportToPDF() {
         header.style.right = `${margin.right}px`;
         exportContainer.appendChild(header);
 
-        // 7. Clone entire drawflow content (mesmo que PNG)
+        // 7. Clone entire drawflow content
         const drawflowClone = document.querySelector('#drawflow').cloneNode(true);
         drawflowClone.style.transform = 'none';
         drawflowClone.style.position = 'absolute';
@@ -1480,13 +1488,13 @@ async function exportToPDF() {
         drawflowClone.style.height = `${totalHeight}px`;
         drawflowClone.style.overflow = 'visible';
 
-        // 8. Force render all connections (mesmo que PNG)
+        // 8. Force render all connections
         await forceRenderAllConnections(drawflowClone);
 
         exportContainer.appendChild(drawflowClone);
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 9. Generate image (mesmo que PNG)
+        // 9. Generate image
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             backgroundColor: '#f8fafc',
@@ -1499,7 +1507,7 @@ async function exportToPDF() {
                               el.classList.contains('drawflow-delete')
         });
 
-        // 10. Create PDF (única parte diferente)
+        // 10. Create PDF
         const pdf = new jsPDF({
             orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
             unit: 'px',
@@ -1509,7 +1517,7 @@ async function exportToPDF() {
         pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height);
         pdf.save(`${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
 
-        // 11. Restore original state (mesmo que PNG)
+        // 11. Restore original state
         document.querySelector('#drawflow').style.transform = originalState.transform;
         document.getElementById('drawflow').style.overflow = originalState.overflow;
         document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
@@ -1520,6 +1528,11 @@ async function exportToPDF() {
         console.error('Erro ao exportar PDF:', error);
         alert('Erro ao exportar: ' + error.message);
     } finally {
+        // Restaurar seleção se existia antes
+        if (previouslySelectedNode) {
+            selectedNodeId = previouslySelectedNode;
+            editor.addNodeId('node-' + selectedNodeId);
+        }
         hideLoading();
     }
 }
