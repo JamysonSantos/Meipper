@@ -127,7 +127,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     border: 1px solid #e5e7eb;
-    min-width: 120px;
+    min-width: 160px;
     z-index: 1001;
     opacity: 0;
     visibility: hidden;
@@ -169,6 +169,18 @@ body {
 .export-option:last-child {
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
+}
+
+.export-section {
+    border-top: 1px solid #e5e7eb;
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+.export-section:first-child {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .btn-icon {
