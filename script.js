@@ -1276,11 +1276,22 @@ async function exportToPNG() {
                               el.classList.contains('drawflow-delete')
         });
 
-        // 10. Create download
-        const link = document.createElement('a');
-        link.download = `${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        /// 10. Create download
+const link = document.createElement('a');
+
+// Format process name (replace underscores with spaces)
+const formattedProcessName = processName.replace(/[^a-z0-9]/gi, ' ');
+
+// Format date in Brazilian format (DD/MM/YYYY)
+const today = new Date();
+const day = String(today.getDate()).padStart(2, '0');
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const year = today.getFullYear();
+const formattedDate = `(${day}/${month}/${year})`;
+
+link.download = `${formattedProcessName} ${formattedDate}.png`;
+link.href = canvas.toDataURL('image/png');
+link.click();
 
         // 11. Restore original state
         document.querySelector('#drawflow').style.transform = originalState.transform;
@@ -1520,25 +1531,42 @@ async function exportToPDF() {
         });
 
         pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`${processName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
 
-        // 11. Restore original state
-        document.querySelector('#drawflow').style.transform = originalState.transform;
-        document.getElementById('drawflow').style.overflow = originalState.overflow;
-        document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
-        document.querySelector('.drawflow').scrollLeft = originalState.scrollLeft;
-        document.body.removeChild(exportContainer);
+        // Format file name
+        const formattedProcessName = processName.replace(/[^a-z0-9]/gi, ' ').replace(/\s+/g, ' ').trim();
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        const fileName = `${formattedProcessName} (${day}/${month}/${year}).pdf`;
+
+        pdf.save(fileName);
 
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
         alert('Erro ao exportar: ' + error.message);
     } finally {
+        // Garantir que o loading seja sempre escondido
+        hideLoading();
+        
         // Restaurar seleção se existia antes
         if (previouslySelectedNode) {
             selectedNodeId = previouslySelectedNode;
             editor.addNodeId('node-' + selectedNodeId);
         }
-        hideLoading();
+        
+        // Remover o container de exportação se ele foi criado
+        if (exportContainer && exportContainer.parentNode) {
+            document.body.removeChild(exportContainer);
+        }
+        
+        // Restaurar estado original
+        if (originalState) {
+            document.querySelector('#drawflow').style.transform = originalState.transform;
+            document.getElementById('drawflow').style.overflow = originalState.overflow;
+            document.querySelector('.drawflow').scrollTop = originalState.scrollTop;
+            document.querySelector('.drawflow').scrollLeft = originalState.scrollLeft;
+        }
     }
 }
 
