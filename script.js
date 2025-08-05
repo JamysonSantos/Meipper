@@ -786,7 +786,7 @@ function renderGatewayPaths() {
                 <label>Tarefa:</label>
                 <textarea placeholder="Tarefa para este caminho" data-index="${index}" data-field="task">${path.task}</textarea>
                 <label>Descrição da Tarefa (opcional):</label>
-                <textarea placeholder="Descreva detalhadamente como executar esta tarefa..." 
+                <textarea placeholder="Descreva como executar esta tarefa..." 
                           data-index="${index}" 
                           data-field="description"
                           style="min-height: 80px;">${path.description || ''}</textarea>
