@@ -51,6 +51,8 @@ window.saveToLocalStorage = saveToLocalStorage;
 window.loadFromLocalStorage = loadFromLocalStorage;
 window.exportToPNG = exportToPNG;
 window.exportToPDF = exportToPDF;
+window.exportDocumentationPDF = exportDocumentationPDF;
+window.exportDocumentationWord = exportDocumentationWord;
 window.zoomIn = zoomIn;
 window.zoomOut = zoomOut;
 window.resetZoom = resetZoom;
@@ -129,9 +131,13 @@ function setupButtonListeners() {
     document.querySelector('[data-action="start-gateway"]').addEventListener('click', startGatewayMode);
     document.querySelector('[data-action="add-end-task"]').addEventListener('click', () => addTask('end'));
     
-    // Botões de exportação
+    // Botões de exportação visual
     document.querySelector('[data-action="export-png"]').addEventListener('click', exportToPNG);
     document.querySelector('[data-action="export-pdf"]').addEventListener('click', exportToPDF);
+
+    // Botões de exportação de documentação
+    document.querySelector('[data-action="export-doc-pdf"]').addEventListener('click', exportDocumentationPDF);
+    document.querySelector('[data-action="export-doc-word"]').addEventListener('click', exportDocumentationWord);
 
     // Botões de zoom
     document.querySelector('[data-action="zoom-in"]').addEventListener('click', zoomIn);
@@ -1335,7 +1341,7 @@ function loadFromLocalStorage() {
 }
 
 // ======================
-// FUNÇÕES DE EXPORTAÇÃO
+// FUNÇÕES DE EXPORTAÇÃO VISUAL
 // ======================
 
 async function exportToPNG() {
@@ -1724,6 +1730,249 @@ async function exportToPDF() {
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
         alert('Erro ao exportar: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+// ======================
+// FUNÇÕES DE EXPORTAÇÃO DE DOCUMENTAÇÃO
+// ======================
+
+function collectAllTasks() {
+    const tasks = [];
+    const processedNodes = new Set();
+    
+    // Obter todos os nós do drawflow
+    const drawflowData = editor.export();
+    if (!drawflowData || !drawflowData.drawflow || !drawflowData.drawflow.Home || !drawflowData.drawflow.Home.data) {
+        return tasks;
+    }
+    
+    const nodes = drawflowData.drawflow.Home.data;
+    
+    // Processar nós em ordem lógica
+    Object.values(nodes).forEach(node => {
+        if (processedNodes.has(node.id)) return;
+        
+        if (node.class === 'task') {
+            const nodeData = node.data;
+            const taskName = nodeData.name || 'Tarefa sem nome';
+            const actor = nodeData.actor || 'Não especificado';
+            const description = taskDescriptions.get(parseInt(node.id)) || 'Descrição não fornecida';
+            const pathName = nodeData.pathName || null;
+            
+            tasks.push({
+                id: node.id,
+                name: taskName,
+                description: description,
+                actor: actor,
+                pathName: pathName,
+                type: 'task'
+            });
+            
+            processedNodes.add(node.id);
+        } else if (node.class === 'gateway') {
+            const nodeData = node.data;
+            const question = nodeData.question || 'Decisão sem nome';
+            
+            tasks.push({
+                id: node.id,
+                name: question,
+                description: 'Ponto de decisão no processo',
+                actor: 'Sistema/Processo',
+                pathName: null,
+                type: 'gateway'
+            });
+            
+            processedNodes.add(node.id);
+        }
+    });
+    
+    return tasks.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+}
+
+async function exportDocumentationPDF() {
+    showLoading('Exportando Documentação PDF...', 'Coletando informações do processo...');
+    
+    try {
+        const { jsPDF } = window.jspdf;
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const tasks = collectAllTasks();
+        const today = new Date();
+        
+        if (tasks.length === 0) {
+            alert('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.');
+            return;
+        }
+        
+        // Criar PDF
+        const pdf = new jsPDF();
+        let yPosition = 20;
+        const margin = 20;
+        const pageWidth = pdf.internal.pageSize.width - 2 * margin;
+        
+        // Configurar fonte para suporte a caracteres especiais
+        pdf.setFont('helvetica');
+        
+        // Cabeçalho
+        pdf.setFontSize(20);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(processName, margin, yPosition);
+        yPosition += 15;
+        
+        // Informações do processo
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'normal');
+        
+        // Responsáveis
+        const responsaveis = Object.keys(actors).join(', ') || 'Não especificados';
+        pdf.text('Responsáveis: ' + responsaveis, margin, yPosition);
+        yPosition += 10;
+        
+        // Data de criação
+        const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+        pdf.text('Data de criação: ' + formattedDate, margin, yPosition);
+        yPosition += 20;
+        
+        // Título da seção de atividades
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Atividades', margin, yPosition);
+        yPosition += 15;
+        
+        // Listar tarefas
+        pdf.setFontSize(11);
+        let taskNumber = 1;
+        
+        for (const task of tasks) {
+            // Verificar se precisa de nova página
+            if (yPosition > 250) {
+                pdf.addPage();
+                yPosition = 20;
+            }
+            
+            let taskTitle = '';
+            if (task.type === 'gateway') {
+                taskTitle = `${taskNumber}. DECISÃO: ${task.name}`;
+            } else {
+                taskTitle = `${taskNumber}. ${task.name}`;
+                if (task.pathName) {
+                    taskTitle += ` (${task.pathName})`;
+                }
+            }
+            
+            // Nome da tarefa
+            pdf.setFont('helvetica', 'bold');
+            const titleLines = pdf.splitTextToSize(taskTitle, pageWidth);
+            pdf.text(titleLines, margin, yPosition);
+            yPosition += titleLines.length * 5 + 3;
+            
+            // Responsável
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('Responsável: ' + task.actor, margin + 10, yPosition);
+            yPosition += 7;
+            
+            // Descrição
+            pdf.text('Descrição:', margin + 10, yPosition);
+            yPosition += 5;
+            
+            const descriptionLines = pdf.splitTextToSize(task.description, pageWidth - 20);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(descriptionLines, margin + 20, yPosition);
+            yPosition += descriptionLines.length * 5 + 10;
+            
+            taskNumber++;
+        }
+        
+        // Salvar arquivo
+        const fileName = `Documentação - ${processName.replace(/[^a-z0-9]/gi, ' ').trim()} (${formattedDate}).pdf`;
+        pdf.save(fileName);
+        
+    } catch (error) {
+        console.error('Erro ao exportar documentação PDF:', error);
+        alert('Erro ao exportar documentação: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function exportDocumentationWord() {
+    showLoading('Exportando Documentação Word...', 'Coletando informações do processo...');
+    
+    try {
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const tasks = collectAllTasks();
+        const today = new Date();
+        
+        if (tasks.length === 0) {
+            alert('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.');
+            return;
+        }
+        
+        // Preparar texto para Word
+        let documentContent = '';
+        
+        // Cabeçalho
+        documentContent += `${processName}\n`;
+        documentContent += `${'='.repeat(processName.length)}\n\n`;
+        
+        // Informações do processo
+        const responsaveis = Object.keys(actors).join(', ') || 'Não especificados';
+        const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+        
+        documentContent += `Responsáveis: ${responsaveis}\n`;
+        documentContent += `Data de criação: ${formattedDate}\n\n`;
+        
+        // Seção de atividades
+        documentContent += `Atividades\n`;
+        documentContent += `----------\n\n`;
+        
+        // Listar tarefas
+        let taskNumber = 1;
+        
+        for (const task of tasks) {
+            let taskTitle = '';
+            if (task.type === 'gateway') {
+                taskTitle = `${taskNumber}. DECISÃO: ${task.name}`;
+            } else {
+                taskTitle = `${taskNumber}. ${task.name}`;
+                if (task.pathName) {
+                    taskTitle += ` (${task.pathName})`;
+                }
+            }
+            
+            documentContent += `${taskTitle}\n`;
+            documentContent += `Responsável: ${task.actor}\n`;
+            documentContent += `Descrição: ${task.description}\n\n`;
+            
+            taskNumber++;
+        }
+        
+        // Criar arquivo Word usando uma abordagem simples
+        // Como o docx.js é complexo, vamos criar um arquivo RTF que pode ser aberto pelo Word
+        const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}
+\\f0\\fs24 ${documentContent.replace(/\n/g, '\\par ')}}`;
+        
+        // Alternativamente, criar um arquivo .txt que pode ser importado
+        const blob = new Blob([documentContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Documentação - ${processName.replace(/[^a-z0-9]/gi, ' ').trim()} (${formattedDate}).txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        URL.revokeObjectURL(url);
+        
+        // Mostrar instruções ao usuário
+        alert('Arquivo de documentação exportado com sucesso!\n\nO arquivo foi salvo como .txt para compatibilidade máxima.\nVocê pode abrir este arquivo no Microsoft Word e salvá-lo como .docx se necessário.');
+        
+    } catch (error) {
+        console.error('Erro ao exportar documentação Word:', error);
+        alert('Erro ao exportar documentação: ' + error.message);
     } finally {
         hideLoading();
     }
