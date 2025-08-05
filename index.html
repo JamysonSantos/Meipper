@@ -36,14 +36,26 @@
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="export-menu" id="export-menu">
-                            <button class="export-option" data-action="export-png">
-                                <span class="btn-icon"></span>
-                                <span class="btn-text">PNG</span>
-                            </button>
-                            <button class="export-option" data-action="export-pdf">
-                                <span class="btn-icon"></span>
-                                <span class="btn-text">PDF</span>
-                            </button>
+                            <div class="export-section">
+                                <button class="export-option" data-action="export-png">
+                                    <span class="btn-icon">🖼️</span>
+                                    <span class="btn-text">Fluxo (PNG)</span>
+                                </button>
+                                <button class="export-option" data-action="export-pdf">
+                                    <span class="btn-icon">📄</span>
+                                    <span class="btn-text">Fluxo (PDF)</span>
+                                </button>
+                            </div>
+                            <div class="export-section">
+                                <button class="export-option" data-action="export-doc-pdf">
+                                    <span class="btn-icon">📋</span>
+                                    <span class="btn-text">Documentação (PDF)</span>
+                                </button>
+                                <button class="export-option" data-action="export-doc-word">
+                                    <span class="btn-icon">📝</span>
+                                    <span class="btn-text">Documentação (Word)</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -239,6 +251,8 @@
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/docx/build/index.js"></script>
+    <script>
     <script src="script.js"></script>
 </body>
 </html>
