@@ -1177,6 +1177,11 @@ function loadFromLocalStorage() {
 // ======================
 
 async function exportToPNG() {
+    // Verificar se há nó selecionado
+    if (selectedNodeId) {
+        alert('Por favor, desmarque o elemento selecionado antes de exportar. Clique em qualquer área vazia do canvas para desmarcar.');
+        return;
+    }
     resetZoom();
     showLoading('Exportando PNG...', 'Renderizando fluxo completo...');
 
@@ -1406,10 +1411,10 @@ function createNewSvg(container) {
 }
 
 async function exportToPDF() {
-    // Desselecionar qualquer nó selecionado antes de exportar
-    const previouslySelectedNode = selectedNodeId;
+    // Verificar se há nó selecionado
     if (selectedNodeId) {
-        editor.removeNodeId('node-' + selectedNodeId);
+        alert('Por favor, desmarque o elemento selecionado antes de exportar. Clique em qualquer área vazia do canvas para desmarcar.');
+        return;
     }
 
     resetZoom();
