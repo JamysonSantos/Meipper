@@ -18,30 +18,30 @@
             <div class="header-right">
                 <div class="header-actions">
                     <button class="header-btn secondary" data-action="clear-all">
-                        <span class="btn-icon"</span>
+                        <span class="btn-icon"></span>
                         <span class="btn-text">Limpar tudo</span>
                     </button>
                     <button class="header-btn secondary" data-action="load-flow">
-                        <span class="btn-icon"</span>
+                        <span class="btn-icon"></span>
                         <span class="btn-text">Carregar</span>
                     </button>
                     <button class="header-btn primary" data-action="save-flow">
-                        <span class="btn-icon"</span>
+                        <span class="btn-icon"></span>
                         <span class="btn-text">Salvar</span>
                     </button>
                     <div class="export-dropdown">
                         <button class="header-btn export" data-action="toggle-export">
-                            <span class="btn-icon"</span>
+                            <span class="btn-icon"></span>
                             <span class="btn-text">Exportar</span>
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <div class="export-menu" id="export-menu">
                             <button class="export-option" data-action="export-png">
-                                <span class="btn-icon"</span>
+                                <span class="btn-icon"></span>
                                 <span class="btn-text">PNG</span>
                             </button>
                             <button class="export-option" data-action="export-pdf">
-                                <span class="btn-icon"</span>
+                                <span class="btn-icon"></span>
                                 <span class="btn-text">PDF</span>
                             </button>
                         </div>
@@ -131,6 +131,10 @@
                 </button>
 
                 <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
+                
+                <!-- Task Description Field -->
+                <label for="task-description-input">Descrição da Tarefa (opcional):</label>
+                <textarea id="task-description-input" placeholder="Descreva detalhadamente como executar esta tarefa..." style="min-height: 100px;"></textarea>
 
                 <button class="modern-btn primary" data-action="add-task">
                     <span class="btn-icon">➕</span>
@@ -139,7 +143,7 @@
 
                 <button class="modern-btn purple" data-action="start-gateway">
                     <span class="btn-icon">◆</span>
-                    <span class="btn-text">nserir caminhos para tarefa</span>
+                    <span class="btn-text">Inserir caminhos para tarefa</span>
                 </button>
 
                 <button class="modern-btn danger" data-action="add-end-task">
@@ -181,6 +185,7 @@
                 <ul>
                     <li>Clique em uma tarefa para selecioná-la</li>
                     <li>Duplo clique para editar texto das tarefas e labels</li>
+                    <li>Clique no botão "+" para ver/editar descrições</li>
                     <li>Novas tarefas serão adicionadas após a selecionada</li>
                     <li>Clique no botão direito ou em DELETE para excluir tarefas</li>
                     <li>Arraste tarefas para reposicioná-las</li>
@@ -207,6 +212,24 @@
         </div>
     </div>
 
+    <!-- Description Popup -->
+    <div id="description-popup" class="description-popup">
+        <div class="description-popup-content">
+            <div class="description-popup-header">
+                <h3 class="description-popup-title" id="description-popup-title">Descrição da Tarefa</h3>
+                <button class="description-popup-close" id="description-popup-close">×</button>
+            </div>
+            <div class="description-popup-body">
+                <label for="description-popup-textarea">Descrição detalhada:</label>
+                <textarea id="description-popup-textarea" placeholder="Descreva detalhadamente como executar esta tarefa..."></textarea>
+            </div>
+            <div class="description-popup-footer">
+                <button class="modern-btn secondary" id="description-popup-cancel">Cancelar</button>
+                <button class="modern-btn primary" id="description-popup-save">Salvar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
         <div class="loading-content">
@@ -219,6 +242,5 @@
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
