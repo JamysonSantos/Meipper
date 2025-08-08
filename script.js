@@ -48,7 +48,6 @@ window.finalizeGateway = finalizeGateway;
 window.cancelGateway = cancelGateway;
 window.clearAll = clearAll;
 window.saveToLocalStorage = saveToLocalStorage;
-window.loadFromLocalStorage = loadFromLocalStorage;
 window.exportToPNG = exportToPNG;
 window.exportToPDF = exportToPDF;
 window.exportDocumentationPDF = exportDocumentationPDF;
@@ -138,6 +137,7 @@ function setupButtonListeners() {
     // Botões de exportação de documentação
     document.querySelector('[data-action="export-doc-pdf"]').addEventListener('click', exportDocumentationPDF);
     document.querySelector('[data-action="export-doc-word"]').addEventListener('click', exportDocumentationWord);
+    document.querySelector('[data-action="export-editable"]').addEventListener('click', exportEditableFlow);
 
     // Botões de zoom
     document.querySelector('[data-action="zoom-in"]').addEventListener('click', zoomIn);
@@ -152,7 +152,20 @@ function setupButtonListeners() {
     // Botões de ação principais
     document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
     document.querySelector('[data-action="save-flow"]').addEventListener('click', saveToLocalStorage);
-    document.querySelector('[data-action="load-flow"]').addEventListener('click', loadFromLocalStorage);
+    document.querySelector('[data-action="load-flow"]').addEventListener('click', function() {
+    // Criar input file dinamicamente
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.meipperflow';
+    fileInput.style.display = 'none';
+    
+    fileInput.addEventListener('change', loadFlowFromFile);
+    
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
+});
+    document.querySelector('[data-action="show-saved-flows"]').addEventListener('click', showSavedFlowsPopup);
 
     // Adicionar tarefa ao pressionar Enter
     document.getElementById('task-input').addEventListener('keydown', function(e) {
@@ -161,6 +174,10 @@ function setupButtonListeners() {
             addTask('task');
         }
     });
+}
+
+function loadFromLocalStorage() {
+    updateSavedFlowsList();
 }
 
 // ======================
@@ -954,10 +971,10 @@ function editPathLabel(event, nodeId) {
     event.stopPropagation();
     const element = event.target;
     const originalText = element.textContent;
-    
+
     element.setAttribute('contenteditable', 'true');
     element.focus();
-    
+
     const range = document.createRange();
     range.selectNodeContents(element);
     const selection = window.getSelection();
@@ -967,13 +984,43 @@ function editPathLabel(event, nodeId) {
     function finishEditing() {
         element.removeAttribute('contenteditable');
         const newText = element.textContent.trim();
+
         if (newText && newText !== originalText) {
-            const nodeData = editor.getNodeFromId(nodeId);
-            if (nodeData) nodeData.data.pathName = newText;
+            const nodeObj = editor.getNodeFromId(nodeId);
+            if (nodeObj) {
+                nodeObj.data = nodeObj.data || {};
+                nodeObj.data.pathName = newText;
+            }
+
+            try {
+                const wrapper = document.getElementById(`node-${nodeId}`);
+                if (wrapper) {
+                    const inner = wrapper.querySelector('.task-node') || wrapper.querySelector('.path-label');
+                    if (inner) {
+                        // se existir a label interna, atualiza e atualiza o html interno
+                        const labelEl = wrapper.querySelector('.path-label');
+                        if (labelEl) labelEl.textContent = newText;
+                        if (editor && editor.drawflow && editor.drawflow.drawflow && editor.drawflow.drawflow.Home && editor.drawflow.drawflow.Home.data) {
+                            const internal = editor.drawflow.drawflow.Home.data[nodeId];
+                            if (internal) internal.html = (inner.outerHTML || inner.innerHTML);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao sincronizar path html:', err);
+            }
+
+            try {
+                editor.updateNodeDataFromId(nodeId, (nodeObj && nodeObj.data) || {});
+            } catch (err) {
+                console.warn('updateNodeDataFromId falhou:', err);
+            }
+
             saveState();
         } else {
             element.textContent = originalText;
         }
+
         cleanup();
     }
 
@@ -996,7 +1043,6 @@ function editPathLabel(event, nodeId) {
     element.addEventListener('blur', finishEditing);
     element.addEventListener('keydown', handleKeydown);
 }
-
 function cancelGateway() {
     gatewayMode = false;
     const panel = document.getElementById('gateway-panel');
@@ -1139,14 +1185,15 @@ function editConnectionLabel(event, labelElement) {
 // ======================
 // FUNÇÕES DE EDIÇÃO DE TEXTO
 // ======================
+
 function editTaskText(event, nodeId) {
     event.stopPropagation();
     const element = event.target;
     const originalText = element.textContent;
-    
+
     element.setAttribute('contenteditable', 'true');
     element.focus();
-    
+
     const range = document.createRange();
     range.selectNodeContents(element);
     const selection = window.getSelection();
@@ -1156,13 +1203,54 @@ function editTaskText(event, nodeId) {
     function finishEditing() {
         element.removeAttribute('contenteditable');
         const newText = element.textContent.trim();
+
         if (newText && newText !== originalText) {
-            const nodeData = editor.getNodeFromId(nodeId);
-            if (nodeData) nodeData.data.name = newText;
+            // 1) Atualiza o data interno do Drawflow
+            const nodeObj = editor.getNodeFromId(nodeId);
+            if (nodeObj) {
+                nodeObj.data = nodeObj.data || {};
+                nodeObj.data.name = newText;
+            }
+
+            // 2) Atualiza a string html interna com o HTML atual do DOM do nó
+            try {
+                const wrapper = document.getElementById(`node-${nodeId}`);
+                if (wrapper) {
+                    // procura o bloco interno que representa o conteúdo do nó
+                    const inner = wrapper.querySelector('.task-node') || wrapper.querySelector('.gateway-node') || wrapper.querySelector('.path-block');
+                    if (inner) {
+                        // atualiza o botão de descrição para manter o texto atualizado (escapa aspas simples)
+                        const contentEl = inner.querySelector('.task-content');
+                        if (contentEl) {
+                            const safeText = newText.replace(/'/g, "\\'");
+                            contentEl.innerHTML = `${newText}<button class="task-description-btn" onclick="showTaskDescription(${nodeId}, '${safeText}')">+</button>`;
+                        }
+                        // setar html na estrutura interna do Drawflow
+                        if (editor && editor.drawflow && editor.drawflow.drawflow && editor.drawflow.drawflow.Home && editor.drawflow.drawflow.Home.data) {
+                            const internal = editor.drawflow.drawflow.Home.data[nodeId];
+                            if (internal) internal.html = inner.outerHTML;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao sincronizar node.html:', err);
+            }
+
+            // 3) Garantir que o Drawflow sincronize o data interno
+            try {
+                // passa o objeto data (pode ser vazio se preferir só forçar o update)
+                editor.updateNodeDataFromId(nodeId, (nodeObj && nodeObj.data) || {});
+            } catch (err) {
+                // fallback: inspecione editor.drawflow... no console
+                console.warn('updateNodeDataFromId falhou:', err);
+            }
+
+            // 4) Salva o estado (histórico / localStorage)
             saveState();
         } else {
             element.textContent = originalText;
         }
+
         cleanup();
     }
 
@@ -1190,7 +1278,7 @@ function editGatewayText(event, nodeId) {
     event.stopPropagation();
     const element = event.target;
     const originalText = element.textContent;
-    
+
     element.setAttribute('contenteditable', 'true');
     element.focus();
 
@@ -1203,13 +1291,42 @@ function editGatewayText(event, nodeId) {
     function finishEditing() {
         element.removeAttribute('contenteditable');
         const newText = element.textContent.trim();
+
         if (newText && newText !== originalText) {
-            const nodeData = editor.getNodeFromId(nodeId);
-            if (nodeData) nodeData.data.question = newText;
+            const nodeObj = editor.getNodeFromId(nodeId);
+            if (nodeObj) {
+                nodeObj.data = nodeObj.data || {};
+                nodeObj.data.question = newText;
+            }
+
+            try {
+                const wrapper = document.getElementById(`node-${nodeId}`);
+                if (wrapper) {
+                    const inner = wrapper.querySelector('.gateway-node');
+                    if (inner) {
+                        // atualiza o texto dentro do elemento gateway-label já no DOM (já feito)
+                        // atualizar html interno do Drawflow:
+                        if (editor && editor.drawflow && editor.drawflow.drawflow && editor.drawflow.drawflow.Home && editor.drawflow.drawflow.Home.data) {
+                            const internal = editor.drawflow.drawflow.Home.data[nodeId];
+                            if (internal) internal.html = inner.outerHTML;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao sincronizar gateway html:', err);
+            }
+
+            try {
+                editor.updateNodeDataFromId(nodeId, (nodeObj && nodeObj.data) || {});
+            } catch (err) {
+                console.warn('updateNodeDataFromId falhou:', err);
+            }
+
             saveState();
         } else {
             element.textContent = originalText;
         }
+
         cleanup();
     }
 
@@ -1238,105 +1355,182 @@ function editGatewayText(event, nodeId) {
 // ======================
 function saveToLocalStorage() {
     try {
-        const data = {
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
+        
+        const currentFlow = {
             drawflow: editor.export(),
             actors: actors,
             nodeIdCounter: nodeIdCounter,
-            processName: document.getElementById('process-name').value,
+            processName: processName,
             selectedColor: selectedColor,
             colors: colors,
-            connectionLabels: Array.from(connectionLabels.entries()).map(([key, label]) => [
-                key, 
-                {
-                    textContent: label.textContent,
-                    sourceId: label.dataset.sourceId,
-                    targetId: label.dataset.targetId
-                }
-            ]),
+            connectionLabels: Array.from(connectionLabels.entries()),
             taskDescriptions: Array.from(taskDescriptions.entries()),
-            history: history.slice(0, historyIndex + 1),
-            historyIndex: historyIndex,
             timestamp: Date.now(),
             version: '2.1'
         };
         
-        localStorage.setItem('meipperFlow', JSON.stringify(data));
-        alert('Fluxo salvo com sucesso!');
+        allFlows[processName] = currentFlow;
+        localStorage.setItem('meipperFlows', JSON.stringify(allFlows));
+        
+        alert(`Fluxo "${processName}" salvo com sucesso!`);
     } catch (error) {
         console.error('Erro ao salvar:', error);
         alert('Erro ao salvar o fluxo. Verifique se há espaço suficiente no navegador.');
     }
 }
-
-function loadFromLocalStorage() {
-    try {
-        const savedData = localStorage.getItem('meipperFlow');
-        if (savedData) {
-            if (confirm('Carregar fluxo salvo? Isso substituirá o fluxo atual.')) {
-                const data = JSON.parse(savedData);
-                clearAll();
-                
-                actors = data.actors || {};
-                nodeIdCounter = data.nodeIdCounter || 1;
-                selectedColor = data.selectedColor || COLORS[0];
-                colors = data.colors || [...COLORS];
-                
-                document.getElementById('process-name').value = data.processName || '';
-                updateActorSelect();
-                updateActorsList();
-                updateProcessInfo();
-                renderColorPicker();
-                
-                if (data.drawflow) editor.import(data.drawflow);
-                
-                if (data.connectionLabels && data.connectionLabels.length > 0) {
-                    setTimeout(() => {
-                        let labelContainer = document.querySelector('.connection-label-container');
-                        if (!labelContainer) {
-                            labelContainer = document.createElement('div');
-                            labelContainer.className = 'connection-label-container';
-                            document.getElementById('drawflow').appendChild(labelContainer);
-                        }
-                        
-                        data.connectionLabels.forEach(([connectionKey, labelData]) => {
-                            const [sourceId, targetId] = connectionKey.split('-');
-                            if (labelData && labelData.textContent) {
-                                createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
-                            }
-                        });
-                    }, 200);
-                }
-
-                if (data.taskDescriptions && data.taskDescriptions.length > 0) {
-                    data.taskDescriptions.forEach(([nodeId, description]) => {
-                        taskDescriptions.set(parseInt(nodeId), description);
-                    });
-                    
-                    setTimeout(() => {
-                        data.taskDescriptions.forEach(([nodeId]) => {
-                            updateDescriptionButton(parseInt(nodeId));
-                        });
-                    }, 300);
-                }
-                
-                if (data.history && data.version >= '2.0') {
-                    history = data.history;
-                    historyIndex = data.historyIndex || 0;
-                    updateHistoryButtons();
-                } else {
-                    history = [];
-                    historyIndex = -1;
-                    saveState();
-                }
-                
-                alert('Fluxo carregado com sucesso!');
-            }
-        } else {
-            alert('Nenhum fluxo salvo encontrado.');
+function showSavedFlowsPopup() {
+    const popup = document.getElementById('saved-flows-popup');
+    popup.style.display = 'flex';
+    loadSavedFlowsIntoPopup();
+    
+    // Fechar popup ao clicar no overlay
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            popup.style.display = 'none';
         }
-    } catch (error) {
-        console.error('Erro ao carregar:', error);
-        alert('Erro ao carregar o fluxo salvo.');
+    });
+    
+    // Fechar popup ao clicar no botão de fechar
+    document.getElementById('close-saved-flows-popup').addEventListener('click', function() {
+        popup.style.display = 'none';
+    });
+    
+    // Busca em tempo real
+    document.getElementById('flow-search').addEventListener('input', function(e) {
+        filterFlows(e.target.value);
+    });
+}
+
+function loadSavedFlowsIntoPopup() {
+    const container = document.getElementById('saved-flows-container');
+    const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
+    
+    container.innerHTML = '';
+    
+    if (Object.keys(allFlows).length === 0) {
+        container.innerHTML = '<div class="no-flows-message">Nenhum fluxo salvo ainda</div>';
+        return;
+    }
+    
+    // Ordenar por timestamp (mais recente primeiro)
+    const sortedFlows = Object.entries(allFlows).sort((a, b) => b[1].timestamp - a[1].timestamp);
+    
+    sortedFlows.forEach(([flowName, flowData]) => {
+        const date = new Date(flowData.timestamp);
+        const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+        
+        const flowCard = document.createElement('div');
+        flowCard.className = 'flow-card';
+        flowCard.innerHTML = `
+            <div class="flow-actions">
+                <button class="flow-action-btn delete" onclick="deleteFlowFromPopup('${flowName.replace(/'/g, "\\'")}', event)">×</button>
+            </div>
+            <h4>${flowName}</h4>
+            <p>Salvo em: ${formattedDate}</p>
+            <p>${Object.keys(flowData.actors || {}).length} responsáveis</p>
+            <p>${Object.keys(flowData.drawflow?.drawflow?.Home?.data || {}).length} elementos</p>
+        `;
+        
+        flowCard.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('flow-action-btn')) {
+                loadFlowFromPopup(flowName);
+            }
+        });
+        
+        container.appendChild(flowCard);
+    });
+}
+
+function filterFlows(searchTerm) {
+    const cards = document.querySelectorAll('.flow-card');
+    searchTerm = searchTerm.toLowerCase();
+    
+    cards.forEach(card => {
+        const title = card.querySelector('h4').textContent.toLowerCase();
+        if (title.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function loadFlowFromPopup(flowName) {
+    document.getElementById('saved-flows-popup').style.display = 'none';
+    loadFlowFromList(flowName);
+}
+
+function deleteFlowFromPopup(flowName, event) {
+    event.stopPropagation();
+    if (confirm(`Tem certeza que deseja excluir o fluxo "${flowName}"?`)) {
+        const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
+        delete allFlows[flowName];
+        localStorage.setItem('meipperFlows', JSON.stringify(allFlows));
+        loadSavedFlowsIntoPopup();
+    }
+}
+
+function loadFlowFromList(flowName) {
+    if (confirm(`Carregar o fluxo "${flowName}"? Isso substituirá o fluxo atual.`)) {
+        const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
+        const flowData = allFlows[flowName];
+        
+        if (!flowData) {
+            alert('Fluxo não encontrado!');
+            return;
+        }
+        
+        clearAll();
+        
+        // Restaurar o estado do fluxo selecionado
+        actors = flowData.actors || {};
+        nodeIdCounter = flowData.nodeIdCounter || 1;
+        selectedColor = flowData.selectedColor || COLORS[0];
+        colors = flowData.colors || [...COLORS];
+        
+        document.getElementById('process-name').value = flowData.processName || '';
+        updateActorSelect();
+        updateActorsList();
+        updateProcessInfo();
+        renderColorPicker();
+        
+        if (flowData.drawflow) editor.import(flowData.drawflow);
+        
+        // Restaurar labels de conexão
+        if (flowData.connectionLabels && flowData.connectionLabels.length > 0) {
+            setTimeout(() => {
+                let labelContainer = document.querySelector('.connection-label-container');
+                if (!labelContainer) {
+                    labelContainer = document.createElement('div');
+                    labelContainer.className = 'connection-label-container';
+                    document.getElementById('drawflow').appendChild(labelContainer);
+                }
+                
+                flowData.connectionLabels.forEach(([connectionKey, labelData]) => {
+                    const [sourceId, targetId] = connectionKey.split('-');
+                    if (labelData && labelData.textContent) {
+                        createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+                    }
+                });
+            }, 200);
+        }
+
+        // Restaurar descrições de tarefas
+        if (flowData.taskDescriptions && flowData.taskDescriptions.length > 0) {
+            flowData.taskDescriptions.forEach(([nodeId, description]) => {
+                taskDescriptions.set(parseInt(nodeId), description);
+            });
+            
+            setTimeout(() => {
+                flowData.taskDescriptions.forEach(([nodeId]) => {
+                    updateDescriptionButton(parseInt(nodeId));
+                });
+            }, 300);
+        }
+        
+        alert(`Fluxo "${flowName}" carregado com sucesso!`);
     }
 }
 
@@ -1978,6 +2172,115 @@ async function exportDocumentationWord() {
     }
 }
 
+function exportEditableFlow() {
+    const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+    
+    const flowData = {
+        // Dados principais do Drawflow
+        drawflow: editor.export(),
+        
+        // Todos os metadados necessários para reconstrução completa
+        metadata: {
+            processName: processName,
+            actors: actors,
+            selectedColor: selectedColor,
+            colors: colors,
+            connectionLabels: Array.from(connectionLabels.entries()),
+            taskDescriptions: Array.from(taskDescriptions.entries()),
+            nodeIdCounter: nodeIdCounter,
+            timestamp: new Date().toISOString(),
+            version: "1.0"
+        }
+    };
+
+    // Criar blob e link de download
+    const blob = new Blob([JSON.stringify(flowData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // Criar elemento de download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${processName.replace(/[^a-z0-9]/gi, '_')}.meipperflow`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Limpar
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 100);
+}
+
+function loadFlowFromFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const flowData = JSON.parse(e.target.result);
+            
+            // Verificar se é um arquivo válido
+            if (!flowData.drawflow || !flowData.metadata) {
+                throw new Error("Arquivo inválido");
+            }
+
+            if (confirm('Carregar este fluxo? O fluxo atual será substituído.')) {
+                clearAll(); // Limpa o fluxo atual
+                
+                // Restaurar metadados
+                actors = flowData.metadata.actors || {};
+                selectedColor = flowData.metadata.selectedColor || COLORS[0];
+                colors = flowData.metadata.colors || [...COLORS];
+                nodeIdCounter = flowData.metadata.nodeIdCounter || 1;
+                
+                // Restaurar nome do processo
+                document.getElementById('process-name').value = flowData.metadata.processName || '';
+                
+                // Importar o fluxo
+                editor.import(flowData.drawflow);
+                
+                // Restaurar labels de conexão
+                if (flowData.metadata.connectionLabels) {
+                    const labelContainer = document.querySelector('.connection-label-container') || 
+                                          createLabelContainer();
+                    
+                    flowData.metadata.connectionLabels.forEach(([key, labelData]) => {
+                        const [sourceId, targetId] = key.split('-');
+                        createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+                    });
+                }
+                
+                // Restaurar descrições de tarefas
+                if (flowData.metadata.taskDescriptions) {
+                    flowData.metadata.taskDescriptions.forEach(([nodeId, description]) => {
+                        taskDescriptions.set(parseInt(nodeId), description);
+                        updateDescriptionButton(parseInt(nodeId));
+                    });
+                }
+                
+                updateActorSelect();
+                updateActorsList();
+                updateProcessInfo();
+                renderColorPicker();
+                
+                alert('Fluxo carregado com sucesso!');
+            }
+        } catch (error) {
+            console.error("Erro ao carregar fluxo:", error);
+            alert("Erro ao carregar o arquivo. Certifique-se de que é um arquivo .meipperflow válido.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function createLabelContainer() {
+    const container = document.createElement('div');
+    container.className = 'connection-label-container';
+    document.getElementById('drawflow').appendChild(container);
+    return container;
+}
+
 // ======================
 // FUNÇÕES UTILITÁRIAS
 // ======================
@@ -2000,35 +2303,38 @@ function hideLoading() {
 
 function clearAll() {
     if (confirm('Tem certeza que deseja limpar todo o fluxo?')) {
-        connectionLabels.clear();
-        labelUpdateCallbacks.clear();
-        taskDescriptions.clear();
+        // Limpar dados do Drawflow
         editor.clear();
         
-        const labelContainer = document.querySelector('.connection-label-container');
-        if (labelContainer) labelContainer.remove();
-        
-        const container = document.getElementById('drawflow');
-        container.innerHTML = '';
-        
-        editor = new Drawflow(container);
-        editor.start();
-        editor.reroute = true;
-        editor.reroute_fix_curvature = true;
-        editor.force_first_input = false;
-        
+        // Limpar dados da aplicação
+        actors = {};
+        selectedColor = COLORS[0];
+        colors = [...COLORS];
         selectedNodeId = null;
         gatewayMode = false;
         nodeIdCounter = 1;
+        taskDescriptions.clear();
+        connectionLabels.clear();
+        labelUpdateCallbacks.clear();
         
+        // Limpar UI
+        document.getElementById('process-name').value = '';
+        updateActorSelect();
+        updateActorsList();
+        updateProcessInfo();
+        renderColorPicker();
+        
+        // Limpar container de labels
+        const labelContainer = document.querySelector('.connection-label-container');
+        if (labelContainer) labelContainer.remove();
+        
+        // Resetar histórico
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
-        
-        setupDrawflowEvents();
-        saveState();
     }
 }
+
 
 // Listener para nome do processo
 const processNameInput = document.getElementById('process-name');
