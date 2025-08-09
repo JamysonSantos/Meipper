@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
+document.addEventListener("DOMContentLoaded", () => {
 const firebaseConfig = {
   apiKey: "AIzaSyC-V5suvNo46FndhUbqMiIomiuVma3li-w",
   authDomain: "meipper-74267.firebaseapp.com",
