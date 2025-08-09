@@ -275,61 +275,15 @@
                 <div class="instructions" style="margin-top: 20px;">
                     <p>Selecione um fluxo para carregá-lo (substituirá o fluxo atual)</p>
                 </div>
-            <div id="auth-popup" class="popup-overlay" style="display: none;">
-  <div class="auth-popup-content">
-    <img src="logomeipper02.png" alt="Logo Meipper" class="auth-logo">
-    
-    <div id="login-form">
-      <div class="form-group">
-        <input type="email" id="login-email" placeholder="E-mail" required>
-      </div>
-      <div class="form-group">
-        <input type="password" id="login-password" placeholder="Senha" required>
-      </div>
-      <div class="auth-buttons">
-        <button id="login-btn" class="modern-btn primary">Login</button>
-        <button id="show-register-btn" class="modern-btn secondary">Criar conta</button>
-      </div>
-      <div class="forgot-password">
-        <a href="#" id="forgot-password-link">Esqueci minha senha</a>
-      </div>
+            </div>
+        </div>
     </div>
-
-    <div id="register-form" style="display: none;">
-      <div class="form-group">
-        <input type="email" id="register-email" placeholder="E-mail" required>
-      </div>
-      <div class="form-group password-group">
-        <input type="password" id="register-password" placeholder="Criar senha" required>
-        <span class="toggle-password" data-target="register-password">👁️</span>
-      </div>
-      <div class="form-group password-group">
-        <input type="password" id="confirm-password" placeholder="Confirmar senha" required>
-        <span class="toggle-password" data-target="confirm-password">👁️</span>
-      </div>
-      <div class="auth-buttons">
-        <button id="register-btn" class="modern-btn primary">Cadastrar</button>
-        <button id="show-login-btn" class="modern-btn secondary">Voltar para Login</button>
-      </div>
-    </div>
-
-    <div id="forgot-password-form" style="display: none;">
-      <div class="form-group">
-        <input type="email" id="reset-email" placeholder="Digite seu e-mail" required>
-      </div>
-      <div class="auth-buttons">
-        <button id="send-reset-btn" class="modern-btn primary">Enviar link de recuperação</button>
-        <button id="back-to-login-btn" class="modern-btn secondary">Voltar para Login</button>
-      </div>
-    </div>
-  </div>
 </div>
 
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/docx/build/index.js"></script>
-    <script type="module" src="firebase-auth.js"></script>
-    <script type="module" src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
