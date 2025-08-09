@@ -17,13 +17,17 @@
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="header-btn secondary" data-action="clear-all">
+                    <button class="header-btn secondary" data-action="show-saved-flows">
                         <span class="btn-icon"></span>
-                        <span class="btn-text">Limpar tudo</span>
+                        <span class="btn-text">Fluxos Salvos</span>
                     </button>
                     <button class="header-btn secondary" data-action="load-flow">
                         <span class="btn-icon"></span>
                         <span class="btn-text">Carregar</span>
+                    </button>
+                    <button class="header-btn secondary" data-action="clear-all">
+                        <span class="btn-icon"></span>
+                        <span class="btn-text">Limpar tudo</span>
                     </button>
                     <button class="header-btn primary" data-action="save-flow">
                         <span class="btn-icon"></span>
@@ -55,6 +59,11 @@
                                     <span class="btn-icon">📝</span>
                                     <span class="btn-text">Documentação (Word)</span>
                                 </button>
+                                <button class="export-option" data-action="export-editable">
+                                <span class="btn-icon">💾</span>
+                                <span class="btn-text">Fluxo Editável (.meipperflow)</span>
+                                </button>
+                              </div>
                             </div>
                         </div>
                     </div>
@@ -249,7 +258,29 @@
             <h3 id="loading-text">Processando...</h3>
             <p id="loading-subtitle">Aguarde um momento</p>
         </div>
+      </div>
+
+    <!-- Saved Flows Popup (AGORA FORA DA LOADING OVERLAY) -->
+    <div id="saved-flows-popup" class="popup-overlay" style="display: none;">
+    <div class="popup-content">
+        <div class="popup-header">
+            <h3>Biblioteca de Fluxos</h3>
+            <button class="popup-close" id="close-saved-flows-popup">×</button>
+        </div>
+        <div class="popup-body">
+            <div class="search-container">
+                <input type="text" id="flow-search" placeholder="Buscar fluxo..." class="search-input">
+            </div>
+            <div id="saved-flows-container" class="flows-container">
+                <!-- Os fluxos serão carregados aqui -->
+                <div class="no-flows-message" style="display: none;">Nenhum fluxo salvo ainda</div>
+                <div class="instructions" style="margin-top: 20px;">
+                    <p>Selecione um fluxo para carregá-lo (substituirá o fluxo atual)</p>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
