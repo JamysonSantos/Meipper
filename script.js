@@ -1188,90 +1188,120 @@ function editConnectionLabel(event, labelElement) {
 
 function editTaskText(event, nodeId) {
     event.stopPropagation();
-    const element = event.target;
-    const originalText = element.textContent;
+    
+    // Ignorar se o clique foi no botão de descrição
+    if (event.target.classList.contains('task-description-btn')) {
+        return;
+    }
 
-    element.setAttribute('contenteditable', 'true');
-    element.focus();
+    const taskContent = event.target.closest('.task-content');
+    if (!taskContent) return;
 
+    // Salvar o estado original
+    const originalHTML = taskContent.innerHTML;
+    const originalText = taskContent.textContent.replace('+', '').trim();
+    const originalStyle = taskContent.getAttribute('style');
+    const descriptionBtn = taskContent.querySelector('.task-description-btn');
+
+    // Remover o botão temporariamente para edição
+    if (descriptionBtn) {
+        descriptionBtn.style.display = 'none';
+    }
+
+    // Configurar para edição
+    taskContent.setAttribute('contenteditable', 'true');
+    taskContent.style.textAlign = 'center';
+    taskContent.focus();
+
+    // Selecionar todo o texto (exceto o botão se estiver visível)
     const range = document.createRange();
-    range.selectNodeContents(element);
+    range.selectNodeContents(taskContent);
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
 
     function finishEditing() {
-        element.removeAttribute('contenteditable');
-        const newText = element.textContent.trim();
+        taskContent.removeAttribute('contenteditable');
+        
+        // Obter o novo texto limpando possíveis elementos HTML
+        const newText = taskContent.textContent.trim();
+        
+        // Restaurar o botão
+        if (descriptionBtn) {
+            descriptionBtn.style.display = '';
+            // Remover qualquer "+" que possa ter sido adicionado ao texto
+            taskContent.innerHTML = newText.replace(/\+$/g, '');
+            taskContent.appendChild(descriptionBtn);
+        } else {
+            taskContent.innerHTML = newText.replace(/\+$/g, '');
+        }
 
+        // Restaurar estilo original
+        if (originalStyle) {
+            taskContent.setAttribute('style', originalStyle);
+        } else {
+            taskContent.removeAttribute('style');
+        }
+        taskContent.style.textAlign = 'center';
+
+        // Atualizar apenas se o texto mudou
         if (newText && newText !== originalText) {
-            // 1) Atualiza o data interno do Drawflow
             const nodeObj = editor.getNodeFromId(nodeId);
             if (nodeObj) {
                 nodeObj.data = nodeObj.data || {};
-                nodeObj.data.name = newText;
-            }
+                nodeObj.data.name = newText.replace(/\+$/g, '');
 
-            // 2) Atualiza a string html interna com o HTML atual do DOM do nó
-            try {
-                const wrapper = document.getElementById(`node-${nodeId}`);
-                if (wrapper) {
-                    // procura o bloco interno que representa o conteúdo do nó
-                    const inner = wrapper.querySelector('.task-node') || wrapper.querySelector('.gateway-node') || wrapper.querySelector('.path-block');
-                    if (inner) {
-                        // atualiza o botão de descrição para manter o texto atualizado (escapa aspas simples)
-                        const contentEl = inner.querySelector('.task-content');
-                        if (contentEl) {
-                            const safeText = newText.replace(/'/g, "\\'");
-                            contentEl.innerHTML = `${newText}<button class="task-description-btn" onclick="showTaskDescription(${nodeId}, '${safeText}')">+</button>`;
-                        }
-                        // setar html na estrutura interna do Drawflow
-                        if (editor && editor.drawflow && editor.drawflow.drawflow && editor.drawflow.drawflow.Home && editor.drawflow.drawflow.Home.data) {
-                            const internal = editor.drawflow.drawflow.Home.data[nodeId];
-                            if (internal) internal.html = inner.outerHTML;
+                try {
+                    const wrapper = document.getElementById(`node-${nodeId}`);
+                    if (wrapper) {
+                        const inner = wrapper.querySelector('.task-node');
+                        if (inner) {
+                            if (editor?.drawflow?.drawflow?.Home?.data?.[nodeId]) {
+                                editor.drawflow.drawflow.Home.data[nodeId].html = inner.outerHTML;
+                            }
                         }
                     }
+                } catch (err) {
+                    console.warn('Erro ao sincronizar node.html:', err);
                 }
-            } catch (err) {
-                console.warn('Erro ao sincronizar node.html:', err);
-            }
 
-            // 3) Garantir que o Drawflow sincronize o data interno
-            try {
-                // passa o objeto data (pode ser vazio se preferir só forçar o update)
-                editor.updateNodeDataFromId(nodeId, (nodeObj && nodeObj.data) || {});
-            } catch (err) {
-                // fallback: inspecione editor.drawflow... no console
-                console.warn('updateNodeDataFromId falhou:', err);
+                editor.updateNodeDataFromId(nodeId, nodeObj.data || {});
+                saveState();
             }
-
-            // 4) Salva o estado (histórico / localStorage)
-            saveState();
         } else {
-            element.textContent = originalText;
+            // Restaurar original se cancelado ou sem mudanças
+            taskContent.innerHTML = originalHTML;
+            if (originalStyle) {
+                taskContent.setAttribute('style', originalStyle);
+            }
         }
-
+        
         cleanup();
     }
 
     function handleKeydown(e) {
-        e.stopPropagation();
         if (e.key === 'Enter') {
             e.preventDefault();
             finishEditing();
         } else if (e.key === 'Escape') {
-            element.textContent = originalText;
-            finishEditing();
+            taskContent.innerHTML = originalHTML;
+            if (originalStyle) {
+                taskContent.setAttribute('style', originalStyle);
+            }
+            if (descriptionBtn) {
+                descriptionBtn.style.display = '';
+            }
+            cleanup();
         }
     }
 
     function cleanup() {
-        element.removeEventListener('blur', finishEditing);
-        element.removeEventListener('keydown', handleKeydown);
+        taskContent.removeEventListener('blur', finishEditing);
+        taskContent.removeEventListener('keydown', handleKeydown);
     }
 
-    element.addEventListener('blur', finishEditing);
-    element.addEventListener('keydown', handleKeydown);
+    taskContent.addEventListener('blur', finishEditing);
+    taskContent.addEventListener('keydown', handleKeydown);
 }
 
 function editGatewayText(event, nodeId) {
