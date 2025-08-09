@@ -686,7 +686,7 @@ function createStartNode() {
     const html = `<div class="start-node">▶</div>`;
     const pos = getNextPosition();
     
-    editor.addNode('start', 0, 1, pos.x - 50, pos.y + 30, 'start', { name: 'Início' }, html);
+    editor.addNode('start', 0, 1, pos.x + 50, pos.y - 10, 'start', { name: 'Início' }, html);
     return nodeId;
 }
 
