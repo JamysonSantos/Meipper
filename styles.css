@@ -687,10 +687,7 @@ body {
 #drawflow {
     width: 100%;
     height: 100%;
-    background-color: #f1f5f9;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+    background: #f8fafc;
 }
 
 /* Custom Node Styles */
