@@ -5,285 +5,457 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Meipper - Do zero ao fluxo em poucos cliques.</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.css">
-    <link rel="icon" href="faviconmeipper01.png" type="image/png">
+    <link rel="icon" href="faviconmeipper.png" type="image/png">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <img src="logomeipper02.png" alt="Logo Meipper" class="logo" />
+    <!-- Auth Loading Overlay -->
+    <div id="auth-loading-overlay" class="auth-loading-overlay">
+        <div class="auth-loading-content">
+            <div class="auth-loading-spinner"></div>
+            <h3>Verificando autenticação...</h3>
+            <p>Aguarde um momento</p>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <img src="logomeipper02.png" alt="Logo Meipper" class="auth-logo" />
+                <h2>Entrar no Meipper</h2>
+                <p>Acesse sua conta para continuar</p>
             </div>
-            <div class="header-right">
-                <div class="header-actions">
-                    <button class="header-btn secondary" data-action="show-saved-flows">
-                        <span class="btn-icon"></span>
-                        <span class="btn-text">Fluxos Salvos</span>
-                    </button>
-                    <button class="header-btn secondary" data-action="load-flow">
-                        <span class="btn-icon"></span>
-                        <span class="btn-text">Carregar</span>
-                    </button>
-                    <button class="header-btn secondary" data-action="clear-all">
-                        <span class="btn-icon"></span>
-                        <span class="btn-text">Limpar tudo</span>
-                    </button>
-                    <button class="header-btn primary" data-action="save-flow">
-                        <span class="btn-icon"></span>
-                        <span class="btn-text">Salvar</span>
-                    </button>
-                    <div class="export-dropdown">
-                        <button class="header-btn export" data-action="toggle-export">
-                            <span class="btn-icon"></span>
-                            <span class="btn-text">Exportar</span>
-                            <span class="dropdown-arrow">▼</span>
+            
+            <form id="login-form" class="auth-form">
+                <div class="auth-form-group">
+                    <label for="login-email">E-mail:</label>
+                    <input type="email" id="login-email" required placeholder="seu@email.com">
+                </div>
+                
+                <div class="auth-form-group">
+                    <label for="login-password">Senha:</label>
+                    <div class="password-input-container">
+                        <input type="password" id="login-password" required placeholder="Digite sua senha">
+                        <button type="button" class="password-toggle" data-target="login-password">
+                            <span class="eye-icon">👁️</span>
                         </button>
-                        <div class="export-menu" id="export-menu">
-                            <div class="export-section">
-                                <button class="export-option" data-action="export-png">
-                                    <span class="btn-icon">🖼️</span>
-                                    <span class="btn-text">Fluxo (PNG)</span>
-                                </button>
-                                <button class="export-option" data-action="export-pdf">
-                                    <span class="btn-icon">📄</span>
-                                    <span class="btn-text">Fluxo (PDF)</span>
-                                </button>
+                    </div>
+                </div>
+                
+                <div class="auth-buttons">
+                    <button type="submit" class="auth-btn primary" id="login-btn">
+                        <span class="btn-text">Entrar</span>
+                        <div class="btn-spinner" style="display: none;"></div>
+                    </button>
+                    <button type="button" class="auth-btn secondary" id="show-register-btn">
+                        Criar conta
+                    </button>
+                </div>
+                
+                <div class="auth-footer">
+                    <button type="button" class="forgot-password-link" id="show-forgot-password">
+                        Esqueci minha senha
+                    </button>
+                </div>
+            </form>
+            
+            <div id="login-error" class="auth-error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <img src="logomeipper02.png" alt="Logo Meipper" class="auth-logo" />
+                <h2>Criar Conta</h2>
+                <p>Cadastre-se para começar a usar o Meipper</p>
+            </div>
+            
+            <form id="register-form" class="auth-form">
+                <div class="auth-form-group">
+                    <label for="register-email">E-mail:</label>
+                    <input type="email" id="register-email" required placeholder="seu@email.com">
+                </div>
+                
+                <div class="auth-form-group">
+                    <label for="register-password">Criar senha:</label>
+                    <div class="password-input-container">
+                        <input type="password" id="register-password" required placeholder="Digite uma senha forte" minlength="6">
+                        <button type="button" class="password-toggle" data-target="register-password">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                    <small class="password-hint">Mínimo 6 caracteres</small>
+                </div>
+                
+                <div class="auth-form-group">
+                    <label for="confirm-password">Confirmar senha:</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirm-password" required placeholder="Digite novamente a senha">
+                        <button type="button" class="password-toggle" data-target="confirm-password">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="auth-buttons">
+                    <button type="submit" class="auth-btn primary" id="register-btn">
+                        <span class="btn-text">Cadastrar</span>
+                        <div class="btn-spinner" style="display: none;"></div>
+                    </button>
+                </div>
+                
+                <div class="auth-footer">
+                    <button type="button" class="back-to-login" id="back-to-login">
+                        ← Voltar ao login
+                    </button>
+                </div>
+            </form>
+            
+            <div id="register-error" class="auth-error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <img src="logomeipper02.png" alt="Logo Meipper" class="auth-logo" />
+                <h2>Recuperar Senha</h2>
+                <p>Digite seu e-mail para receber instruções de recuperação</p>
+            </div>
+            
+            <form id="forgot-password-form" class="auth-form">
+                <div class="auth-form-group">
+                    <label for="forgot-email">E-mail:</label>
+                    <input type="email" id="forgot-email" required placeholder="seu@email.com">
+                </div>
+                
+                <div class="auth-buttons">
+                    <button type="submit" class="auth-btn primary" id="forgot-password-btn">
+                        <span class="btn-text">Enviar instruções</span>
+                        <div class="btn-spinner" style="display: none;"></div>
+                    </button>
+                </div>
+                
+                <div class="auth-footer">
+                    <button type="button" class="back-to-login" id="back-to-login-from-forgot">
+                        ← Voltar ao login
+                    </button>
+                </div>
+            </form>
+            
+            <div id="forgot-password-error" class="auth-error" style="display: none;"></div>
+            <div id="forgot-password-success" class="auth-success" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <div class="success-icon">✅</div>
+                <h2>Cadastro realizado com sucesso!</h2>
+                <p>Use seu e-mail e senha cadastrados para entrar</p>
+            </div>
+            
+            <div class="auth-buttons">
+                <button type="button" class="auth-btn primary" id="success-ok-btn">
+                    Fazer Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Content (hidden until authenticated) -->
+    <div id="main-app" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <img src="logomeipper02.png" alt="Logo Meipper" class="logo" />
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="header-btn secondary" data-action="show-saved-flows">
+                            <span class="btn-icon"></span>
+                            <span class="btn-text">Fluxos Salvos</span>
+                        </button>
+                        <button class="header-btn secondary" data-action="load-flow">
+                            <span class="btn-icon"></span>
+                            <span class="btn-text">Carregar</span>
+                        </button>
+                        <button class="header-btn secondary" data-action="clear-all">
+                            <span class="btn-icon"></span>
+                            <span class="btn-text">Limpar tudo</span>
+                        </button>
+                        <button class="header-btn primary" data-action="save-flow">
+                            <span class="btn-icon"></span>
+                            <span class="btn-text">Salvar</span>
+                        </button>
+                        <div class="export-dropdown">
+                            <button class="header-btn export" data-action="toggle-export">
+                                <span class="btn-icon"></span>
+                                <span class="btn-text">Exportar</span>
+                                <span class="dropdown-arrow">▼</span>
+                            </button>
+                            <div class="export-menu" id="export-menu">
+                                <div class="export-section">
+                                    <button class="export-option" data-action="export-png">
+                                        <span class="btn-icon">🖼️</span>
+                                        <span class="btn-text">Fluxo (PNG)</span>
+                                    </button>
+                                    <button class="export-option" data-action="export-pdf">
+                                        <span class="btn-icon">📄</span>
+                                        <span class="btn-text">Fluxo (PDF)</span>
+                                    </button>
+                                </div>
+                                <div class="export-section">
+                                    <button class="export-option" data-action="export-doc-pdf">
+                                        <span class="btn-icon">📋</span>
+                                        <span class="btn-text">Documentação (PDF)</span>
+                                    </button>
+                                    <button class="export-option" data-action="export-doc-word">
+                                        <span class="btn-icon">📝</span>
+                                        <span class="btn-text">Documentação (Word)</span>
+                                    </button>
+                                    <button class="export-option" data-action="export-editable">
+                                    <span class="btn-icon">💾</span>
+                                    <span class="btn-text">Fluxo Editável (.meipperflow)</span>
+                                    </button>
+                                  </div>
+                                </div>
                             </div>
-                            <div class="export-section">
-                                <button class="export-option" data-action="export-doc-pdf">
-                                    <span class="btn-icon">📋</span>
-                                    <span class="btn-text">Documentação (PDF)</span>
-                                </button>
-                                <button class="export-option" data-action="export-doc-word">
-                                    <span class="btn-icon">📝</span>
-                                    <span class="btn-text">Documentação (Word)</span>
-                                </button>
-                                <button class="export-option" data-action="export-editable">
-                                <span class="btn-icon">💾</span>
-                                <span class="btn-text">Fluxo Editável (.meipperflow)</span>
-                                </button>
-                              </div>
-                            </div>
+                        <button class="header-btn secondary" id="logout-btn">
+                            <span class="btn-icon">🚪</span>
+                            <span class="btn-text">Sair</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Process Info Card -->
+        <div class="process-info-card">
+            <div class="process-info-content">
+                <div class="process-info-left">
+                    <div class="process-name-section">
+                        <div>
+                            <h3>Nome do Processo:</h3>
+                            <div class="process-name" id="process-display-name">Processo sem nome</div>
+                        </div>
+                    </div>
+                    <div class="actors-section">
+                        <div>
+                            <h3>Responsáveis:</h3>
+                            <div class="actors-legend" id="actors-legend"></div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Process Info Card -->
-    <div class="process-info-card">
-        <div class="process-info-content">
-            <div class="process-info-left">
-                <div class="process-name-section">
-                    <div>
-                        <h3>Nome do Processo:</h3>
-                        <div class="process-name" id="process-display-name">Processo sem nome</div>
-                    </div>
-                </div>
-                <div class="actors-section">
-                    <div>
-                        <h3>Responsáveis:</h3>
-                        <div class="actors-legend" id="actors-legend"></div>
-                    </div>
+                <div class="zoom-info">
+                    <div id="zoom-display"></div>
                 </div>
             </div>
-            <div class="zoom-info">
-                <div id="zoom-display"></div>
-            </div>
         </div>
-    </div>
 
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <!-- Process Name -->
-            <div class="form-group">
-                <label for="process-name">Nome do Processo:</label>
-                <input type="text" id="process-name" placeholder="Ex: Aprovação de Faturas">
-            </div>
-
-            <!-- Undo/Redo Controls -->
-            <div class="history-controls">
-                <button class="modern-btn warning" id="undo-btn" data-action="undo" disabled>
-                    <span class="btn-icon">↶</span>
-                    <span class="btn-text">Desfazer</span>
-                </button>
-                <button class="modern-btn warning" id="redo-btn" data-action="redo" disabled>
-                    <span class="btn-icon">↷</span>
-                    <span class="btn-text">Refazer</span>
-                </button>
-            </div>
-
-            <!-- Actor Management -->
-            <div class="form-group">
-                <label for="actor-input">Responsável/Setor/Cargo:</label>
-                <textarea id="actor-input" placeholder="Ex: Financeiro"></textarea>
-                
-                <label>Cor:</label>
-                <div class="color-picker" id="color-picker"></div>
-                <button class="modern-btn secondary small" data-action="more-colors">
-                    <span class="btn-icon">🎨</span>
-                    <span class="btn-text">Mais cores</span>
-                </button>
-                
-                <button class="modern-btn primary" data-action="add-actor">
-                    <span class="btn-icon">👤</span>
-                    <span class="btn-text">Salvar Responsável</span>
-                </button>
-
-                <div class="actors-list" id="actors-list"></div>
-
-                <label for="actor-select">Selecionar Responsável:</label>
-                <select id="actor-select">
-                    <option value="">Selecione...</option>
-                </select>
-            </div>
-
-            <!-- Task Management -->
-            <div class="form-group">
-                <label>Gerenciar Tarefas:</label>
-                
-                <button class="modern-btn success large" data-action="add-start-task">
-                    <span class="btn-icon">▶</span>
-                    <span class="btn-text">Iniciar Processo</span>
-                </button>
-
-                <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
-                
-                <!-- Task Description Field -->
-                <label for="task-description-input">Descrição da Tarefa (opcional):</label>
-                <textarea id="task-description-input" placeholder="Descreva como executar esta tarefa..." style="min-height: 100px;"></textarea>
-
-                <button class="modern-btn primary" data-action="add-task">
-                    <span class="btn-icon">➕</span>
-                    <span class="btn-text">Adicionar Tarefa</span>
-                </button>
-
-                <button class="modern-btn purple" data-action="start-gateway">
-                    <span class="btn-icon">◆</span>
-                    <span class="btn-text">Inserir caminhos para tarefa</span>
-                </button>
-
-                <button class="modern-btn danger" data-action="add-end-task">
-                    <span class="btn-icon">⏹</span>
-                    <span class="btn-text">Finalizar Processo</span>
-                </button>
-            </div>
-
-            <!-- Gateway Panel -->
-            <div id="gateway-panel" class="gateway-panel" style="display: none;">
-                <h3>Caminhos de Decisão</h3>
-                
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Process Name -->
                 <div class="form-group">
-                    <label for="gateway-question">Pergunta de decisão:</label>
-                    <textarea id="gateway-question" placeholder="Ex: A solicitação foi aprovada?"></textarea>
+                    <label for="process-name">Nome do Processo:</label>
+                    <input type="text" id="process-name" placeholder="Ex: Aprovação de Faturas">
                 </div>
 
-                <div class="gateway-paths" id="gateway-paths"></div>
+                <!-- Undo/Redo Controls -->
+                <div class="history-controls">
+                    <button class="modern-btn warning" id="undo-btn" data-action="undo" disabled>
+                        <span class="btn-icon">↶</span>
+                        <span class="btn-text">Desfazer</span>
+                    </button>
+                    <button class="modern-btn warning" id="redo-btn" data-action="redo" disabled>
+                        <span class="btn-icon">↷</span>
+                        <span class="btn-text">Refazer</span>
+                    </button>
+                </div>
 
-                <div class="gateway-buttons">
-                    <button class="modern-btn primary" data-action="add-gateway-path">
+                <!-- Actor Management -->
+                <div class="form-group">
+                    <label for="actor-input">Responsável/Setor/Cargo:</label>
+                    <textarea id="actor-input" placeholder="Ex: Financeiro"></textarea>
+                    
+                    <label>Cor:</label>
+                    <div class="color-picker" id="color-picker"></div>
+                    <button class="modern-btn secondary small" data-action="more-colors">
+                        <span class="btn-icon">🎨</span>
+                        <span class="btn-text">Mais cores</span>
+                    </button>
+                    
+                    <button class="modern-btn primary" data-action="add-actor">
+                        <span class="btn-icon">👤</span>
+                        <span class="btn-text">Salvar Responsável</span>
+                    </button>
+
+                    <div class="actors-list" id="actors-list"></div>
+
+                    <label for="actor-select">Selecionar Responsável:</label>
+                    <select id="actor-select">
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+
+                <!-- Task Management -->
+                <div class="form-group">
+                    <label>Gerenciar Tarefas:</label>
+                    
+                    <button class="modern-btn success large" data-action="add-start-task">
+                        <span class="btn-icon">▶</span>
+                        <span class="btn-text">Iniciar Processo</span>
+                    </button>
+
+                    <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
+                    
+                    <!-- Task Description Field -->
+                    <label for="task-description-input">Descrição da Tarefa (opcional):</label>
+                    <textarea id="task-description-input" placeholder="Descreva como executar esta tarefa..." style="min-height: 100px;"></textarea>
+
+                    <button class="modern-btn primary" data-action="add-task">
                         <span class="btn-icon">➕</span>
-                        <span class="btn-text">Adicionar caminho</span>
+                        <span class="btn-text">Adicionar Tarefa</span>
                     </button>
-                    <button class="modern-btn success" data-action="finalize-gateway">
-                        <span class="btn-icon">✅</span>
-                        <span class="btn-text">Confirmar</span>
+
+                    <button class="modern-btn purple" data-action="start-gateway">
+                        <span class="btn-icon">◆</span>
+                        <span class="btn-text">Inserir caminhos para tarefa</span>
                     </button>
-                    <button class="modern-btn secondary" data-action="cancel-gateway">
-                        <span class="btn-icon">❌</span>
-                        <span class="btn-text">Cancelar</span>
+
+                    <button class="modern-btn danger" data-action="add-end-task">
+                        <span class="btn-icon">⏹</span>
+                        <span class="btn-text">Finalizar Processo</span>
                     </button>
+                </div>
+
+                <!-- Gateway Panel -->
+                <div id="gateway-panel" class="gateway-panel" style="display: none;">
+                    <h3>Caminhos de Decisão</h3>
+                    
+                    <div class="form-group">
+                        <label for="gateway-question">Pergunta de decisão:</label>
+                        <textarea id="gateway-question" placeholder="Ex: A solicitação foi aprovada?"></textarea>
+                    </div>
+
+                    <div class="gateway-paths" id="gateway-paths"></div>
+
+                    <div class="gateway-buttons">
+                        <button class="modern-btn primary" data-action="add-gateway-path">
+                            <span class="btn-icon">➕</span>
+                            <span class="btn-text">Adicionar caminho</span>
+                        </button>
+                        <button class="modern-btn success" data-action="finalize-gateway">
+                            <span class="btn-icon">✅</span>
+                            <span class="btn-text">Confirmar</span>
+                        </button>
+                        <button class="modern-btn secondary" data-action="cancel-gateway">
+                            <span class="btn-icon">❌</span>
+                            <span class="btn-text">Cancelar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="instructions">
+                    <h4>💡 Como usar:</h4>
+                    <ul>
+                        <li>Clique em uma tarefa para selecioná-la</li>
+                        <li>Duplo clique para editar texto das tarefas e labels</li>
+                        <li>Clique no botão "+" para ver/editar descrições</li>
+                        <li>Novas tarefas serão adicionadas após a selecionada</li>
+                        <li>Clique no botão direito ou em DELETE para excluir tarefas</li>
+                        <li>Arraste tarefas para reposicioná-las</li>
+                        <li>Use scroll do mouse para zoom</li>
+                        <li>Use Ctrl+Z/Ctrl+Y para desfazer/refazer</li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- Instructions -->
-            <div class="instructions">
-                <h4>💡 Como usar:</h4>
-                <ul>
-                    <li>Clique em uma tarefa para selecioná-la</li>
-                    <li>Duplo clique para editar texto das tarefas e labels</li>
-                    <li>Clique no botão "+" para ver/editar descrições</li>
-                    <li>Novas tarefas serão adicionadas após a selecionada</li>
-                    <li>Clique no botão direito ou em DELETE para excluir tarefas</li>
-                    <li>Arraste tarefas para reposicioná-las</li>
-                    <li>Use scroll do mouse para zoom</li>
-                    <li>Use Ctrl+Z/Ctrl+Y para desfazer/refazer</li>
-                </ul>
+            <!-- Canvas Area -->
+            <div class="canvas-container">
+                <!-- Canvas Controls -->
+                <div class="canvas-controls">
+                    <button data-action="zoom-in">🔍 +</button>
+                    <button data-action="zoom-out">🔍 -</button>
+                    <button data-action="reset-zoom">⌂ Reset</button>
+                </div>
+
+                <!-- Drawflow Container -->
+                <div id="drawflow"></div>
             </div>
         </div>
 
-        <!-- Canvas Area -->
-        <div class="canvas-container">
-            <!-- Canvas Controls -->
-            <div class="canvas-controls">
-                <button data-action="zoom-in">🔍 +</button>
-                <button data-action="zoom-out">🔍 -</button>
-                <button data-action="reset-zoom">⌂ Reset</button>
-            </div>
-
-
-            <!-- Drawflow Container -->
-            <div id="drawflow"></div>
-        </div>
-    </div>
-
-    <!-- Description Popup -->
-    <div id="description-popup" class="description-popup">
-        <div class="description-popup-content">
-            <div class="description-popup-header">
-                <h3 class="description-popup-title" id="description-popup-title">Descrição da Tarefa</h3>
-                <button class="description-popup-close" id="description-popup-close">×</button>
-            </div>
-            <div class="description-popup-body">
-                <label for="description-popup-textarea">Descrição detalhada:</label>
-                <textarea id="description-popup-textarea" placeholder="Descreva detalhadamente como executar esta tarefa..."></textarea>
-            </div>
-            <div class="description-popup-footer">
-                <button class="modern-btn secondary" id="description-popup-cancel">Cancelar</button>
-                <button class="modern-btn primary" id="description-popup-save">Salvar</button>
+        <!-- Description Popup -->
+        <div id="description-popup" class="description-popup">
+            <div class="description-popup-content">
+                <div class="description-popup-header">
+                    <h3 class="description-popup-title" id="description-popup-title">Descrição da Tarefa</h3>
+                    <button class="description-popup-close" id="description-popup-close">×</button>
+                </div>
+                <div class="description-popup-body">
+                    <label for="description-popup-textarea">Descrição detalhada:</label>
+                    <textarea id="description-popup-textarea" placeholder="Descreva detalhadamente como executar esta tarefa..."></textarea>
+                </div>
+                <div class="description-popup-footer">
+                    <button class="modern-btn secondary" id="description-popup-cancel">Cancelar</button>
+                    <button class="modern-btn primary" id="description-popup-save">Salvar</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <h3 id="loading-text">Processando...</h3>
-            <p id="loading-subtitle">Aguarde um momento</p>
-        </div>
-      </div>
-
-    <!-- Saved Flows Popup (AGORA FORA DA LOADING OVERLAY) -->
-    <div id="saved-flows-popup" class="popup-overlay" style="display: none;">
-    <div class="popup-content">
-        <div class="popup-header">
-            <h3>Biblioteca de Fluxos</h3>
-            <button class="popup-close" id="close-saved-flows-popup">×</button>
-        </div>
-        <div class="popup-body">
-            <div class="search-container">
-                <input type="text" id="flow-search" placeholder="Buscar fluxo..." class="search-input">
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <h3 id="loading-text">Processando...</h3>
+                <p id="loading-subtitle">Aguarde um momento</p>
             </div>
-            <div id="saved-flows-container" class="flows-container">
-                <!-- Os fluxos serão carregados aqui -->
-                <div class="no-flows-message" style="display: none;">Nenhum fluxo salvo ainda</div>
-                <div class="instructions" style="margin-top: 20px;">
-                    <p>Selecione um fluxo para carregá-lo (substituirá o fluxo atual)</p>
+          </div>
+
+        <!-- Saved Flows Popup -->
+        <div id="saved-flows-popup" class="popup-overlay" style="display: none;">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>Biblioteca de Fluxos</h3>
+                <button class="popup-close" id="close-saved-flows-popup">×</button>
+            </div>
+            <div class="popup-body">
+                <div class="search-container">
+                    <input type="text" id="flow-search" placeholder="Buscar fluxo..." class="search-input">
+                </div>
+                <div id="saved-flows-container" class="flows-container">
+                    <!-- Os fluxos serão carregados aqui -->
+                    <div class="no-flows-message" style="display: none;">Nenhum fluxo salvo ainda</div>
+                    <div class="instructions" style="margin-top: 20px;">
+                        <p>Selecione um fluxo para carregá-lo (substituirá o fluxo atual)</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    </div>
 
+    <!-- Firebase Configuration -->
+    <script type="module" src="firebase-config.js"></script>
+    
+    <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/docx/build/index.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="auth.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
