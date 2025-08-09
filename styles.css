@@ -116,7 +116,7 @@ body {
 }
 
 .auth-modal.active .auth-modal-content {
-    transform: scale(1) translateY(0);
+    transform: scale(0.7) translateY(0);
 }
 
 .auth-modal-header {
