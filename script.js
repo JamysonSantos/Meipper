@@ -9,8 +9,8 @@ let colors = [...COLORS];
 let selectedNodeId = null;
 let gatewayMode = false;
 let gatewayPaths = [
-    { label: 'Caminho 1', pathName: 'Sim', task: '', description: '', actor: '', tasks: [] },
-    { label: 'Caminho 2', pathName: 'Não', task: '', description: '', actor: '', tasks: [] }
+    { label: 'Caminho 1', pathName: 'Não', task: '', description: '', actor: '', tasks: [] },
+    { label: 'Caminho 2', pathName: 'Sim', task: '', description: '', actor: '', tasks: [] }
 ];
 let nodeIdCounter = 1;
 
