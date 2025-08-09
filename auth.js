@@ -1,180 +1,81 @@
-// auth.js
-import { auth } from './firebase.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-// Elementos do DOM
-const authPopup = document.createElement('div');
-let styleEl = null;
+const firebaseConfig = {
+  apiKey: "AIzaSyC-V5suvNo46FndhUbqMiIomiuVma3li-w",
+  authDomain: "meipper-74267.firebaseapp.com",
+  projectId: "meipper-74267",
+  storageBucket: "meipper-74267.firebasestorage.app",
+  messagingSenderId: "619482964791",
+  appId: "1:619482964791:web:2937f0ecead659e54d30b2"
+};
 
-// Templates dos formulários
-const loginForm = `
-  <div class="auth-popup">
-    <h3>Acesse sua conta</h3>
-    <input type="email" id="login-email" placeholder="E-mail">
-    <div class="password-container">
-      <input type="password" id="login-password" placeholder="Senha">
-      <span class="toggle-password">👁️</span>
-    </div>
-    <button id="login-btn">Entrar</button>
-    <p class="auth-switch">Crie sua conta clicando aqui</p>
-  </div>
-`;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-const signupForm = `
-  <div class="auth-popup">
-    <h3>Crie sua conta</h3>
-    <input type="email" id="signup-email" placeholder="E-mail">
-    <div class="password-container">
-      <input type="password" id="signup-password" placeholder="Senha">
-      <span class="toggle-password">👁️</span>
-    </div>
-    <div class="password-container">
-      <input type="password" id="signup-confirm" placeholder="Confirme a senha">
-      <span class="toggle-password">👁️</span>
-    </div>
-    <button id="signup-btn">Cadastrar</button>
-    <p class="auth-switch">Já tem conta? Faça login</p>
-  </div>
-`;
-
-// Estilos
-const authStyles = `
-  .auth-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    z-index: 1000;
-    width: 300px;
+// 🔹 Verifica sessão ao abrir
+document.getElementById("popup-loading").style.display = "flex";
+onAuthStateChanged(auth, (user) => {
+  document.getElementById("popup-loading").style.display = "none";
+  if (user) {
+    document.getElementById("popup-login").style.display = "none";
+  } else {
+    document.getElementById("popup-login").style.display = "flex";
   }
-  .password-container {
-    position: relative;
-    margin: 10px 0;
-  }
-  .toggle-password {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    cursor: pointer;
-  }
-  .auth-switch {
-    cursor: pointer;
-    color: blue;
-    text-align: center;
-  }
-`;
+});
 
-// Mostrar popup de autenticação
-export function showAuthPopup(isLogin = true) {
-  authPopup.innerHTML = isLogin ? loginForm : signupForm;
-  
-  if (!document.contains(authPopup)) {
-    document.body.appendChild(authPopup);
-  }
-  
-  if (!styleEl) {
-    styleEl = document.createElement('style');
-    styleEl.textContent = authStyles;
-    document.head.appendChild(styleEl);
-  }
-  
-  setupAuthEvents(isLogin);
-}
+// 🔹 Login
+document.getElementById("btn-login").addEventListener("click", () => {
+  const email = document.getElementById("login-email").value;
+  const password = document.getElementById("login-password").value;
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      document.getElementById("popup-login").style.display = "none";
+    })
+    .catch(err => alert(err.message));
+});
 
-// Configurar eventos
-function setupAuthEvents(isLogin) {
-  // Alternar entre login/cadastro
-  authPopup.querySelector('.auth-switch')?.addEventListener('click', () => {
-    showAuthPopup(!isLogin);
-  });
-  
-  // Toggle para mostrar senha
-  authPopup.querySelectorAll('.toggle-password').forEach(toggle => {
-    toggle.addEventListener('click', (e) => {
-      const input = e.target.previousElementSibling;
-      input.type = input.type === 'password' ? 'text' : 'password';
-    });
-  });
-  
-  // Botão de ação
-  const actionBtn = isLogin 
-    ? authPopup.querySelector('#login-btn') 
-    : authPopup.querySelector('#signup-btn');
-  
-  actionBtn?.addEventListener('click', () => {
-    if (isLogin) loginUser();
-    else registerUser();
-  });
-}
-
-// Login do usuário
-async function loginUser() {
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
-  
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-    closeAuthPopup();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-// Registrar novo usuário
-async function registerUser() {
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-  const confirm = document.getElementById('signup-confirm').value;
-  
+// 🔹 Criar conta
+document.getElementById("btn-register").addEventListener("click", () => {
+  const email = document.getElementById("register-email").value;
+  const password = document.getElementById("register-password").value;
+  const confirm = document.getElementById("register-confirm").value;
   if (password !== confirm) {
-    alert("As senhas não coincidem!");
+    alert("Senhas não conferem!");
     return;
   }
-  
-  try {
-    await auth.createUserWithEmailAndPassword(email, password);
-    closeAuthPopup();
-  } catch (error) {
-    alert(error.message);
-  }
-}
+  createUserWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      alert("Conta criada! Use seu e-mail e senha para entrar.");
+      document.getElementById("popup-register").style.display = "none";
+      document.getElementById("popup-login").style.display = "flex";
+    })
+    .catch(err => alert(err.message));
+});
 
-// Fechar popup
-function closeAuthPopup() {
-  if (document.contains(authPopup)) {
-    document.body.removeChild(authPopup);
-  }
-}
+// 🔹 Esqueci senha
+document.getElementById("btn-forgot").addEventListener("click", () => {
+  const email = document.getElementById("forgot-email").value;
+  sendPasswordResetEmail(auth, email)
+    .then(() => alert("Link de recuperação enviado!"))
+    .catch(err => alert(err.message));
+});
 
-// Logout
-export async function logoutUser() {
-  try {
-    await auth.signOut();
-  } catch (error) {
-    console.error("Erro ao fazer logout:", error);
-  }
-}
+// 🔹 Trocar telas
+document.getElementById("btn-show-register").addEventListener("click", () => {
+  document.getElementById("popup-login").style.display = "none";
+  document.getElementById("popup-register").style.display = "flex";
+});
 
-// Atualizar UI de autenticação
-export function updateAuthUI() {
-  const user = auth.currentUser;
-  const authBtn = document.getElementById('auth-btn');
-  
-  if (authBtn) {
-    authBtn.textContent = user ? 'Sair' : 'Entrar';
-    authBtn.onclick = user ? logoutUser : () => showAuthPopup(true);
-  }
-}
+document.getElementById("btn-show-forgot").addEventListener("click", (e) => {
+  e.preventDefault();
+  document.getElementById("popup-login").style.display = "none";
+  document.getElementById("popup-forgot").style.display = "flex";
+});
 
-// Monitorar estado de autenticação
-auth.onAuthStateChanged((user) => {
-  updateAuthUI();
-  
-  // Mostrar popup automaticamente apenas se não houver usuário
-  if (!user && !document.querySelector('.auth-popup')) {
-    showAuthPopup(true);
-  }
+// 🔹 Botão sair
+document.getElementById("btn-logout").addEventListener("click", () => {
+  signOut(auth).then(() => {
+    document.getElementById("popup-login").style.display = "flex";
+  });
 });
