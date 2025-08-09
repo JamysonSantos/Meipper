@@ -12,6 +12,19 @@ body {
     flex-direction: column;
 }
 
+#main-app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.main-container {
+    display: flex;
+    flex: 1;
+    min-height: 0; /* Importante para containers flex aninhados */
+}
+
 /* ======================
    AUTHENTICATION STYLES
    ====================== */
@@ -616,10 +629,13 @@ body {
     background: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     padding: 20px;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    overflow-x: auto;
+    overflow-y: auto;
+    flex-shrink: 0; /* Impede que o sidebar diminua */
+    will-change: transform;
 }
 
 .form-group {
