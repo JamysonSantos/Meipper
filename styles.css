@@ -257,6 +257,12 @@ body {
     gap: 8px;
 }
 
+.zoom-info {
+    text-align: right;
+    font-size: 14px;
+    color: #6b7280;
+}
+
 /* Main Layout */
 .main-container {
     display: flex;
@@ -1332,4 +1338,155 @@ body {
     .description-popup-footer .modern-btn {
         width: 100%;
     }
+}
+
+/* Estilos do Popup */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+}
+
+.popup-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.popup-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.popup-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 4px;
+}
+
+.popup-close:hover {
+    color: #1f2937;
+}
+
+.popup-body {
+    padding: 16px;
+    flex: 1;
+    overflow: auto;
+}
+
+.search-container {
+    margin-bottom: 16px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.flows-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.flow-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.flow-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #bfdbfe;
+}
+
+.flow-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #1f2937;
+}
+
+.flow-card p {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.flow-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+}
+
+.flow-action-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.flow-action-btn:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.flow-action-btn.delete {
+    color: #ef4444;
+}
+
+.flow-action-btn.delete:hover {
+    background: #fee2e2;
+}
+
+.no-flows-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 0;
+    color: #6b7280;
 }
