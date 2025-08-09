@@ -449,7 +449,6 @@ function updateHistoryButtons() {
 // ======================
 function updateZoomDisplay() {
     const zoomPercentage = Math.round(currentZoom * 100);
-    document.getElementById('zoom-indicator').textContent = zoomPercentage + '%';
     document.getElementById('zoom-display').textContent = 'Zoom: ' + zoomPercentage + '%';
 }
 
