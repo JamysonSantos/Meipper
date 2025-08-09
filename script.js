@@ -1,5 +1,5 @@
 // Global variables
-
+// script.js
 import { 
   auth, 
   createUserWithEmailAndPassword, 
@@ -8,6 +8,9 @@ import {
   onAuthStateChanged, 
   signOut 
 } from './firebase-auth.js';
+
+// Exporte auth se necessário para outros módulos
+export const firebaseAuth = auth;
 
 console.log("Script.js carregado!");
 const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
