@@ -1,4 +1,25 @@
 // Global variables
+
+// Import Firestore
+import { 
+    getFirestore, collection, doc, setDoc, getDoc, getDocs,
+    updateDoc, deleteDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+// Initialize Firestore
+const db = getFirestore(app);
+
+// Export Firestore to window
+window.firebaseDB = db;
+window.collection = collection;
+window.doc = doc;
+window.setDoc = setDoc;
+window.getDoc = getDoc;
+window.getDocs = getDocs;
+window.updateDoc = updateDoc;
+window.deleteDoc = deleteDoc;
+window.serverTimestamp = serverTimestamp;
+
 console.log("Script.js carregado!");
 const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
 const EXTENDED_COLORS = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
@@ -151,13 +172,15 @@ function setupButtonListeners() {
     
     // Botões de ação principais
     document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
-    document.querySelector('[data-action="save-flow"]').addEventListener('click', saveToLocalStorage);
-    document.querySelector('[data-action="load-flow"]').addEventListener('click', function() {
-    // Criar input file dinamicamente
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.meipperflow';
-    fileInput.style.display = 'none';
+    document.querySelector('[data-action="save-flow"]')?.addEventListener('click', () => {
+    const processName = document.getElementById('process-name').value.trim() || "Sem nome";
+    saveFlowToFirestore(processName);
+    });
+    document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('click', async () => {
+    const flows = await loadFlowsFromFirestore();
+    console.log("Fluxos carregados:", flows);
+    // Aqui você pode abrir um popup ou lista para escolher qual carregar
+   });
     
     fileInput.addEventListener('change', loadFlowFromFile);
     
@@ -1436,6 +1459,7 @@ async function saveFlowToFirestore(flowName) {
     }
 }
 
+// Carregar lista de fluxos do Firestore
 async function loadFlowsFromFirestore() {
     if (!firebaseAuth.currentUser) return [];
 
@@ -1450,6 +1474,7 @@ async function loadFlowsFromFirestore() {
     return flows;
 }
 
+// Carregar um fluxo específico
 async function loadFlowById(flowId) {
     if (!firebaseAuth.currentUser) return;
 
