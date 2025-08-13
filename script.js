@@ -159,9 +159,8 @@ function setupButtonListeners() {
     document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('click', async () => {
     const flows = await loadFlowsFromFirestore();
     console.log("Fluxos carregados:", flows);
-    // Aqui você pode abrir um popup ou lista para escolher qual carregar
-        
-   }
+    // Aqui você pode abrir um popup ou lista para escolher qual carregar    
+   });
     
     fileInput.addEventListener('change', loadFlowFromFile);
     
