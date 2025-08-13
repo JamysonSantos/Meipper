@@ -165,7 +165,29 @@ function setupButtonListeners() {
     fileInput.click();
     document.body.removeChild(fileInput);
 });
-    document.querySelector('[data-action="show-saved-flows"]').addEventListener('click', showSavedFlowsPopup);
+    document.querySelector('#btn-show-saved-flows').addEventListener('click', async () => {
+    const flows = await loadFlowsFromFirestore();
+    const container = document.getElementById('saved-flows-container');
+    container.innerHTML = '';
+
+    if (!flows.length) {
+        container.innerHTML = '<div class="no-flows-message">Nenhum fluxo salvo</div>';
+        return;
+    }
+
+    flows.forEach(flow => {
+        const card = document.createElement('div');
+        card.classList.add('flow-card');
+        card.innerHTML = `
+            <h4>${flow.name}</h4>
+            <p>Última atualização: ${flow.updatedAt?.toDate().toLocaleString() || 'N/A'}</p>
+        `;
+        card.addEventListener('click', () => loadFlowById(flow.id));
+        container.appendChild(card);
+    });
+
+    document.getElementById('saved-flows-popup').style.display = 'flex';
+});
 
     // Adicionar tarefa ao pressionar Enter
     document.getElementById('task-input').addEventListener('keydown', function(e) {
@@ -1382,33 +1404,77 @@ function editGatewayText(event, nodeId) {
 // ======================
 // FUNÇÕES DE ARMAZENAMENTO
 // ======================
-function saveToLocalStorage() {
+
+async function saveFlowToFirestore(flowName) {
+    if (!firebaseAuth.currentUser) {
+        alert("Você precisa estar logado para salvar.");
+        return;
+    }
+
+    const uid = firebaseAuth.currentUser.uid;
+    const flowId = flowName.replace(/\s+/g, "_") + "_" + Date.now();
+
+    const flowData = {
+        name: flowName || "Sem nome",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        actors: Object.entries(actors).map(([name, color]) => ({ name, color })),
+        drawflowData: editor.export(),
+        nodeIdCounter: nodeIdCounter,
+        connectionLabels: Object.fromEntries(connectionLabels),
+        taskDescriptions: Object.fromEntries(taskDescriptions),
+        zoom: currentZoom,
+        exportCount: 0
+    };
+
     try {
-        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
-        const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
-        
-        const currentFlow = {
-            drawflow: editor.export(),
-            actors: actors,
-            nodeIdCounter: nodeIdCounter,
-            processName: processName,
-            selectedColor: selectedColor,
-            colors: colors,
-            connectionLabels: Array.from(connectionLabels.entries()),
-            taskDescriptions: Array.from(taskDescriptions.entries()),
-            timestamp: Date.now(),
-            version: '2.1'
-        };
-        
-        allFlows[processName] = currentFlow;
-        localStorage.setItem('meipperFlows', JSON.stringify(allFlows));
-        
-        alert(`Fluxo "${processName}" salvo com sucesso!`);
+        await setDoc(doc(collection(firebaseDB, "usuarios", uid, "flows"), flowId), flowData);
+        alert("Fluxo salvo no servidor!");
     } catch (error) {
-        console.error('Erro ao salvar:', error);
-        alert('Erro ao salvar o fluxo. Verifique se há espaço suficiente no navegador.');
+        console.error("Erro ao salvar fluxo:", error);
+        alert("Erro ao salvar fluxo no servidor.");
     }
 }
+
+async function loadFlowsFromFirestore() {
+    if (!firebaseAuth.currentUser) return [];
+
+    const uid = firebaseAuth.currentUser.uid;
+    const querySnapshot = await getDocs(collection(firebaseDB, "usuarios", uid, "flows"));
+
+    const flows = [];
+    querySnapshot.forEach((docSnap) => {
+        flows.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    return flows;
+}
+
+async function loadFlowById(flowId) {
+    if (!firebaseAuth.currentUser) return;
+
+    const uid = firebaseAuth.currentUser.uid;
+    const docSnap = await getDoc(doc(firebaseDB, "usuarios", uid, "flows", flowId));
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        editor.import(data.drawflowData);
+        actors = Object.fromEntries(data.actors.map(a => [a.name, a.color]));
+        nodeIdCounter = data.nodeIdCounter || 1;
+        connectionLabels = new Map(Object.entries(data.connectionLabels || {}));
+        taskDescriptions = new Map(Object.entries(data.taskDescriptions || {}));
+        currentZoom = data.zoom || 1;
+        updateProcessInfo();
+    } else {
+        alert("Fluxo não encontrado.");
+    }
+}
+
+function saveToLocalStorage() {
+    const processName = document.getElementById('process-name').value.trim() || "Sem nome";
+    saveFlowToFirestore(processName);
+}
+
 function showSavedFlowsPopup() {
     const popup = document.getElementById('saved-flows-popup');
     popup.style.display = 'flex';
