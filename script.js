@@ -165,7 +165,7 @@ function setupButtonListeners() {
     fileInput.click();
     document.body.removeChild(fileInput);
 });
-    document.querySelector('#btn-show-saved-flows').addEventListener('click', async () => {
+    document.querySelector('show-saved-flows').addEventListener('click', async () => {
     const flows = await loadFlowsFromFirestore();
     const container = document.getElementById('saved-flows-container');
     container.innerHTML = '';
