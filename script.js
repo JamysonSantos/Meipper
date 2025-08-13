@@ -1,23 +1,4 @@
 // Global variables
-// Import Firestore
-import { 
-    getFirestore, collection, doc, setDoc, getDoc, getDocs,
-    updateDoc, deleteDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-// Initialize Firestore
-const db = getFirestore(app);
-
-// Export Firestore to window
-window.firebaseDB = db;
-window.collection = collection;
-window.doc = doc;
-window.setDoc = setDoc;
-window.getDoc = getDoc;
-window.getDocs = getDocs;
-window.updateDoc = updateDoc;
-window.deleteDoc = deleteDoc;
-window.serverTimestamp = serverTimestamp;
 
 console.log("Script.js carregado!");
 const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
