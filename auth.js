@@ -141,66 +141,49 @@ class AuthManager {
         }
     }
 
-    async handleRegister() {
-        const email = document.getElementById('register-email').value.trim();
-        const password = document.getElementById('register-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const registerBtn = document.getElementById('register-btn');
-        const errorDiv = document.getElementById('register-error');
+    async handleRegister(event) {
+    event.preventDefault();
 
-        if (!email || !password || !confirmPassword) {
-            this.showError(errorDiv, 'Por favor, preencha todos os campos.');
-            return;
-        }
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+    const displayName = document.getElementById('register-name').value.trim();
+    const photoFile = document.getElementById('register-photo').files[0];
 
-        if (password !== confirmPassword) {
-            this.showError(errorDiv, 'As senhas não coincidem.');
-            return;
-        }
-
-        if (password.length < 6) {
-            this.showError(errorDiv, 'A senha deve ter pelo menos 6 caracteres.');
-            return;
-        }
-
-        this.setButtonLoading(registerBtn, true);
-        this.hideError(errorDiv);
-
-        try {
-            await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-            // Após criar a conta, deslogar para mostrar mensagem de sucesso
-            await window.signOut(window.firebaseAuth);
-            this.showSuccessModal();
-            this.clearRegisterForm();
-        } catch (error) {
-            console.error('Erro no cadastro:', error);
-            this.showError(errorDiv, this.getAuthErrorMessage(error));
-        } finally {
-            this.setButtonLoading(registerBtn, false);
-        }
+    if (!displayName) {
+        alert("Por favor, preencha o nome.");
+        return;
+    }
+    if (password !== confirmPassword) {
+        alert("As senhas não coincidem.");
+        return;
     }
 
-    const displayName = document.getElementById('register-name').value.trim();
-const photoFile = document.getElementById('register-photo').files[0];
+    try {
+        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
 
-if (!displayName) {
-    alert("Por favor, preencha o nome.");
-    return;
+        let photoURL = "";
+        if (photoFile) {
+            const storageRef = window.ref(window.firebaseStorage, `user_photos/${user.uid}`);
+            await window.uploadBytes(storageRef, photoFile);
+            photoURL = await window.getDownloadURL(storageRef);
+        }
+
+        await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
+            email: user.email,
+            name: displayName,
+            photoURL: photoURL,
+            createdAt: window.serverTimestamp()
+        });
+
+        alert("Cadastro realizado com sucesso!");
+        this.closeAllModals();
+    } catch (error) {
+        console.error("Erro no cadastro:", error);
+        alert("Erro ao cadastrar. Tente novamente.");
+    }
 }
-
-let photoURL = "";
-if (photoFile) {
-    const storageRef = window.ref(window.firebaseStorage, `user_photos/${user.uid}`);
-    await window.uploadBytes(storageRef, photoFile);
-    photoURL = await window.getDownloadURL(storageRef);
-}
-
-await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
-    email: user.email,
-    name: displayName,
-    photoURL: photoURL,
-    createdAt: window.serverTimestamp()
-});
 
     async handleForgotPassword() {
         const email = document.getElementById('forgot-email').value.trim();
