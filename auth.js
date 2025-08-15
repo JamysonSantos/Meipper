@@ -66,7 +66,7 @@ class AuthManager {
         });
 
         // Password confirmation validation
-        const confirmPasswordInput = document.getElementById('confirm-password');
+        const confirmPassword = document.getElementById('confirm-password').value;
         const registerPasswordInput = document.getElementById('register-password');
         confirmPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
         registerPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
