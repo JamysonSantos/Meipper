@@ -180,6 +180,29 @@ class AuthManager {
         }
     }
 
+    const name = document.getElementById('register-name').value.trim();
+const photoFile = document.getElementById('register-photo').files[0];
+
+if (!name) {
+    alert("Por favor, preencha o nome.");
+    return;
+}
+
+let photoURL = "";
+if (photoFile) {
+    const storageRef = window.ref(window.firebaseStorage, `user_photos/${user.uid}`);
+    await window.uploadBytes(storageRef, photoFile);
+    photoURL = await window.getDownloadURL(storageRef);
+}
+
+// Salvar no Firestore
+await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
+    email: user.email,
+    name: name,
+    photoURL: photoURL,
+    createdAt: window.serverTimestamp()
+});
+
     async handleForgotPassword() {
         const email = document.getElementById('forgot-email').value.trim();
         const forgotBtn = document.getElementById('forgot-password-btn');
