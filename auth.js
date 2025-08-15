@@ -180,10 +180,10 @@ class AuthManager {
         }
     }
 
-    const name = document.getElementById('register-name').value.trim();
+    const displayName = document.getElementById('register-name').value.trim();
 const photoFile = document.getElementById('register-photo').files[0];
 
-if (!name) {
+if (!displayName) {
     alert("Por favor, preencha o nome.");
     return;
 }
@@ -195,10 +195,9 @@ if (photoFile) {
     photoURL = await window.getDownloadURL(storageRef);
 }
 
-// Salvar no Firestore
 await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
     email: user.email,
-    name: name,
+    name: displayName,
     photoURL: photoURL,
     createdAt: window.serverTimestamp()
 });
