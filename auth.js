@@ -102,19 +102,26 @@ class AuthManager {
     }
 
     checkAuthState() {
-        window.onAuthStateChanged(window.firebaseAuth, (user) => {
-            if (user) {
-                this.user = user;
-                this.showMainApp();
-                console.log("Usuário autenticado:", user.email);
-            } else {
-                this.user = null;
-                this.showLoginModal();
-                console.log("Usuário não autenticado");
+    window.onAuthStateChanged(window.firebaseAuth, (user) => {
+        // Sempre esconder o overlay
+        this.hideAuthLoading();
+
+        if (user) {
+            this.user = user;
+            this.showMainApp();
+            console.log("Usuário autenticado:", user.email);
+
+            // Carregar avatar
+            if (typeof loadUserAvatar === "function") {
+                loadUserAvatar();
             }
-            this.hideAuthLoading();
-        });
-    }
+        } else {
+            this.user = null;
+            this.showLoginModal();
+            console.log("Usuário não autenticado");
+        }
+    });
+}
 
     async handleLogin() {
         const email = document.getElementById('login-email').value.trim();
@@ -287,11 +294,11 @@ class AuthManager {
     }
 
     hideAuthLoading() {
+    if (this.authLoadingOverlay) {
         this.authLoadingOverlay.classList.add('hidden');
-        setTimeout(() => {
-            this.authLoadingOverlay.style.display = 'none';
-        }, 300);
+        this.authLoadingOverlay.style.display = 'none';
     }
+}
 
     togglePassword(targetId) {
         const input = document.getElementById(targetId);
