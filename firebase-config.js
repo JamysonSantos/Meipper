@@ -8,6 +8,16 @@ import {
     updateDoc, deleteDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+import {
+  getStorage, ref, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+
+const storage = getStorage(app);
+window.firebaseStorage = storage;
+window.ref = ref;
+window.uploadBytes = uploadBytes;
+window.getDownloadURL = getDownloadURL;
+
 const firebaseConfig = {
   apiKey: "AIzaSyC-V5suvNo46FndhUbqMiIomiuVma3li-w",
   authDomain: "meipper-74267.firebaseapp.com",
