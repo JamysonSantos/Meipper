@@ -151,47 +151,68 @@ if (logoutBtn) {
     }
 
     async handleRegister(event) {
-    event.preventDefault();
+  event.preventDefault();
 
-    const email = document.getElementById('register-email').value.trim();
-    const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-confirm-password').value;
-    const displayName = document.getElementById('register-name').value.trim();
-    const photoFile = document.getElementById('register-photo').files[0];
+  const email = document.getElementById('register-email').value.trim();
+  const password = document.getElementById('register-password').value;
+  const confirmPassword = document.getElementById('register-confirm-password').value;
+  const displayName = document.getElementById('register-name').value.trim();
+  const photoFile = document.getElementById('register-photo')?.files?.[0];
 
-    if (!displayName) {
-        alert("Por favor, preencha o nome.");
-        return;
-    }
-    if (password !== confirmPassword) {
-        alert("As senhas não coincidem.");
-        return;
-    }
+  if (!displayName) {
+    alert("Por favor, preencha o nome.");
+    return;
+  }
+  if (password !== confirmPassword) {
+    alert("As senhas não coincidem.");
+    return;
+  }
 
-    try {
-        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+  try {
+    // Cria usuário (API modular)
+    const cred = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+    const user = cred.user;
 
-        let photoURL = "";
-        if (photoFile) {
-            const storageRef = window.ref(window.firebaseStorage, `user_photos/${user.uid}`);
-            await window.uploadBytes(storageRef, photoFile);
-            photoURL = await window.getDownloadURL(storageRef);
-        }
+    // Upload da foto (opcional)
+    let photoURL = "";
+    if (photoFile) {
+      const storageRef = window.ref(window.firebaseStorage, `user_photos/${user.uid}`);
+      await window.uploadBytes(storageRef, photoFile);
+      photoURL = await window.getDownloadURL(storageRef);
 
-        await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
-            email: user.email,
-            name: displayName,
-            photoURL: photoURL,
-            createdAt: window.serverTimestamp()
+      // (Opcional) atualizar perfil do Auth com nome/foto
+      try {
+        await window.updateProfile(user, {
+          displayName: displayName,
+          photoURL: photoURL
         });
-
-        alert("Cadastro realizado com sucesso!");
-        this.closeAllModals();
-    } catch (error) {
-        console.error("Erro no cadastro:", error);
-        alert("Erro ao cadastrar. Tente novamente.");
+      } catch (e) {
+        console.warn("Falha ao atualizar perfil do Auth (ok continuar):", e);
+      }
+    } else {
+      // (Opcional) atualizar só o nome
+      try {
+        await window.updateProfile(user, { displayName: displayName });
+      } catch (e) {
+        console.warn("Falha ao atualizar nome no Auth (ok continuar):", e);
+      }
     }
+
+    // Salvar dados no Firestore
+    await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
+      email: user.email,
+      name: displayName,
+      photoURL: photoURL,
+      createdAt: window.serverTimestamp()
+    });
+
+    alert("Cadastro realizado com sucesso!");
+    this.closeAllModals();
+    // O onAuthStateChanged tomará conta de exibir a app
+  } catch (error) {
+    console.error("Erro no cadastro:", error);
+    alert(this.getAuthErrorMessage(error));
+  }
 }
 
     async handleForgotPassword() {
