@@ -24,17 +24,17 @@ class AuthManager {
     }
 
     waitForFirebase() {
-        return new Promise((resolve) => {
-            const checkFirebase = () => {
-                if (window.firebaseAuth && window.onAuthStateChanged) {
-                    resolve();
-                } else {
-                    setTimeout(checkFirebase, 100);
-                }
-            };
-            checkFirebase();
-        });
-    }
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window.firebaseAuth && window.onAuthStateChanged) {
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+}
 
     setupEventListeners() {
         // Login form
@@ -77,9 +77,10 @@ class AuthManager {
         });
 
         // Logout button
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            this.handleLogout();
-        });
+        const logoutBtn = document.querySelector('#logout-btn, [data-action="logout"]');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => this.handleLogout());
+}
 
         // Password toggles
         document.querySelectorAll('.password-toggle').forEach(toggle => {
@@ -102,25 +103,26 @@ class AuthManager {
     }
 
     checkAuthState() {
-    window.onAuthStateChanged(window.firebaseAuth, (user) => {
-        // Sempre esconder o overlay
-        this.hideAuthLoading();
+  window.onAuthStateChanged(window.firebaseAuth, (user) => {
+    // Sempre esconder o overlay assim que o estado chegar
+    this.hideAuthLoading();
 
-        if (user) {
-            this.user = user;
-            this.showMainApp();
-            console.log("Usuário autenticado:", user.email);
+    if (user) {
+      this.user = user;
+      this.showMainApp();
+      console.log("Usuário autenticado:", user.email);
 
-            // Carregar avatar
-            if (typeof loadUserAvatar === "function") {
-                loadUserAvatar();
-            }
-        } else {
-            this.user = null;
-            this.showLoginModal();
-            console.log("Usuário não autenticado");
-        }
-    });
+      // Carregar avatar se existir função (fica no script.js)
+      if (typeof loadUserAvatar === "function") {
+        loadUserAvatar();
+      }
+    } else {
+      this.user = null;
+      // SEM usuário → vai para login/cadastro
+      this.showLoginModal();
+      console.log("Usuário não autenticado");
+    }
+  });
 }
 
     async handleLogin() {
