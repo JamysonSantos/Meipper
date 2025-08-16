@@ -66,11 +66,13 @@ class AuthManager {
         });
 
         // Password confirmation validation
-        const confirmPassword = document.getElementById('confirm-password').value;
+        const confirmPasswordInput = document.getElementById('confirm-password');
         const registerPasswordInput = document.getElementById('register-password');
-        confirmPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
-        registerPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
-    }
+
+        if (confirmPasswordInput && registerPasswordInput) {
+         confirmPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
+         registerPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
+        }
 
     checkAuthState() {
         window.onAuthStateChanged(window.firebaseAuth, (user) => {
