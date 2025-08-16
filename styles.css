@@ -2017,17 +2017,11 @@ body {
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #ccc;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    cursor: pointer;
-    overflow: hidden;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #111827; color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; overflow: hidden;
+  border: 1px solid #e5e7eb;
 }
 
 .user-avatar img {
