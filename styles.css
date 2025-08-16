@@ -417,19 +417,15 @@ body {
 }
 
 .header-btn {
-    display: flex;
-    align-items: center;
-    padding: 2px 8px;
-    border: none;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    font: 23px 600 'Segoe UI', Tahoma, Geneva, sans-serif;
+  color: #ffffff;
+  background-color: #007E82;
+  border-radius: 25px;
+  outline: none;
+  padding: 0px 10px;
+  cursor: pointer;
+  box-shadow: 0px 7px -8px 0px rgba(0,0,0,0.2);
+  transition: all 0.3s ease-in-out;
 }
 
 .header-btn:hover {
