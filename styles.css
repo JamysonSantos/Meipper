@@ -567,23 +567,29 @@ body {
     }
 }
 
-/* User Avatar Styles */
+/* Avatar container */
 .user-avatar-container {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* Avatar */
 .user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* fallback */
+    color: #fff;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid rgba(255, 255, 255, 0.3);
     overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.2s ease;
 }
 
 .user-avatar:hover {
@@ -599,146 +605,44 @@ body {
 }
 
 .user-avatar-initials {
-    color: white;
-    font-weight: 600;
     font-size: 14px;
     text-transform: uppercase;
 }
 
-/* User Menu */
+/* Menu */
 .user-menu {
     position: absolute;
-    top: 100%;
+    top: 50px;
     right: 0;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     border: 1px solid #e5e7eb;
-    min-width: 280px;
+    min-width: 200px;
     z-index: 1001;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
-    margin-top: 8px;
+    padding: 8px;
 }
 
-.user-avatar-container.active .user-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+.user-menu.hidden {
+    display: none;
 }
 
-.user-menu-header {
-    padding: 20px;
-    border-bottom: 1px solid #f3f4f6;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.user-menu-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.user-menu-avatar img {
+.user-menu button {
+    display: block;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.user-menu-avatar-initials {
-    color: white;
-    font-weight: 600;
-    font-size: 18px;
-    text-transform: uppercase;
-}
-
-.user-menu-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.user-menu-name {
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 16px;
-    margin-bottom: 4px;
-    word-break: break-word;
-}
-
-.user-menu-email {
-    color: #6b7280;
-    font-size: 14px;
-    word-break: break-word;
-}
-
-.user-menu-actions {
-    padding: 12px;
-}
-
-.user-menu-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 12px 16px;
+    padding: 10px 14px;
     border: none;
     background: none;
     text-align: left;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    color: #374151;
-    font-size: 14px;
-    font-weight: 500;
     border-radius: 8px;
+    font-size: 14px;
 }
 
-.user-menu-btn:hover {
+.user-menu button:hover {
     background: #f3f4f6;
 }
 
-.user-menu-btn .btn-icon {
-    font-size: 16px;
-}
-
-@media (max-width: 768px) {
-    .user-avatar {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .user-avatar-initials {
-        font-size: 12px;
-    }
-    
-    .user-menu {
-        min-width: 260px;
-        right: -20px;
-    }
-    
-    .user-menu-header {
-        padding: 16px;
-    }
-    
-    .user-menu-avatar {
-        width: 45px;
-        height: 45px;
-    }
-    
-    .user-menu-avatar-initials {
-        font-size: 16px;
-    }
-}
 
 /* Process Info Card */
 .process-info-card {
@@ -2014,24 +1918,6 @@ body {
     text-align: center;
     padding: 40px 0;
     color: #6b7280;
-}
-
-.user-avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: #111827; color: #fff; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; overflow: hidden;
-  border: 1px solid #e5e7eb;
-}
-
-.user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.user-menu.hidden {
-    display: none;
 }
 
 /* Campo de Nome */
