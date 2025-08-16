@@ -2051,3 +2051,54 @@ body {
 .user-menu.hidden {
     display: none;
 }
+
+/* Campo de Nome */
+#register-form #register-name {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 4px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#register-form #register-name:focus {
+  border-color: #3b82f6; /* azul */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Upload de Foto */
+#register-form #register-photo {
+  display: none; /* esconder o input nativo */
+}
+
+#register-form label[for="register-photo"] {
+  display: inline-block;
+  padding: 10px 16px;
+  background-color: #3b82f6; /* azul */
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  margin-top: 8px;
+}
+
+#register-form label[for="register-photo"]:hover {
+  background-color: #2563eb; /* azul mais escuro */
+}
+
+/* Pré-visualização da imagem */
+#photo-preview {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-top: 10px;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  display: none; /* aparece só quando tiver imagem */
+}
+
