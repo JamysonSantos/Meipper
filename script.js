@@ -2391,9 +2391,15 @@ function clearAll() {
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
+        
+        // ✅ Reconfigurar eventos do Drawflow
+        if (typeof setupEditorEvents === "function") {
+            setupEditorEvents();
+        } else if (typeof initializeDrawflow === "function") {
+            initializeDrawflow();
+        }
     }
 }
-
 
 // Listener para nome do processo
 const processNameInput = document.getElementById('process-name');
