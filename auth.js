@@ -65,30 +65,30 @@ class AuthManager {
             });
         });
 
-        // Password confirmation validation
         const confirmPasswordInput = document.getElementById('confirm-password');
-        const registerPasswordInput = document.getElementById('register-password');
+    const registerPasswordInput = document.getElementById('register-password');
 
-        if (confirmPasswordInput && registerPasswordInput) {
-         confirmPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
-         registerPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
-        }
+    if (confirmPasswordInput && registerPasswordInput) {
+        confirmPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
+        registerPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
+    }
+}
 
     checkAuthState() {
-        window.onAuthStateChanged(window.firebaseAuth, (user) => {
-            this.hideAuthLoading();
-            if (user) {
-                this.user = user;
-                this.showMainApp();
-                console.log("Usuário autenticado:", user.email);
-                if (typeof loadUserAvatar === "function") loadUserAvatar();
-            } else {
-                this.user = null;
-                this.showLoginModal();
-                console.log("Usuário não autenticado");
-            }
-        });
-    }
+    window.onAuthStateChanged(window.firebaseAuth, (user) => {
+        this.hideAuthLoading();
+        if (user) {
+            this.user = user;
+            this.showMainApp();
+            console.log("Usuário autenticado:", user.email);
+            if (typeof loadUserAvatar === "function") loadUserAvatar();
+        } else {
+            this.user = null;
+            this.showLoginModal();
+            console.log("Usuário não autenticado");
+        }
+    });
+}
 
     async handleLogin(e) {
         e.preventDefault();
