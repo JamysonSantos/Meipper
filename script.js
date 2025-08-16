@@ -34,6 +34,50 @@ const MAX_HISTORY = 50;
 let isPerformingUndoRedo = false;
 
 // ======================
+// FUNÇÃO: Avatar do Usuário
+// ======================
+async function loadUserAvatar(user) {
+  const avatarEl = document.getElementById("user-avatar");
+  const menuEl = document.getElementById("user-menu");
+
+  if (!avatarEl || !menuEl) return;
+
+  try {
+    // Busca os dados do Firestore
+    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid);
+    const snap = await window.getDoc(docRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.photoURL) {
+        avatarEl.innerHTML = `<img src="${data.photoURL}" alt="avatar">`;
+      } else {
+        const initials = data.name ? data.name.substring(0, 2).toUpperCase() : "?";
+        avatarEl.textContent = initials;
+      }
+    }
+  } catch (err) {
+    console.error("Erro ao carregar avatar:", err);
+  }
+
+  // Toggle do menu de usuário
+  avatarEl.addEventListener("click", () => {
+    menuEl.classList.toggle("hidden");
+  });
+
+  // Logout
+  const logoutBtn = document.querySelector("[data-action='logout']");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await window.signOut(window.firebaseAuth);
+    });
+  }
+}
+
+// Expor globalmente para o auth.js poder chamar
+window.loadUserAvatar = loadUserAvatar;
+
+// ======================
 // EXPOSIÇÃO DE FUNÇÕES GLOBAIS
 // ======================
 window.removeActor = removeActor;
@@ -178,39 +222,6 @@ function setupButtonListeners() {
 
 function loadFromLocalStorage() {
     updateSavedFlowsList();
-}
-
-function loadUserAvatar() {
-  const avatarEl = document.getElementById("user-avatar");
-  const menuEl = document.getElementById("user-menu");
-
-  firebaseAuth.onAuthStateChanged(async (user) => {
-    if (user) {
-      const docRef = doc(firebaseDB, "usuarios", user.uid);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.photoURL) {
-          avatarEl.innerHTML = `<img src="${data.photoURL}" alt="avatar">`;
-        } else {
-          const initials = data.name ? data.name.substring(0,2).toUpperCase() : "?";
-          avatarEl.textContent = initials;
-        }
-      }
-    }
-  });
-
-  avatarEl.addEventListener("click", () => {
-    menuEl.classList.toggle("hidden");
-  });
-
-  // Logout
-  const logoutBtn = document.querySelector("[data-action='logout']");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(firebaseAuth);
-    });
-  }
 }
 
 // ======================
