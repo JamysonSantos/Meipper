@@ -81,7 +81,7 @@ class AuthManager {
             this.user = user;
             this.showMainApp();
             console.log("Usuário autenticado:", user.email);
-            if (typeof loadUserAvatar === "function") loadUserAvatar();
+            if (typeof loadUserAvatar === "function") loadUserAvatar(user);
         } else {
             this.user = null;
             this.showLoginModal();
