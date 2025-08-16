@@ -65,6 +65,12 @@ async function loadUserAvatar(user) {
     menuEl.classList.toggle("hidden");
   });
 
+  document.addEventListener("click", (e) => {
+  if (!avatarEl.contains(e.target) && !menuEl.contains(e.target)) {
+    menuEl.classList.add("hidden");
+  }
+});
+
   // Logout
   const logoutBtn = document.querySelector("[data-action='logout']");
   if (logoutBtn) {
