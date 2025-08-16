@@ -613,12 +613,11 @@ body {
 .user-menu {
     position: absolute;
     top: 50px;
-    right: 0;
+    right: 8;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     border: 1px solid #e5e7eb;
-    min-width: 200px;
     z-index: 1001;
     padding: 8px;
 }
