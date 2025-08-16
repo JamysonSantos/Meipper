@@ -181,54 +181,36 @@ function loadFromLocalStorage() {
 }
 
 function loadUserAvatar() {
-    const user = window.authManager?.user;
-    const container = document.getElementById("user-avatar-container");
-    if (!container || !user) return;
+  const avatarEl = document.getElementById("user-avatar");
+  const menuEl = document.getElementById("user-menu");
 
-    container.innerHTML = ""; // limpa antes
-
-    const avatar = document.createElement("div");
-    avatar.classList.add("user-avatar");
-
-    if (user.photoURL) {
-        avatar.style.backgroundImage = `url(${user.photoURL})`;
-        avatar.style.backgroundSize = "cover";
-        avatar.style.backgroundPosition = "center";
-    } else if (user.displayName) {
-        const initials = user.displayName
-            .split(" ")
-            .map(n => n[0])
-            .join("")
-            .substring(0, 2)
-            .toUpperCase();
-        avatar.textContent = initials;
-    } else {
-        avatar.textContent = "?";
+  firebaseAuth.onAuthStateChanged(async (user) => {
+    if (user) {
+      const docRef = doc(firebaseDB, "usuarios", user.uid);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.photoURL) {
+          avatarEl.innerHTML = `<img src="${data.photoURL}" alt="avatar">`;
+        } else {
+          const initials = data.name ? data.name.substring(0,2).toUpperCase() : "?";
+          avatarEl.textContent = initials;
+        }
+      }
     }
+  });
 
-    // popup logout
-    avatar.addEventListener("click", () => {
-        const popup = document.createElement("div");
-        popup.classList.add("avatar-popup");
-        popup.innerHTML = `<button id="popup-logout">Sair</button>`;
+  avatarEl.addEventListener("click", () => {
+    menuEl.classList.toggle("hidden");
+  });
 
-        // remove popup antigo
-        const oldPopup = document.querySelector(".avatar-popup");
-        if (oldPopup) oldPopup.remove();
-
-        document.body.appendChild(popup);
-
-        const rect = avatar.getBoundingClientRect();
-        popup.style.top = `${rect.bottom + 5}px`;
-        popup.style.left = `${rect.left}px`;
-
-        document.getElementById("popup-logout").addEventListener("click", () => {
-            window.authManager.handleLogout();
-            popup.remove();
-        });
+  // Logout
+  const logoutBtn = document.querySelector("[data-action='logout']");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(firebaseAuth);
     });
-
-    container.appendChild(avatar);
+  }
 }
 
 // ======================
