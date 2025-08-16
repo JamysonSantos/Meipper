@@ -34,14 +34,14 @@
                 </div>
                 
                 <div class="auth-form-group">
-                    <label for="login-password">Senha:</label>
-                    <div class="password-input-container">
-                        <input type="password" id="login-password" required placeholder="Digite sua senha">
-                        <button type="button" class="password-toggle" data-target="login-password">
-                            <span class="eye-icon">👁️</span>
-                        </button>
-                    </div>
-                </div>
+  <label for="register-confirm-password">Confirmar senha:</label>
+  <div class="password-input-container">
+    <input type="password" id="register-confirm-password" required placeholder="Digite novamente a senha">
+    <button type="button" class="password-toggle" data-target="register-confirm-password">
+      <span class="eye-icon">👁️</span>
+    </button>
+  </div>
+</div>
                 
                 <div class="auth-buttons">
                     <button type="submit" class="auth-btn primary" id="login-btn">
@@ -232,16 +232,17 @@
                                   </div>
                                 </div>
                             </div>
-                        <div id="user-avatar" class="user-avatar"></div>
-<div id="user-menu" class="user-menu hidden">
-    <button data-action="logout">Sair</button>
+                        <div class="user-area">
+  <div id="user-avatar" class="user-avatar"></div>
+
+  <div id="user-menu" class="user-menu hidden">
+    <button type="button" data-action="logout">Sair</button>
+  </div>
 </div>
-                        </button>
                     </div>
                 </div>
             </div>
         </header>
-
         <!-- Process Info Card -->
         <div class="process-info-card">
             <div class="process-info-content">
