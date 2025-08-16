@@ -20,49 +20,49 @@
 
     <!-- Login Modal -->
     <div id="login-modal" class="auth-modal">
-        <div class="auth-modal-content">
-            <div class="auth-modal-header">
-                <img src="logomeipper01.png" alt="Logo Meipper" class="auth-logo" />
-                <h2>Entrar no Meipper</h2>
-                <p>Acesse sua conta para continuar</p>
-            </div>
-            
-            <form id="login-form" class="auth-form">
-                <div class="auth-form-group">
-                    <label for="login-email">E-mail:</label>
-                    <input type="email" id="login-email" required placeholder="seu@email.com">
-                </div>
-                
-                <div class="auth-form-group">
-  <label for="register-confirm-password">Confirmar senha:</label>
-  <div class="password-input-container">
-    <input type="password" id="register-confirm-password" required placeholder="Digite novamente a senha">
-    <button type="button" class="password-toggle" data-target="register-confirm-password">
-      <span class="eye-icon">👁️</span>
-    </button>
+  <div class="auth-modal-content">
+    <div class="auth-modal-header">
+      <img src="logomeipper01.png" alt="Logo Meipper" class="auth-logo" />
+      <h2>Entrar no Meipper</h2>
+      <p>Acesse sua conta para continuar</p>
+    </div>
+    
+    <form id="login-form" class="auth-form">
+      <div class="auth-form-group">
+        <label for="login-email">E-mail:</label>
+        <input type="email" id="login-email" required placeholder="seu@email.com">
+      </div>
+      
+      <div class="auth-form-group">
+        <label for="login-password">Senha:</label>
+        <div class="password-input-container">
+          <input type="password" id="login-password" required placeholder="Digite sua senha">
+          <button type="button" class="password-toggle" data-target="login-password">
+            <span class="eye-icon">👁️</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="auth-buttons">
+        <button type="submit" class="auth-btn primary" id="login-btn">
+          <span class="btn-text">Entrar</span>
+          <div class="btn-spinner" style="display: none;"></div>
+        </button>
+        <button type="button" class="auth-btn secondary" id="show-register-btn">
+          Criar conta
+        </button>
+      </div>
+      
+      <div class="auth-footer">
+        <button type="button" class="forgot-password-link" id="show-forgot-password">
+          Esqueci minha senha
+        </button>
+      </div>
+    </form>
+    
+    <div id="login-error" class="auth-error" style="display: none;"></div>
   </div>
 </div>
-                
-                <div class="auth-buttons">
-                    <button type="submit" class="auth-btn primary" id="login-btn">
-                        <span class="btn-text">Entrar</span>
-                        <div class="btn-spinner" style="display: none;"></div>
-                    </button>
-                    <button type="button" class="auth-btn secondary" id="show-register-btn">
-                        Criar conta
-                    </button>
-                </div>
-                
-                <div class="auth-footer">
-                    <button type="button" class="forgot-password-link" id="show-forgot-password">
-                        Esqueci minha senha
-                    </button>
-                </div>
-            </form>
-            
-            <div id="login-error" class="auth-error" style="display: none;"></div>
-        </div>
-    </div>
 
     <!-- Register Modal -->
     <div id="register-modal" class="auth-modal">
