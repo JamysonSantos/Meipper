@@ -180,35 +180,56 @@ function loadFromLocalStorage() {
     updateSavedFlowsList();
 }
 
-async function loadUserAvatar() {
-    const uid = firebaseAuth.currentUser.uid;
-    const userDoc = await getDoc(doc(firebaseDB, "usuarios", uid));
+function loadUserAvatar() {
+    const user = window.authManager?.user;
+    const container = document.getElementById("user-avatar-container");
+    if (!container || !user) return;
 
-    if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const avatarEl = document.getElementById("user-avatar");
-        avatarEl.innerHTML = "";
+    container.innerHTML = ""; // limpa antes
 
-        if (userData.photoURL) {
-            const img = document.createElement("img");
-            img.src = userData.photoURL;
-            avatarEl.appendChild(img);
-        } else {
-            const initials = userData.name
-                .split(" ")
-                .map(n => n[0])
-                .join("")
-                .substring(0, 2)
-                .toUpperCase();
-            avatarEl.textContent = initials;
-        }
+    const avatar = document.createElement("div");
+    avatar.classList.add("user-avatar");
+
+    if (user.photoURL) {
+        avatar.style.backgroundImage = `url(${user.photoURL})`;
+        avatar.style.backgroundSize = "cover";
+        avatar.style.backgroundPosition = "center";
+    } else if (user.displayName) {
+        const initials = user.displayName
+            .split(" ")
+            .map(n => n[0])
+            .join("")
+            .substring(0, 2)
+            .toUpperCase();
+        avatar.textContent = initials;
+    } else {
+        avatar.textContent = "?";
     }
+
+    // popup logout
+    avatar.addEventListener("click", () => {
+        const popup = document.createElement("div");
+        popup.classList.add("avatar-popup");
+        popup.innerHTML = `<button id="popup-logout">Sair</button>`;
+
+        // remove popup antigo
+        const oldPopup = document.querySelector(".avatar-popup");
+        if (oldPopup) oldPopup.remove();
+
+        document.body.appendChild(popup);
+
+        const rect = avatar.getBoundingClientRect();
+        popup.style.top = `${rect.bottom + 5}px`;
+        popup.style.left = `${rect.left}px`;
+
+        document.getElementById("popup-logout").addEventListener("click", () => {
+            window.authManager.handleLogout();
+            popup.remove();
+        });
+    });
+
+    container.appendChild(avatar);
 }
-
-document.getElementById("user-avatar").addEventListener("click", () => {
-    document.getElementById("user-menu").classList.toggle("hidden");
-});
-
 
 // ======================
 // SISTEMA DE DESCRIÇÕES
