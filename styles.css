@@ -1969,3 +1969,15 @@ body {
   display: none; /* aparece só quando tiver imagem */
 }
 
+.photo-feedback {
+  font-size: 13px;
+  color: #16a34a;
+  margin-top: 6px;
+}
+
+.user-avatar-initials {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
