@@ -65,67 +65,79 @@
 </div>
 
     <!-- Register Modal -->
-    <div id="register-modal" class="auth-modal">
-        <div class="auth-modal-content">
-            <div class="auth-modal-header">
-                <img src="logomeipper02.png" alt="Logo Meipper" class="auth-logo" />
-                <h2>Criar Conta</h2>
-                <p>Cadastre-se para começar a usar o Meipper</p>
-            </div>
-            
-            <form id="register-form" class="auth-form">
-                <div class="input-group">
-                   <label for="register-name">Nome</label>
-                   <input type="text" id="register-name" placeholder="Digite seu nome" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="register-photo">Foto (opcional)</label>
-                    <input type="file" id="register-photo" accept="image/*">
-                </div>
-                <div class="auth-form-group">
-                    <label for="register-email">E-mail:</label>
-                    <input type="email" id="register-email" required placeholder="seu@email.com">
-                </div>
-                
-                <div class="auth-form-group">
-                    <label for="register-password">Criar senha:</label>
-                    <div class="password-input-container">
-                        <input type="password" id="register-password" required placeholder="Digite uma senha forte" minlength="6">
-                        <button type="button" class="password-toggle" data-target="register-password">
-                            <span class="eye-icon">👁️</span>
-                        </button>
-                    </div>
-                    <small class="password-hint">Mínimo 6 caracteres</small>
-                </div>
-                
-                <div class="auth-form-group">
-                    <label for="confirm-password">Confirmar senha:</label>
-                    <div class="password-input-container">
-                        <input type="password" id="register-confirm-password" required placeholder="Digite novamente a senha">
-                        <button type="button" class="password-toggle" data-target="confirm-password">
-                            <span class="eye-icon">👁️</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="auth-buttons">
-                    <button type="submit" class="auth-btn primary" id="register-btn">
-                        <span class="btn-text">Cadastrar</span>
-                        <div class="btn-spinner" style="display: none;"></div>
-                    </button>
-                </div>
-                
-                <div class="auth-footer">
-                    <button type="button" class="back-to-login" id="back-to-login">
-                        ← Voltar ao login
-                    </button>
-                </div>
-            </form>
-            
-            <div id="register-error" class="auth-error" style="display: none;"></div>
-        </div>
+<div id="register-modal" class="auth-modal">
+  <div class="auth-modal-content">
+    <div class="auth-modal-header">
+      <img src="logomeipper02.png" alt="Logo Meipper" class="auth-logo" />
+      <h2>Criar Conta</h2>
+      <p>Cadastre-se para começar a usar o Meipper</p>
     </div>
+    
+    <form id="register-form" class="auth-form">
+      
+      <!-- Nome -->
+      <div class="auth-form-group">
+        <label for="register-name">Nome:</label>
+        <input type="text" id="register-name" required placeholder="Digite seu nome completo">
+      </div>
+
+      <!-- Foto -->
+      <div class="auth-form-group">
+        <label for="register-photo">Foto (opcional):</label>
+        <input type="file" id="register-photo" accept="image/*">
+        <div id="photo-feedback" class="photo-feedback" style="display:none;">Foto selecionada ✅</div>
+        <div class="photo-preview" id="photo-preview" style="display:none;">
+          <img id="preview-img" alt="Pré-visualização da foto">
+        </div>
+      </div>
+
+      <!-- E-mail -->
+      <div class="auth-form-group">
+        <label for="register-email">E-mail:</label>
+        <input type="email" id="register-email" required placeholder="seu@email.com">
+      </div>
+      
+      <!-- Senha -->
+      <div class="auth-form-group">
+        <label for="register-password">Criar senha:</label>
+        <div class="password-input-container">
+          <input type="password" id="register-password" required placeholder="Digite uma senha forte" minlength="6">
+          <button type="button" class="password-toggle" data-target="register-password">
+            <span class="eye-icon">👁️</span>
+          </button>
+        </div>
+        <small class="password-hint">Mínimo 6 caracteres</small>
+      </div>
+      
+      <!-- Confirmar senha -->
+      <div class="auth-form-group">
+        <label for="confirm-password">Confirmar senha:</label>
+        <div class="password-input-container">
+          <input type="password" id="register-confirm-password" required placeholder="Digite novamente a senha">
+          <button type="button" class="password-toggle" data-target="confirm-password">
+            <span class="eye-icon">👁️</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Botões -->
+      <div class="auth-buttons">
+        <button type="submit" class="auth-btn primary" id="register-btn">
+          <span class="btn-text">Cadastrar</span>
+          <div class="btn-spinner" style="display: none;"></div>
+        </button>
+      </div>
+      
+      <div class="auth-footer">
+        <button type="button" class="back-to-login" id="back-to-login">
+          ← Voltar ao login
+        </button>
+      </div>
+    </form>
+    
+    <div id="register-error" class="auth-error" style="display: none;"></div>
+  </div>
+</div>
 
     <!-- Forgot Password Modal -->
     <div id="forgot-password-modal" class="auth-modal">
