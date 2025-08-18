@@ -45,6 +45,27 @@ class AuthManager {
         // Forgot password form
         document.getElementById('forgot-password-form').addEventListener('submit', (e) => this.handleForgotPassword(e));
 
+
+        const photoInput = document.getElementById('register-photo');
+if (photoInput) {
+    photoInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        const feedback = document.getElementById('photo-feedback');
+        const previewWrapper = document.getElementById('photo-preview');
+        const previewImg = document.getElementById('preview-img');
+
+        if (file) {
+            feedback.style.display = 'block';
+            previewWrapper.style.display = 'block';
+            previewImg.src = URL.createObjectURL(file);
+        } else {
+            feedback.style.display = 'none';
+            previewWrapper.style.display = 'none';
+            previewImg.src = '';
+        }
+    });
+}
+
         // Navigation buttons
         document.getElementById('show-register-btn').addEventListener('click', () => this.showRegisterModal());
         document.getElementById('back-to-login').addEventListener('click', () => this.showLoginModal());
