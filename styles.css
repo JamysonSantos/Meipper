@@ -188,11 +188,11 @@ body {
 }
 
 .photo-preview img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #e5e7eb;
+  max-width: 80px;
+  max-height: 80px;
+  border-radius: 50%;
+  margin-top: 10px;
+  object-fit: cover;
 }
 
 .password-input-container {
@@ -1939,6 +1939,12 @@ body {
 /* Upload de Foto */
 #register-form #register-photo {
   display: none; /* esconder o input nativo */
+}
+
+#register-photo {
+  width: 50%;        /* metade da largura do modal */
+  padding: 6px;
+  font-size: 0.9em;
 }
 
 #register-form label[for="register-photo"] {
