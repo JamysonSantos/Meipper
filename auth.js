@@ -123,6 +123,19 @@ class AuthManager {
         const confirmPassword = document.getElementById('register-confirm-password').value;
         const displayName = document.getElementById('register-name').value.trim();
         const photoFile = document.getElementById('register-photo')?.files?.[0];
+        const previewImg = document.getElementById('preview-img');
+        const photoFeedback = document.getElementById('photo-feedback');
+
+        if (photoFile && previewImg && photoFeedback) {
+        const reader = new FileReader();
+         reader.onload = (event) => {
+        previewImg.src = event.target.result;
+        previewImg.style.display = 'block';
+        photoFeedback.textContent = 'Foto selecionada ✅';
+        photoFeedback.style.display = 'block';
+        };
+        reader.readAsDataURL(photoFile);
+        }
 
         if (!displayName) {
             alert("Por favor, preencha o nome.");
