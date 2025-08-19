@@ -100,6 +100,17 @@ if (photoInput) {
         this.hideAuthLoading();
         if (user) {
             this.user = user;
+
+            // 🔹 Resetar editor ao logar
+            if (typeof editor !== "undefined") {
+                editor.clear();
+            }
+            actors = {};
+            nodeIdCounter = 0;
+            connectionLabels = new Map();
+            taskDescriptions = new Map();
+            currentZoom = 1;
+
             this.showMainApp();
             console.log("Usuário autenticado:", user.email);
             if (typeof loadUserAvatar === "function") loadUserAvatar(user);
@@ -225,15 +236,33 @@ if (photoInput) {
     }
 
     async handleLogout() {
-        if (confirm('Tem certeza que deseja sair?')) {
-            try {
-                await window.signOut(window.firebaseAuth);
-            } catch (error) {
-                console.error('Erro no logout:', error);
-                alert('Erro ao sair: ' + error.message);
+    if (confirm('Tem certeza que deseja sair?')) {
+        try {
+            await window.signOut(window.firebaseAuth);
+
+            // 🔹 Limpar editor e variáveis globais
+            if (typeof editor !== "undefined") {
+                editor.clear(); // remove todos os nós do fluxo
             }
+            actors = {};
+            nodeIdCounter = 0;
+            connectionLabels = new Map();
+            taskDescriptions = new Map();
+            currentZoom = 1;
+
+            // 🔹 Limpar UI
+            document.getElementById('process-name').value = "";
+            if (document.getElementById('saved-flows-list')) {
+                document.getElementById('saved-flows-list').innerHTML = "";
+            }
+
+            console.log("Logout realizado e editor limpo.");
+        } catch (error) {
+            console.error('Erro no logout:', error);
+            alert('Erro ao sair: ' + error.message);
         }
     }
+}
 
     showMainApp() {
         this.hideAllModals();
