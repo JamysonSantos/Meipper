@@ -163,6 +163,29 @@ function setupExportDropdown() {
     }
 }
 
+function showSavedFlowsPopup() {
+    const popup = document.getElementById('saved-flows-popup');
+    popup.style.display = 'flex';
+    loadSavedFlowsIntoPopup();
+
+    // Fechar popup ao clicar no overlay
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            popup.style.display = 'none';
+        }
+    });
+
+    // Fechar popup ao clicar no botão de fechar
+    document.getElementById('close-saved-flows-popup').addEventListener('click', function() {
+        popup.style.display = 'none';
+    });
+
+    // Busca em tempo real
+    document.getElementById('flow-search').addEventListener('input', function(e) {
+        filterFlows(e.target.value);
+    });
+}
+
 function setupButtonListeners() {
     // Botões de histórico
     document.getElementById('undo-btn').addEventListener('click', undo);
