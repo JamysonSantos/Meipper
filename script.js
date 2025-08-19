@@ -163,29 +163,6 @@ function setupExportDropdown() {
     }
 }
 
-function showSavedFlowsPopup() {
-    const popup = document.getElementById('saved-flows-popup');
-    popup.style.display = 'flex';
-    loadSavedFlowsIntoPopup();
-
-    // Fechar popup ao clicar no overlay
-    popup.addEventListener('click', function(e) {
-        if (e.target === popup) {
-            popup.style.display = 'none';
-        }
-    });
-
-    // Fechar popup ao clicar no botão de fechar
-    document.getElementById('close-saved-flows-popup').addEventListener('click', function() {
-        popup.style.display = 'none';
-    });
-
-    // Busca em tempo real
-    document.getElementById('flow-search').addEventListener('input', function(e) {
-        filterFlows(e.target.value);
-    });
-}
-
 function setupButtonListeners() {
     // Botões de histórico
     document.getElementById('undo-btn').addEventListener('click', undo);
@@ -1458,68 +1435,92 @@ function editGatewayText(event, nodeId) {
 function saveToLocalStorage() {
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
-        const uid = firebaseAuth.currentUser?.uid;
-
-        if (!uid) {
-            alert("Você precisa estar logado para salvar.");
-            return;
-        }
-
-        // Carrega fluxos anteriores desse usuário
-        const userFlows = JSON.parse(localStorage.getItem(`meipperFlows_${uid}`)) || {};
-
-        // Monta o fluxo atual
+        const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
+        
         const currentFlow = {
             drawflow: editor.export(),
-            actors,
-            nodeIdCounter,
-            processName,
-            selectedColor,
-            colors,
+            actors: actors,
+            nodeIdCounter: nodeIdCounter,
+            processName: processName,
+            selectedColor: selectedColor,
+            colors: colors,
             connectionLabels: Array.from(connectionLabels.entries()),
             taskDescriptions: Array.from(taskDescriptions.entries()),
             timestamp: Date.now(),
             version: '2.1'
         };
-
-        // Salva na coleção do usuário
-        userFlows[processName] = currentFlow;
-        localStorage.setItem(`meipperFlows_${uid}`, JSON.stringify(userFlows));
-
+        
+        allFlows[processName] = currentFlow;
+        localStorage.setItem('meipperFlows', JSON.stringify(allFlows));
+        
         alert(`Fluxo "${processName}" salvo com sucesso!`);
     } catch (error) {
         console.error('Erro ao salvar:', error);
         alert('Erro ao salvar o fluxo. Verifique se há espaço suficiente no navegador.');
     }
 }
-
-function loadSavedFlowsIntoPopup() {
-    const uid = firebaseAuth.currentUser?.uid;
-    if (!uid) return;
-
-    const userFlows = JSON.parse(localStorage.getItem(`meipperFlows_${uid}`)) || {};
-    const listContainer = document.getElementById('saved-flows-list');
-    listContainer.innerHTML = "";
-
-    Object.entries(userFlows).forEach(([name, flow]) => {
-        const item = document.createElement("div");
-        item.classList.add("flow-item");
-        item.textContent = name;
-
-        item.addEventListener("click", () => {
-            editor.import(flow.drawflow);
-            actors = flow.actors;
-            nodeIdCounter = flow.nodeIdCounter;
-            connectionLabels = new Map(flow.connectionLabels);
-            taskDescriptions = new Map(flow.taskDescriptions);
-            document.getElementById('process-name').value = name;
-            document.getElementById('saved-flows-popup').style.display = 'none';
-        });
-
-        listContainer.appendChild(item);
+function showSavedFlowsPopup() {
+    const popup = document.getElementById('saved-flows-popup');
+    popup.style.display = 'flex';
+    loadSavedFlowsIntoPopup();
+    
+    // Fechar popup ao clicar no overlay
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            popup.style.display = 'none';
+        }
+    });
+    
+    // Fechar popup ao clicar no botão de fechar
+    document.getElementById('close-saved-flows-popup').addEventListener('click', function() {
+        popup.style.display = 'none';
+    });
+    
+    // Busca em tempo real
+    document.getElementById('flow-search').addEventListener('input', function(e) {
+        filterFlows(e.target.value);
     });
 }
 
+function loadSavedFlowsIntoPopup() {
+    const container = document.getElementById('saved-flows-container');
+    const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
+    
+    container.innerHTML = '';
+    
+    if (Object.keys(allFlows).length === 0) {
+        container.innerHTML = '<div class="no-flows-message">Nenhum fluxo salvo ainda</div>';
+        return;
+    }
+    
+    // Ordenar por timestamp (mais recente primeiro)
+    const sortedFlows = Object.entries(allFlows).sort((a, b) => b[1].timestamp - a[1].timestamp);
+    
+    sortedFlows.forEach(([flowName, flowData]) => {
+        const date = new Date(flowData.timestamp);
+        const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+        
+        const flowCard = document.createElement('div');
+        flowCard.className = 'flow-card';
+        flowCard.innerHTML = `
+            <div class="flow-actions">
+                <button class="flow-action-btn delete" onclick="deleteFlowFromPopup('${flowName.replace(/'/g, "\\'")}', event)">×</button>
+            </div>
+            <h4>${flowName}</h4>
+            <p>Salvo em: ${formattedDate}</p>
+            <p>${Object.keys(flowData.actors || {}).length} responsáveis</p>
+            <p>${Object.keys(flowData.drawflow?.drawflow?.Home?.data || {}).length} elementos</p>
+        `;
+        
+        flowCard.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('flow-action-btn')) {
+                loadFlowFromPopup(flowName);
+            }
+        });
+        
+        container.appendChild(flowCard);
+    });
+}
 
 function filterFlows(searchTerm) {
     const cards = document.querySelectorAll('.flow-card');
@@ -2457,7 +2458,7 @@ async function saveFlowToFirestore(flowName) {
 
     try {
         await setDoc(doc(collection(firebaseDB, "usuarios", uid, "flows"), flowId), flowData);
-        alert("Fluxo salvo!");
+        alert("Fluxo salvo no servidor!");
     } catch (error) {
         console.error("Erro ao salvar fluxo:", error);
         alert("Erro ao salvar fluxo no servidor.");
