@@ -2439,10 +2439,6 @@ async function saveFlowToFirestore(flowName) {
 
     const uid = firebaseAuth.currentUser.uid;
     const flowId = flowName.replace(/\s+/g, "_") + "_" + Date.now();
-    const flowsRef = window.collection(
-     window.doc(window.firebaseDB, "usuarios", user.uid),
-     "flows"
-    );
 
     const flowData = {
         name: flowName || "Sem nome",
