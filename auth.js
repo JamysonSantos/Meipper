@@ -195,11 +195,11 @@ if (photoInput) {
             }
 
             await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
-  email: user.email,
-  nome: displayName,   // <--- antes estava "name"
-  photoURL,
-  createdAt: window.serverTimestamp()
-});
+            email: user.email,
+            nome: displayName || "Usuário",   // 👈 usar "nome"
+            photoURL: photoURL || null,       // 👈 salva foto se existir
+            createdAt: window.serverTimestamp()
+            });
 
             alert("Cadastro realizado com sucesso!");
             this.closeAllModals();
