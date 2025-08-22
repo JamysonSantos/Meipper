@@ -102,7 +102,6 @@ async function loadUserAvatar(user) {
       await window.signOut(window.firebaseAuth);
     });
   }
-}
 
 // Expor globalmente para o auth.js poder chamar
 window.loadUserAvatar = loadUserAvatar;
