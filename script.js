@@ -180,36 +180,6 @@ function loadFromLocalStorage() {
     updateSavedFlowsList();
 }
 
-async function loadUserAvatar() {
-    const uid = firebaseAuth.currentUser.uid;
-    const userDoc = await getDoc(doc(firebaseDB, "usuarios", uid));
-
-    if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const avatarEl = document.getElementById("user-avatar");
-        avatarEl.innerHTML = "";
-
-        if (userData.photoURL) {
-            const img = document.createElement("img");
-            img.src = userData.photoURL;
-            avatarEl.appendChild(img);
-        } else {
-            const initials = userData.name
-                .split(" ")
-                .map(n => n[0])
-                .join("")
-                .substring(0, 2)
-                .toUpperCase();
-            avatarEl.textContent = initials;
-        }
-    }
-}
-
-document.getElementById("user-avatar").addEventListener("click", () => {
-    document.getElementById("user-menu").classList.toggle("hidden");
-});
-
-
 // ======================
 // SISTEMA DE DESCRIÇÕES
 // ======================
