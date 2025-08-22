@@ -227,7 +227,6 @@ function setupButtonListeners() {
             addTask('task');
         }
     });
-}
 
 function loadFromLocalStorage() {
     updateSavedFlowsList();
