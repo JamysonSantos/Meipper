@@ -97,7 +97,6 @@ window.removeGatewayPath = removeGatewayPath;
 window.finalizeGateway = finalizeGateway;
 window.cancelGateway = cancelGateway;
 window.clearAll = clearAll;
-window.saveToLocalStorage = saveToLocalStorage;
 window.exportToPNG = exportToPNG;
 window.exportToPDF = exportToPDF;
 window.exportDocumentationPDF = exportDocumentationPDF;
@@ -1435,33 +1434,6 @@ function editGatewayText(event, nodeId) {
 // ======================
 // FUNÇÕES DE ARMAZENAMENTO
 // ======================
-function saveToLocalStorage() {
-    try {
-        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
-        const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
-        
-        const currentFlow = {
-            drawflow: editor.export(),
-            actors: actors,
-            nodeIdCounter: nodeIdCounter,
-            processName: processName,
-            selectedColor: selectedColor,
-            colors: colors,
-            connectionLabels: Array.from(connectionLabels.entries()),
-            taskDescriptions: Array.from(taskDescriptions.entries()),
-            timestamp: Date.now(),
-            version: '2.1'
-        };
-        
-        allFlows[processName] = currentFlow;
-        localStorage.setItem('meipperFlows', JSON.stringify(allFlows));
-        
-        alert(`Fluxo "${processName}" salvo com sucesso!`);
-    } catch (error) {
-        console.error('Erro ao salvar:', error);
-        alert('Erro ao salvar o fluxo. Verifique se há espaço suficiente no navegador.');
-    }
-}
 function showSavedFlowsPopup() {
     const popup = document.getElementById('saved-flows-popup');
     popup.style.display = 'flex';
