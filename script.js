@@ -36,29 +36,53 @@ let isPerformingUndoRedo = false;
 // ======================
 // FUNÇÃO: Avatar do Usuário
 // ======================
-async function loadUserAvatar(user) {
-  const avatarEl = document.getElementById("user-avatar");
-  const menuEl = document.getElementById("user-menu");
 
-  if (!avatarEl || !menuEl) return;
+async function loadUserAvatar(user) {
+  const avatarCircle = document.getElementById("user-avatar-circle");
+  const avatarText = document.getElementById("user-avatar-text");
+  const avatarImg = document.getElementById("user-avatar-img");
+
+  if (!user) return;
 
   try {
-    // Busca os dados do Firestore
-    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid);
-    const snap = await window.getDoc(docRef);
+    // Busca o documento no Firestore
+    const userDoc = await firebaseDB
+      .collection("usuarios")
+      .doc(user.uid)
+      .get();
 
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data.photoURL) {
-        avatarEl.innerHTML = `<img src="${data.photoURL}" alt="avatar">`;
-      } else {
-        const initials = data.name ? data.name.substring(0, 2).toUpperCase() : "?";
-        avatarEl.textContent = initials;
-      }
+    let nome = user.displayName || "Usuário";
+    let photoURL = user.photoURL || null;
+
+    if (userDoc.exists) {
+      const data = userDoc.data();
+      if (data.nome) nome = data.nome;
+      if (data.photoURL) photoURL = data.photoURL;
     }
+
+    if (photoURL) {
+      // Se tem foto → mostra imagem
+      avatarImg.src = photoURL;
+      avatarImg.style.display = "block";
+      avatarText.style.display = "none";
+    } else {
+      // Se não tem foto → mostra iniciais do nome
+      const iniciais = nome
+        .split(" ")
+        .map(p => p.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join("");
+
+      avatarText.textContent = iniciais;
+      avatarImg.style.display = "none";
+      avatarText.style.display = "flex";
+    }
+
+    avatarCircle.style.display = "flex";
   } catch (err) {
     console.error("Erro ao carregar avatar:", err);
   }
+}
 
   // Toggle do menu de usuário
   avatarEl.addEventListener("click", () => {
