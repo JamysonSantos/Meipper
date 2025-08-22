@@ -37,8 +37,6 @@ let isPerformingUndoRedo = false;
 // FUNÇÃO: Avatar do Usuário
 // ======================
 
-import { doc, getDoc } from "firebase/firestore";
-
 async function loadUserAvatar(user) {
   const avatarCircle = document.getElementById("user-avatar-circle");
   const avatarImg = document.getElementById("user-avatar-img");
