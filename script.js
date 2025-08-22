@@ -1,5 +1,4 @@
 // Global variables
-
 console.log("Script.js carregado!");
 const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#3f51b5', '#009688', '#795548'];
 const EXTENDED_COLORS = ['#607d8b', '#e91e63', '#cddc39', '#00bcd4', '#ffc107', '#8bc34a', '#ff5722', '#673ab7'];
@@ -33,6 +32,56 @@ let history = [];
 let historyIndex = -1;
 const MAX_HISTORY = 50;
 let isPerformingUndoRedo = false;
+
+// ======================
+// FUNÇÃO: Avatar do Usuário
+// ======================
+async function loadUserAvatar(user) {
+  const avatarEl = document.getElementById("user-avatar");
+  const menuEl = document.getElementById("user-menu");
+
+  if (!avatarEl || !menuEl) return;
+
+  try {
+    // Busca os dados do Firestore
+    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid);
+    const snap = await window.getDoc(docRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.photoURL) {
+        avatarEl.innerHTML = `<img src="${data.photoURL}" alt="avatar">`;
+      } else {
+        const initials = data.name ? data.name.substring(0, 2).toUpperCase() : "?";
+        avatarEl.textContent = initials;
+      }
+    }
+  } catch (err) {
+    console.error("Erro ao carregar avatar:", err);
+  }
+
+  // Toggle do menu de usuário
+  avatarEl.addEventListener("click", () => {
+    menuEl.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", (e) => {
+  if (!avatarEl.contains(e.target) && !menuEl.contains(e.target)) {
+    menuEl.classList.add("hidden");
+  }
+});
+
+  // Logout
+  const logoutBtn = document.querySelector("[data-action='logout']");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await window.signOut(window.firebaseAuth);
+    });
+  }
+}
+
+// Expor globalmente para o auth.js poder chamar
+window.loadUserAvatar = loadUserAvatar;
 
 // ======================
 // EXPOSIÇÃO DE FUNÇÕES GLOBAIS
@@ -152,46 +201,21 @@ function setupButtonListeners() {
     
     // Botões de ação principais
     document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
-    document.querySelector('[data-action="save-flow"]')?.addEventListener('click', () => {
-    const processName = document.getElementById('process-name').value.trim() || "Sem nome";
-    saveFlowToFirestore(processName);
-    });
-    document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('click', async () => {
-    const flows = await loadFlowsFromFirestore();
-    console.log("Fluxos carregados:", flows);
-    // Aqui você pode abrir um popup ou lista para escolher qual carregar    
-   };
+    document.querySelector('[data-action="save-flow"]').addEventListener('click', saveToLocalStorage);
+    document.querySelector('[data-action="load-flow"]').addEventListener('click', function() {
+    // Criar input file dinamicamente
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.meipperflow';
+    fileInput.style.display = 'none';
     
     fileInput.addEventListener('change', loadFlowFromFile);
     
     document.body.appendChild(fileInput);
     fileInput.click();
     document.body.removeChild(fileInput);
-   });
-
-    document.querySelector('show-saved-flows').addEventListener('click', async () => {
-    const flows = await loadFlowsFromFirestore();
-    const container = document.getElementById('saved-flows-container');
-    container.innerHTML = '';
-
-    if (!flows.length) {
-        container.innerHTML = '<div class="no-flows-message">Nenhum fluxo salvo</div>';
-        return;
-    }
-
-    flows.forEach(flow => {
-        const card = document.createElement('div');
-        card.classList.add('flow-card');
-        card.innerHTML = `
-            <h4>${flow.name}</h4>
-            <p>Última atualização: ${flow.updatedAt?.toDate().toLocaleString() || 'N/A'}</p>
-        `;
-        card.addEventListener('click', () => loadFlowById(flow.id));
-        container.appendChild(card);
-    });
-
-    document.getElementById('saved-flows-popup').style.display = 'flex';
 });
+    document.querySelector('[data-action="show-saved-flows"]').addEventListener('click', showSavedFlowsPopup);
 
     // Adicionar tarefa ao pressionar Enter
     document.getElementById('task-input').addEventListener('keydown', function(e) {
@@ -1408,82 +1432,33 @@ function editGatewayText(event, nodeId) {
 // ======================
 // FUNÇÕES DE ARMAZENAMENTO
 // ======================
-
-async function saveFlowToFirestore(flowName) {
-    if (!firebaseAuth.currentUser) {
-        alert("Você precisa estar logado para salvar.");
-        return;
-    }
-
-    const uid = firebaseAuth.currentUser.uid;
-    const flowId = flowName.replace(/\s+/g, "_") + "_" + Date.now();
-
-    const flowData = {
-        name: flowName || "Sem nome",
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        actors: Object.entries(actors).map(([name, color]) => ({ name, color })),
-        drawflowData: editor.export(),
-        nodeIdCounter: nodeIdCounter,
-        connectionLabels: Object.fromEntries(connectionLabels),
-        taskDescriptions: Object.fromEntries(taskDescriptions),
-        zoom: currentZoom,
-        exportCount: 0
-    };
-
-    try {
-        await setDoc(
-            doc(collection(firebaseDB, "usuarios", uid, "flows"), flowId),
-            flowData
-        );
-        alert("Fluxo salvo no servidor!");
-    } catch (error) {
-        console.error("Erro ao salvar fluxo:", error);
-        alert("Erro ao salvar fluxo no servidor.");
-    }
-}
-
-// Carregar lista de fluxos do Firestore
-async function loadFlowsFromFirestore() {
-    if (!firebaseAuth.currentUser) return [];
-
-    const uid = firebaseAuth.currentUser.uid;
-    const querySnapshot = await getDocs(collection(firebaseDB, "usuarios", uid, "flows"));
-
-    const flows = [];
-    querySnapshot.forEach((docSnap) => {
-        flows.push({ id: docSnap.id, ...docSnap.data() });
-    });
-
-    return flows;
-}
-
-// Carregar um fluxo específico
-async function loadFlowById(flowId) {
-    if (!firebaseAuth.currentUser) return;
-
-    const uid = firebaseAuth.currentUser.uid;
-    const docSnap = await getDoc(doc(firebaseDB, "usuarios", uid, "flows", flowId));
-
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        editor.import(data.drawflowData);
-        actors = Object.fromEntries(data.actors.map(a => [a.name, a.color]));
-        nodeIdCounter = data.nodeIdCounter || 1;
-        connectionLabels = new Map(Object.entries(data.connectionLabels || {}));
-        taskDescriptions = new Map(Object.entries(data.taskDescriptions || {}));
-        currentZoom = data.zoom || 1;
-        updateProcessInfo();
-    } else {
-        alert("Fluxo não encontrado.");
-    }
-}
-
 function saveToLocalStorage() {
-    const processName = document.getElementById('process-name').value.trim() || "Sem nome";
-    saveFlowToFirestore(processName);
+    try {
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        const allFlows = JSON.parse(localStorage.getItem('meipperFlows')) || {};
+        
+        const currentFlow = {
+            drawflow: editor.export(),
+            actors: actors,
+            nodeIdCounter: nodeIdCounter,
+            processName: processName,
+            selectedColor: selectedColor,
+            colors: colors,
+            connectionLabels: Array.from(connectionLabels.entries()),
+            taskDescriptions: Array.from(taskDescriptions.entries()),
+            timestamp: Date.now(),
+            version: '2.1'
+        };
+        
+        allFlows[processName] = currentFlow;
+        localStorage.setItem('meipperFlows', JSON.stringify(allFlows));
+        
+        alert(`Fluxo "${processName}" salvo com sucesso!`);
+    } catch (error) {
+        console.error('Erro ao salvar:', error);
+        alert('Erro ao salvar o fluxo. Verifique se há espaço suficiente no navegador.');
+    }
 }
-
 function showSavedFlowsPopup() {
     const popup = document.getElementById('saved-flows-popup');
     popup.style.display = 'flex';
@@ -2436,9 +2411,15 @@ function clearAll() {
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
+        
+        // ✅ Reconfigurar eventos do Drawflow
+        if (typeof setupEditorEvents === "function") {
+            setupEditorEvents();
+        } else if (typeof initializeDrawflow === "function") {
+            initializeDrawflow();
+        }
     }
 }
-
 
 // Listener para nome do processo
 const processNameInput = document.getElementById('process-name');
@@ -2449,3 +2430,86 @@ if (processNameInput) {
         this.saveTimeout = setTimeout(() => saveState(), 1000);
     });
 }
+
+// ====================== FIRESTORE SAVE & LOAD ======================
+
+// Salvar fluxo no Firestore
+async function saveFlowToFirestore(flowName) {
+    if (!firebaseAuth.currentUser) {
+        alert("Você precisa estar logado para salvar.");
+        return;
+    }
+
+    const uid = firebaseAuth.currentUser.uid;
+    const flowId = flowName.replace(/\s+/g, "_") + "_" + Date.now();
+
+    const flowData = {
+        name: flowName || "Sem nome",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        actors: Object.entries(actors).map(([name, color]) => ({ name, color })),
+        drawflowData: editor.export(),
+        nodeIdCounter: nodeIdCounter,
+        connectionLabels: Object.fromEntries(connectionLabels),
+        taskDescriptions: Object.fromEntries(taskDescriptions),
+        zoom: currentZoom,
+        exportCount: 0
+    };
+
+    try {
+        await setDoc(doc(collection(firebaseDB, "usuarios", uid, "flows"), flowId), flowData);
+        alert("Fluxo salvo no servidor!");
+    } catch (error) {
+        console.error("Erro ao salvar fluxo:", error);
+        alert("Erro ao salvar fluxo no servidor.");
+    }
+}
+
+// Carregar lista de fluxos
+async function loadFlowsFromFirestore() {
+    if (!firebaseAuth.currentUser) return [];
+
+    const uid = firebaseAuth.currentUser.uid;
+    const querySnapshot = await getDocs(collection(firebaseDB, "usuarios", uid, "flows"));
+
+    const flows = [];
+    querySnapshot.forEach((docSnap) => {
+        flows.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    return flows;
+}
+
+// Carregar um fluxo específico
+async function loadFlowById(flowId) {
+    if (!firebaseAuth.currentUser) return;
+
+    const uid = firebaseAuth.currentUser.uid;
+    const docSnap = await getDoc(doc(firebaseDB, "usuarios", uid, "flows", flowId));
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        editor.import(data.drawflowData);
+        actors = Object.fromEntries(data.actors.map(a => [a.name, a.color]));
+        nodeIdCounter = data.nodeIdCounter || 1;
+        connectionLabels = new Map(Object.entries(data.connectionLabels || {}));
+        taskDescriptions = new Map(Object.entries(data.taskDescriptions || {}));
+        currentZoom = data.zoom || 1;
+        updateProcessInfo();
+    } else {
+        alert("Fluxo não encontrado.");
+    }
+}
+
+// Conectar botões aos eventos
+document.querySelector('[data-action="save-flow"]')?.addEventListener('click', () => {
+    const processName = document.getElementById('process-name').value.trim() || "Sem nome";
+    saveFlowToFirestore(processName);
+});
+
+document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('click', async () => {
+    const flows = await loadFlowsFromFirestore();
+    console.log("Fluxos carregados:", flows);
+    // Aqui você pode preencher seu popup com a lista de fluxos
+});
+// ====================================================================
