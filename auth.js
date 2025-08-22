@@ -96,13 +96,13 @@ if (photoInput) {
 }
 
     checkAuthState() {
-    window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-        this.hideAuthLoading();
-        if (user) {
-            this.user = user;
+    window.onAuthStateChanged(window.firebaseAuth, (user) => {
+    this.hideAuthLoading();
+    if (user) {
+      this.user = user;
 
-            // 🔹 Atualiza perfil no Firestore
-            await salvarPerfilUsuario(user);
+      // 🔹 Atualiza perfil no Firestore
+      salvarPerfilUsuario(user);
 
             // 🔹 Resetar editor ao logar
             if (typeof editor !== "undefined") {
@@ -195,11 +195,11 @@ if (photoInput) {
             }
 
             await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
-            nome: displayName,
-            email: user.email,
-            photoURL,
-            createdAt: window.serverTimestamp()
-        }, { merge: true });
+  email: user.email,
+  nome: displayName,   // <--- antes estava "name"
+  photoURL,
+  createdAt: window.serverTimestamp()
+});
 
             alert("Cadastro realizado com sucesso!");
             this.closeAllModals();
@@ -423,21 +423,23 @@ if (photoInput) {
     }
 }
 
-    async function salvarPerfilUsuario(user) {
-    if (!user) return;
-    try {
-        const userRef = window.doc(window.firebaseDB, "usuarios", user.uid);
-
-        await window.setDoc(userRef, {
-            nome: user.displayName || "Usuário sem nome",
-            email: user.email || null,
-            photoURL: user.photoURL || null
-        }, { merge: true }); // não sobrescreve flows
-
-        console.log("Perfil atualizado no Firestore!");
-    } catch (err) {
-        console.error("Erro ao salvar perfil:", err);
-    }
+async function salvarPerfilUsuario(user) {
+  if (!user) return;
+  try {
+    await window.setDoc(
+      window.doc(window.firebaseDB, "usuarios", user.uid),
+      {
+        nome: user.displayName || "Usuário",
+        email: user.email || null,
+        photoURL: user.photoURL || null,
+        updatedAt: window.serverTimestamp()
+      },
+      { merge: true }
+    );
+    console.log("Perfil atualizado no Firestore!");
+  } catch (err) {
+    console.error("Erro ao salvar perfil:", err);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
