@@ -201,8 +201,11 @@ function setupButtonListeners() {
     
     // Botões de ação principais
     document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
-    document.querySelector('[data-action="save-flow"]').addEventListener('click', saveToLocalStorage);
-    document.querySelector('[data-action="load-flow"]').addEventListener('click', function() {
+    document.querySelector('[data-action="save-flow"]').addEventListener('click', async () => {
+     const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+     await saveFlowToFirestore(processName); // salva no Firestore
+    });
+    document.querySelector('[data-action="show-saved-flows"]').addEventListener('click', openSavedFlowsPopupFromFirestore);
     // Criar input file dinamicamente
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -2468,17 +2471,19 @@ async function saveFlowToFirestore(flowName) {
 
 // Carregar lista de fluxos
 async function loadFlowsFromFirestore() {
-    if (!firebaseAuth.currentUser) return [];
+  if (!firebaseAuth.currentUser) return [];
 
-    const uid = firebaseAuth.currentUser.uid;
-    const querySnapshot = await getDocs(collection(firebaseDB, "usuarios", uid, "flows"));
+  const uid = firebaseAuth.currentUser.uid;
+  const querySnapshot = await getDocs(collection(firebaseDB, "usuarios", uid, "flows"));
 
-    const flows = [];
-    querySnapshot.forEach((docSnap) => {
-        flows.push({ id: docSnap.id, ...docSnap.data() });
-    });
+  const flows = [];
+  querySnapshot.forEach((docSnap) => {
+    flows.push({ id: docSnap.id, ...docSnap.data() }); // <-- bug do ".docSnap" corrigido
+  });
 
-    return flows;
+  // ordena por updatedAt (quando houver)
+  flows.sort((a, b) => (b.updatedAt?.toMillis?.() ?? 0) - (a.updatedAt?.toMillis?.() ?? 0));
+  return flows;
 }
 
 // Carregar um fluxo específico
@@ -2513,4 +2518,85 @@ document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('cl
     console.log("Fluxos carregados:", flows);
     // Aqui você pode preencher seu popup com a lista de fluxos
 });
+
+async function openSavedFlowsPopupFromFirestore() {
+  const popup = document.getElementById('saved-flows-popup');
+  const container = document.getElementById('saved-flows-container');
+  const searchInput = document.getElementById('flow-search');
+
+  popup.style.display = 'flex';
+  container.innerHTML = '';
+
+  const flows = await loadFlowsFromFirestore();
+
+  if (!flows.length) {
+    container.innerHTML = '<div class="no-flows-message">Nenhum fluxo salvo ainda</div>';
+  } else {
+    // render cards
+    flows.forEach(flow => {
+      const updated =
+        flow.updatedAt?.toDate?.() ? flow.updatedAt.toDate() :
+        flow.createdAt?.toDate?.() ? flow.createdAt.toDate() : null;
+
+      const dateStr = updated
+        ? `${updated.getDate()}/${updated.getMonth()+1}/${updated.getFullYear()} ${updated.getHours()}:${String(updated.getMinutes()).padStart(2,'0')}`
+        : '—';
+
+      const actorsCount = Array.isArray(flow.actors) ? flow.actors.length : 0;
+      const elementsCount = flow.drawflowData?.drawflow?.Home?.data
+        ? Object.keys(flow.drawflowData.drawflow.Home.data).length
+        : 0;
+
+      const card = document.createElement('div');
+      card.className = 'flow-card';
+      card.innerHTML = `
+        <div class="flow-actions">
+          <button class="flow-action-btn delete">×</button>
+        </div>
+        <h4>${flow.name || 'Sem nome'}</h4>
+        <p>Atualizado: ${dateStr}</p>
+        <p>${actorsCount} responsáveis</p>
+        <p>${elementsCount} elementos</p>
+      `;
+
+      // carregar
+      card.addEventListener('click', async (e) => {
+        if (e.target.closest('.flow-action-btn')) return; // ignorar clique no "×"
+        document.getElementById('saved-flows-popup').style.display = 'none';
+        await loadFlowById(flow.id);
+        alert('Fluxo carregado!');
+      });
+
+      // excluir
+      card.querySelector('.flow-action-btn.delete').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm(`Excluir o fluxo "${flow.name}"?`)) return;
+        const uid = firebaseAuth.currentUser?.uid;
+        if (!uid) return;
+        await deleteDoc(doc(firebaseDB, "usuarios", uid, "flows", flow.id));
+        openSavedFlowsPopupFromFirestore(); // recarrega a lista
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  // fechar ao clicar fora
+  popup.addEventListener('click', function onOverlay(e) {
+    if (e.target === popup) popup.style.display = 'none';
+  }, { once: true });
+
+  // fechar pelo botão "×"
+  const closeBtn = document.getElementById('close-saved-flows-popup');
+  closeBtn.addEventListener('click', () => popup.style.display = 'none', { once: true });
+
+  // busca em tempo real
+  searchInput.addEventListener('input', function onSearch(e) {
+    const term = e.target.value.toLowerCase();
+    container.querySelectorAll('.flow-card').forEach(card => {
+      const title = card.querySelector('h4').textContent.toLowerCase();
+      card.style.display = title.includes(term) ? 'block' : 'none';
+    });
+  }, { once: true });
+}
 // ====================================================================
