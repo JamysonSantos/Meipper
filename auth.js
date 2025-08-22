@@ -1,7 +1,6 @@
 // ======================
 // AUTHENTICATION SYSTEM
 // ======================
-
 class AuthManager {
     constructor() {
         this.user = null;
