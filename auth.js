@@ -15,23 +15,6 @@ class AuthManager {
         this.init();
     }
 
-    async function salvarPerfilUsuario(user) {
-    if (!user) return;
-    try {
-        const userRef = window.doc(window.firebaseDB, "usuarios", user.uid);
-
-        await window.setDoc(userRef, {
-            nome: user.displayName || "Usuário sem nome",
-            email: user.email || null,
-            photoURL: user.photoURL || null
-        }, { merge: true }); // não sobrescreve flows
-
-        console.log("Perfil atualizado no Firestore!");
-    } catch (err) {
-        console.error("Erro ao salvar perfil:", err);
-    }
-}
-
     init() {
         this.waitForFirebase().then(() => {
             this.setupEventListeners();
@@ -437,6 +420,23 @@ if (photoInput) {
                 console.error('Erro Firebase:', error.code, error.message);
                 return 'Ocorreu um erro inesperado. Tente novamente.';
         }
+    }
+}
+
+    async function salvarPerfilUsuario(user) {
+    if (!user) return;
+    try {
+        const userRef = window.doc(window.firebaseDB, "usuarios", user.uid);
+
+        await window.setDoc(userRef, {
+            nome: user.displayName || "Usuário sem nome",
+            email: user.email || null,
+            photoURL: user.photoURL || null
+        }, { merge: true }); // não sobrescreve flows
+
+        console.log("Perfil atualizado no Firestore!");
+    } catch (err) {
+        console.error("Erro ao salvar perfil:", err);
     }
 }
 
