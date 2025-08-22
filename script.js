@@ -750,39 +750,26 @@ function createEndNode() {
 }
 
 function createTaskNode(taskName, actor, color) {
+    const nodeId = nodeIdCounter++;
     const html = `
         <div class="task-node">
-            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event)">
+            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
                 ${taskName}
-                <button class="task-description-btn" onclick="showTaskDescription(DRAWFLOW_NODE_ID, '${taskName.replace(/'/g, "\\'")}')">+</button>
+                <button class="task-description-btn" onclick="showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')">+</button>
             </div>
             <div class="task-actor">${actor}</div>
         </div>
     `;
     const pos = getNextPosition();
     
-    // Cria o nó e obtém o ID gerado pelo Drawflow
-    const newId = editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { 
+    editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { 
         name: taskName, 
         actor: actor, 
         color: color 
     }, html);
-
-    // Corrige o botão de descrição para usar o ID real do Drawflow
-    const nodeEl = document.getElementById(`node-${newId}`);
-    if (nodeEl) {
-        const btn = nodeEl.querySelector('.task-description-btn');
-        if (btn) {
-            btn.setAttribute("onclick", `showTaskDescription(${newId}, '${taskName.replace(/'/g, "\\'")}')`);
-        }
-        const content = nodeEl.querySelector('.task-content');
-        if (content) {
-            content.setAttribute("ondblclick", `editTaskText(event, ${newId})`);
-        }
-    }
-
-    return newId; // Retorna o ID correto
+    return nodeId;
 }
+
 
 function createGatewayNode(question) {
     const nodeId = nodeIdCounter++;
