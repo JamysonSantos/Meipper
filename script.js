@@ -38,7 +38,6 @@ let isPerformingUndoRedo = false;
 // ======================
 
 async function loadUserAvatar(user) {
-  const avatarCircle = document.getElementById("user-avatar-circle");
   const avatarText = document.getElementById("user-avatar-text");
   const avatarImg = document.getElementById("user-avatar-img");
 
@@ -84,16 +83,20 @@ async function loadUserAvatar(user) {
   }
 }
 
-  // Toggle do menu de usuário
+const avatarEl = document.getElementById("user-avatar-circle");
+const menuEl = document.getElementById("user-menu");
+
+if (avatarEl && menuEl) {
   avatarEl.addEventListener("click", () => {
     menuEl.classList.toggle("hidden");
   });
 
   document.addEventListener("click", (e) => {
-  if (!avatarEl.contains(e.target) && !menuEl.contains(e.target)) {
-    menuEl.classList.add("hidden");
-  }
-});
+    if (!avatarEl.contains(e.target) && !menuEl.contains(e.target)) {
+      menuEl.classList.add("hidden");
+    }
+  });
+}
 
   // Logout
   const logoutBtn = document.querySelector("[data-action='logout']");
