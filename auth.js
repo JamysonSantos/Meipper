@@ -105,7 +105,7 @@ if (photoInput) {
             if (typeof editor !== "undefined") {
                 editor.clear();
             }
-            actors = {};
+            
             nodeIdCounter = 0;
             connectionLabels = new Map();
             taskDescriptions = new Map();
