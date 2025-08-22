@@ -2478,12 +2478,6 @@ async function loadFlowById(flowId) {
     }
 }
 
-// Conectar botões aos eventos
-document.querySelector('[data-action="save-flow"]')?.addEventListener('click', () => {
-    const processName = document.getElementById('process-name').value.trim() || "Sem nome";
-    saveFlowToFirestore(processName);
-});
-
 document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('click', async () => {
     const flows = await loadFlowsFromFirestore();
     console.log("Fluxos carregados:", flows);
