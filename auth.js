@@ -15,6 +15,23 @@ class AuthManager {
         this.init();
     }
 
+    async function salvarPerfilUsuario(user) {
+    if (!user) return;
+    try {
+        const userRef = window.doc(window.firebaseDB, "usuarios", user.uid);
+
+        await window.setDoc(userRef, {
+            nome: user.displayName || "Usuário sem nome",
+            email: user.email || null,
+            photoURL: user.photoURL || null
+        }, { merge: true }); // não sobrescreve flows
+
+        console.log("Perfil atualizado no Firestore!");
+    } catch (err) {
+        console.error("Erro ao salvar perfil:", err);
+    }
+}
+
     init() {
         this.waitForFirebase().then(() => {
             this.setupEventListeners();
@@ -96,16 +113,18 @@ if (photoInput) {
 }
 
     checkAuthState() {
-    window.onAuthStateChanged(window.firebaseAuth, (user) => {
+    window.onAuthStateChanged(window.firebaseAuth, async (user) => {
         this.hideAuthLoading();
         if (user) {
             this.user = user;
+
+            // 🔹 Atualiza perfil no Firestore
+            await salvarPerfilUsuario(user);
 
             // 🔹 Resetar editor ao logar
             if (typeof editor !== "undefined") {
                 editor.clear();
             }
-            
             nodeIdCounter = 0;
             connectionLabels = new Map();
             taskDescriptions = new Map();
@@ -193,11 +212,11 @@ if (photoInput) {
             }
 
             await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
-                email: user.email,
-                name: displayName,
-                photoURL,
-                createdAt: window.serverTimestamp()
-            });
+            nome: displayName,
+            email: user.email,
+            photoURL,
+            createdAt: window.serverTimestamp()
+        }, { merge: true });
 
             alert("Cadastro realizado com sucesso!");
             this.closeAllModals();
