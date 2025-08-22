@@ -217,7 +217,7 @@ function setupButtonListeners() {
     document.body.appendChild(fileInput);
     fileInput.click();
     document.body.removeChild(fileInput);
-});
+};
     document.querySelector('[data-action="show-saved-flows"]').addEventListener('click', showSavedFlowsPopup);
 
     // Adicionar tarefa ao pressionar Enter
