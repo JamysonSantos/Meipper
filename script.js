@@ -37,35 +37,33 @@ let isPerformingUndoRedo = false;
 // FUNÇÃO: Avatar do Usuário
 // ======================
 
-async function loadUserAvatar(user) {
-  const avatarText = document.getElementById("user-avatar-text");
-  const avatarImg = document.getElementById("user-avatar-img");
+import { doc, getDoc } from "firebase/firestore";
 
-  if (!user) return;
+async function loadUserAvatar(user) {
+  const avatarCircle = document.getElementById("user-avatar-circle");
+  const avatarImg = document.getElementById("user-avatar-img");
+  const avatarText = document.getElementById("user-avatar-text");
+
+  if (!user || !avatarCircle) return;
 
   try {
-    // Busca o documento no Firestore
-    const userDoc = await firebaseDB
-      .collection("usuarios")
-      .doc(user.uid)
-      .get();
+    const userRef = doc(firebaseDB, "usuarios", user.uid);
+    const userSnap = await getDoc(userRef);
 
     let nome = user.displayName || "Usuário";
     let photoURL = user.photoURL || null;
 
-    if (userDoc.exists) {
-      const data = userDoc.data();
+    if (userSnap.exists()) {
+      const data = userSnap.data();
       if (data.nome) nome = data.nome;
       if (data.photoURL) photoURL = data.photoURL;
     }
 
     if (photoURL) {
-      // Se tem foto → mostra imagem
       avatarImg.src = photoURL;
       avatarImg.style.display = "block";
       avatarText.style.display = "none";
     } else {
-      // Se não tem foto → mostra iniciais do nome
       const iniciais = nome
         .split(" ")
         .map(p => p.charAt(0).toUpperCase())
