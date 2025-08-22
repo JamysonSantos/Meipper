@@ -34,56 +34,6 @@ const MAX_HISTORY = 50;
 let isPerformingUndoRedo = false;
 
 // ======================
-// FUNÇÃO: Avatar do Usuário
-// ======================
-async function loadUserAvatar(user) {
-  const avatarEl = document.getElementById("user-avatar");
-  const menuEl = document.getElementById("user-menu");
-
-  if (!avatarEl || !menuEl) return;
-
-  try {
-    // Busca os dados do Firestore
-    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid);
-    const snap = await window.getDoc(docRef);
-
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data.photoURL) {
-        avatarEl.innerHTML = `<img src="${data.photoURL}" alt="avatar">`;
-      } else {
-        const initials = data.name ? data.name.substring(0, 2).toUpperCase() : "?";
-        avatarEl.textContent = initials;
-      }
-    }
-  } catch (err) {
-    console.error("Erro ao carregar avatar:", err);
-  }
-
-  // Toggle do menu de usuário
-  avatarEl.addEventListener("click", () => {
-    menuEl.classList.toggle("hidden");
-  });
-
-  document.addEventListener("click", (e) => {
-  if (!avatarEl.contains(e.target) && !menuEl.contains(e.target)) {
-    menuEl.classList.add("hidden");
-  }
-});
-
-  // Logout
-  const logoutBtn = document.querySelector("[data-action='logout']");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-      await window.signOut(window.firebaseAuth);
-    });
-  }
-}
-
-// Expor globalmente para o auth.js poder chamar
-window.loadUserAvatar = loadUserAvatar;
-
-// ======================
 // EXPOSIÇÃO DE FUNÇÕES GLOBAIS
 // ======================
 window.removeActor = removeActor;
@@ -229,6 +179,36 @@ function setupButtonListeners() {
 function loadFromLocalStorage() {
     updateSavedFlowsList();
 }
+
+async function loadUserAvatar() {
+    const uid = firebaseAuth.currentUser.uid;
+    const userDoc = await getDoc(doc(firebaseDB, "usuarios", uid));
+
+    if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const avatarEl = document.getElementById("user-avatar");
+        avatarEl.innerHTML = "";
+
+        if (userData.photoURL) {
+            const img = document.createElement("img");
+            img.src = userData.photoURL;
+            avatarEl.appendChild(img);
+        } else {
+            const initials = userData.name
+                .split(" ")
+                .map(n => n[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase();
+            avatarEl.textContent = initials;
+        }
+    }
+}
+
+document.getElementById("user-avatar").addEventListener("click", () => {
+    document.getElementById("user-menu").classList.toggle("hidden");
+});
+
 
 // ======================
 // SISTEMA DE DESCRIÇÕES
@@ -2411,15 +2391,9 @@ function clearAll() {
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
-        
-        // ✅ Reconfigurar eventos do Drawflow
-        if (typeof setupEditorEvents === "function") {
-            setupEditorEvents();
-        } else if (typeof initializeDrawflow === "function") {
-            initializeDrawflow();
-        }
     }
 }
+
 
 // Listener para nome do processo
 const processNameInput = document.getElementById('process-name');
