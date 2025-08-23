@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    <!- Login Modal ->
+    <!-- Login Modal -->
     <div id="login-modal" class="auth-modal">
   <div class="auth-modal-content">
     <div class="auth-modal-header">
@@ -78,17 +78,7 @@
       <!-- Nome -->
       <div class="auth-form-group">
         <label for="register-name">Nome:</label>
-        <input type="text" id="register-name" required placeholder="Digite seu nome">
-      </div>
-
-      <!-- Foto -->
-      <div class="auth-form-group">
-        <label for="register-photo">Foto (opcional):</label>
-        <input type="file" id="register-photo" accept="image/*">
-        <div id="photo-feedback" class="photo-feedback" style="display:none;">Foto selecionada ✅</div>
-        <div class="photo-preview" id="photo-preview" style="display:none;">
-          <img id="preview-img" alt="Pré-visualização da foto">
-        </div>
+        <input type="text" id="register-name" required placeholder="Digite seu nome completo">
       </div>
 
       <!-- E-mail -->
@@ -244,13 +234,15 @@
                                   </div>
                                 </div>
                             </div>
-                        <div class="user-menu-container">
-                            <div id="menu-icon" class="menu-icon">≡</div>
-                            <div id="user-menu" class="hidden">
-                            <div id="user-name-display" class="user-name-display"></div>
-                            <button id="logout-btn">Sair</button>
+                        <div id="user-menu-container" class="user-menu-container">
+                            <button id="user-menu-toggle" class="user-menu-toggle">
+                                <span class="menu-icon">☰</span>
+                            </button>
+                            <div id="user-menu" class="user-menu hidden">
+                                <div id="user-name-display" class="user-name-display"></div>
+                                <button data-action="logout" id="logout-btn">Sair</button>
+                            </div>
                         </div>
-                      </div>
                     </div>
                 </div>
             </div>
@@ -331,7 +323,7 @@
                     
                     <button class="modern-btn success large" data-action="add-start-task">
                         <span class="btn-icon">▶</span>
-                        <span class="btn-text">Iniciar Fluxo</span>
+                        <span class="btn-text">Iniciar Processo</span>
                     </button>
 
                     <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
@@ -352,7 +344,7 @@
 
                     <button class="modern-btn danger" data-action="add-end-task">
                         <span class="btn-icon">⏹</span>
-                        <span class="btn-text">Finalizar Fluxo</span>
+                        <span class="btn-text">Finalizar Processo</span>
                     </button>
                 </div>
 
