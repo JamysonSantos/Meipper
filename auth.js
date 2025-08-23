@@ -125,42 +125,39 @@ class AuthManager {
         }
     }
 
-    async handleRegister(e) {
-        e.preventDefault();
+    async handleRegister() {
+  const name = document.getElementById("register-name").value.trim();
+  const email = document.getElementById("register-email").value.trim();
+  const password = document.getElementById("register-password").value.trim();
 
-        const email = document.getElementById('register-email').value.trim();
-        const password = document.getElementById('register-password').value;
-        const confirmPassword = document.getElementById('register-confirm-password').value;
-        const displayName = document.getElementById('register-name').value.trim();
+  if (!name) {
+    alert("Por favor, informe seu nome.");
+    return;
+  }
 
-        if (!displayName) {
-            alert("Por favor, preencha o nome.");
-            return;
-        }
-        if (password !== confirmPassword) {
-            alert("As senhas não coincidem.");
-            return;
-        }
+  try {
+    const cred = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+    const user = cred.user;
 
-        try {
-            const cred = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-            const user = cred.user;
-            await window.updateProfile(user, { displayName });
-            }
+    // Define o nome exibido no Auth
+    await window.updateProfile(user, { displayName: name });
 
-            await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
-                email: user.email,
-                name: displayName,
-                createdAt: window.serverTimestamp()
-            });
+    // Salva/atualiza o documento do usuário no Firestore com campo padronizado "nome"
+    await window.setDoc(
+      window.doc(window.firebaseDB, "usuarios", user.uid),
+      {
+        nome: name,
+        email: email,
+        createdAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
 
-            alert("Cadastro realizado com sucesso!");
-            this.closeAllModals();
-        } catch (error) {
-            console.error("Erro no cadastro:", error);
-            alert(this.getAuthErrorMessage(error));
-        }
-    }
+    this.closeAllModals();
+  } catch (error) {
+    alert("Erro ao cadastrar: " + error.message);
+  }
+}
 
     async handleForgotPassword(e) {
         e.preventDefault();
