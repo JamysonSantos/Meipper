@@ -116,7 +116,7 @@ body {
 }
 
 .auth-modal.active .auth-modal-content {
-    transform: scale(0.6) translateY(0);
+    transform: scale(0.8) translateY(0);
 }
 
 .auth-modal-header {
@@ -180,6 +180,19 @@ body {
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     background: white;
+}
+
+/* Photo Preview */
+.photo-preview {
+    margin-top: 8px;
+}
+
+.photo-preview img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
 }
 
 .password-input-container {
@@ -554,72 +567,94 @@ body {
     }
 }
 
-/* Menu */
-#user-menu {
+/* Menu container */
+.menu-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Menu Toggle Button */
+.menu-toggle {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 18px;
+}
+
+.menu-toggle:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.menu-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* User Menu */
+.user-menu {
     position: absolute;
-    top: 50px;
-    right: 8px;
+    top: 52px;
+    right: 0;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     border: 1px solid #e5e7eb;
     z-index: 1001;
-    padding: 8px;
+    padding: 16px;
+    min-width: 200px;
 }
 
-#user-menu.hidden {
+.user-menu.hidden {
     display: none;
 }
 
-.user-name-display {
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 8px;
-  text-align: left;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+.user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    word-wrap: break-word;
+    text-align: left;
+    line-height: 1.4;
 }
 
 .user-menu button {
     display: block;
     width: 100%;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border: none;
-    background: none;
-    text-align: left;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    text-align: center;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
 }
 
 .user-menu button:hover {
-    background: #f3f4f6;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
 
-.user-menu-container {
-  position: relative;
-  display: inline-block;
-}
-
-.menu-icon {
-  font-size: 35px;
-  cursor: pointer;
-  user-select: none;
-}
-
-#logout-btn {
-  width: 100%;
-  padding: 6px;
-  background: #f44336;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-#logout-btn:hover {
-  background: #d32f2f;
-}
 
 /* Process Info Card */
 .process-info-card {
@@ -1898,7 +1933,7 @@ body {
 }
 
 /* Campo de Nome */
-#register-form #register-name {
+.auth-form-group input {
   width: 100%;
   padding: 12px;
   border: 1px solid #d1d5db;
@@ -1909,7 +1944,30 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-#register-form #register-name:focus {
+.auth-form-group input:focus {
   border-color: #3b82f6; /* azul */
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Process Name Input */
+.process-name {
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #1f2937 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.process-name:focus {
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.process-name::placeholder {
+    color: #9ca3af !important;
+    font-weight: 400 !important;
 }
