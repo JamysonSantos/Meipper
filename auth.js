@@ -72,19 +72,28 @@ if (photoInput) {
         document.getElementById('show-forgot-password').addEventListener('click', () => this.showForgotPasswordModal());
         document.getElementById('success-ok-btn').addEventListener('click', () => this.showLoginModal());
 
-        // Logout button
+        // Menu toggle e logout button
+        const menuToggle = document.querySelector('#menu-toggle');
+        const userMenu = document.querySelector('#user-menu');
         const logoutBtn = document.querySelector('#logout-btn, [data-action="logout"]');
+        
+        if (menuToggle && userMenu) {
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+            
+            // Fechar menu ao clicar fora
+            document.addEventListener('click', (e) => {
+                if (!menuToggle.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+        
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => this.handleLogout());
         }
-
-        // Password toggles
-        document.querySelectorAll('.password-toggle').forEach(toggle => {
-            toggle.addEventListener('click', (e) => {
-                this.togglePassword(e.target.closest('.password-toggle').dataset.target);
-            });
-        });
-
         const confirmPasswordInput = document.getElementById('confirm-password');
     const registerPasswordInput = document.getElementById('register-password');
 
@@ -114,7 +123,7 @@ if (photoInput) {
 
             this.showMainApp();
             console.log("Usuário autenticado:", user.email);
-            if (typeof loadUserAvatar === "function") loadUserAvatar(user);
+            if (typeof loadUserInfo === "function") loadUserInfo(user);
         } else {
             this.user = null;
             this.showLoginModal();
@@ -155,20 +164,6 @@ if (photoInput) {
         const password = document.getElementById('register-password').value;
         const confirmPassword = document.getElementById('register-confirm-password').value;
         const displayName = document.getElementById('register-name').value.trim();
-        const photoFile = document.getElementById('register-photo')?.files?.[0];
-        const previewImg = document.getElementById('preview-img');
-        const photoFeedback = document.getElementById('photo-feedback');
-
-        if (photoFile && previewImg && photoFeedback) {
-        const reader = new FileReader();
-         reader.onload = (event) => {
-        previewImg.src = event.target.result;
-        previewImg.style.display = 'block';
-        photoFeedback.textContent = 'Foto selecionada ✅';
-        photoFeedback.style.display = 'block';
-        };
-        reader.readAsDataURL(photoFile);
-        }
 
         if (!displayName) {
             alert("Por favor, preencha o nome.");
@@ -182,21 +177,12 @@ if (photoInput) {
         try {
             const cred = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
             const user = cred.user;
-            let photoURL = "";
-
-            if (photoFile) {
-                const storageRef = window.ref(window.firebaseStorage, `user_photos/${user.uid}`);
-                await window.uploadBytes(storageRef, photoFile);
-                photoURL = await window.getDownloadURL(storageRef);
-                await window.updateProfile(user, { displayName, photoURL });
-            } else {
-                await window.updateProfile(user, { displayName });
-            }
+            
+            await window.updateProfile(user, { displayName });
 
             await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
                 email: user.email,
-                name: displayName,
-                photoURL,
+                nome: displayName,
                 createdAt: window.serverTimestamp()
             });
 
@@ -251,8 +237,20 @@ if (photoInput) {
             taskDescriptions = new Map();
             currentZoom = 1;
 
-            // 🔹 Limpar UI
+            // 🔹 Limpar UI - incluindo campos do processo
             document.getElementById('process-name').value = "";
+            
+            // Limpar lista de atores/responsáveis
+            const actorsList = document.querySelector('.actors-list');
+            if (actorsList) {
+                actorsList.innerHTML = '';
+            }
+            
+            // Resetar objeto actors global
+            if (typeof actors !== 'undefined') {
+                actors = {};
+            }
+            
             if (document.getElementById('saved-flows-list')) {
                 document.getElementById('saved-flows-list').innerHTML = "";
             }
@@ -311,6 +309,10 @@ if (photoInput) {
         this.registerModal.classList.remove('active');
         this.forgotPasswordModal.classList.remove('active');
         this.successModal.classList.remove('active');
+    }
+
+    closeAllModals() {
+        this.hideAllModals();
     }
 
     hideAuthLoading() {
@@ -428,9 +430,8 @@ async function salvarPerfilUsuario(user) {
     await window.setDoc(
       window.doc(window.firebaseDB, "usuarios", user.uid),
       {
-        nome: user.displayName || "Usuário",
+        nome: user.displayName || user.email?.split('@')[0] || "Usuário",
         email: user.email || null,
-        photoURL: user.photoURL || null,
         updatedAt: window.serverTimestamp()
       },
       { merge: true }
@@ -440,6 +441,34 @@ async function salvarPerfilUsuario(user) {
     console.error("Erro ao salvar perfil:", err);
   }
 }
+
+// Função para carregar informações do usuário no header
+async function loadUserInfo(user) {
+    if (!user) return;
+    
+    try {
+        // Buscar dados do usuário no Firestore
+        const userDoc = await window.getDoc(window.doc(window.firebaseDB, "usuarios", user.uid));
+        let userName = user.displayName || user.email?.split('@')[0] || "Usuário";
+        
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userName = userData.nome || userName;
+        }
+        
+        // Atualizar o nome no menu
+        const userNameElement = document.getElementById('user-name');
+        if (userNameElement) {
+            userNameElement.textContent = userName;
+        }
+        
+    } catch (error) {
+        console.error("Erro ao carregar informações do usuário:", error);
+    }
+}
+
+// Expor função globalmente
+window.loadUserInfo = loadUserInfo;
 
 document.addEventListener('DOMContentLoaded', () => {
     window.authManager = new AuthManager();
