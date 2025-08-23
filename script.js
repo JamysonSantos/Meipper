@@ -37,28 +37,9 @@ let isPerformingUndoRedo = false;
 // FUNÇÃO: Avatar do Usuário
 // ======================
 
-async function loadUserAvatar(user) {
-  const avatarCircle = document.getElementById("user-avatar-circle");
-  const avatarImg = document.getElementById("user-avatar-img");
-  const avatarText = document.getElementById("user-avatar-text");
-
-  if (!user || !avatarCircle) return;
-
-  try {
-    const userRef = doc(firebaseDB, "usuarios", user.uid);
-    const userSnap = await getDoc(userRef);
-
-    let nome = user.displayName || "Usuário";
-    let photoURL = user.photoURL || null;
-
-    if (userSnap.exists()) {
-      const data = userSnap.data();
-      if (data.nome) nome = data.nome;
-      if (data.photoURL) photoURL = data.photoURL;
-    }
-
-    if (photoURL) {
-      avatarImg.src = photoURL;
+async 
+    if () {
+      avatarImg.src = ;
       avatarImg.style.display = "block";
       avatarText.style.display = "none";
     } else {
@@ -2063,7 +2044,7 @@ function collectAllTasks() {
 }
 
 async function exportDocumentationPDF() {
-    showLoading('Exportando Documentação PDF...', 'Coletando informações do Fluxo...');
+    showLoading('Exportando Documentação PDF...', 'Coletando informações do processo...');
     
     try {
         const { jsPDF } = window.jspdf;
@@ -2168,7 +2149,7 @@ async function exportDocumentationPDF() {
 }
 
 async function exportDocumentationWord() {
-    showLoading('Exportando Documentação Word...', 'Coletando informações do Fluxo...');
+    showLoading('Exportando Documentação Word...', 'Coletando informações do processo...');
     
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
