@@ -555,7 +555,7 @@ body {
 }
 
 /* Menu */
-.user-menu {
+#user-menu {
     position: absolute;
     top: 50px;
     right: 8px;
@@ -567,8 +567,17 @@ body {
     padding: 8px;
 }
 
-.user-menu.hidden {
+#user-menu.hidden {
     display: none;
+}
+
+.user-name-display {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .user-menu button {
@@ -587,6 +596,31 @@ body {
     background: #f3f4f6;
 }
 
+.user-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-icon {
+  font-size: 22px;
+  cursor: pointer;
+  padding: 8px;
+  user-select: none;
+}
+
+#logout-btn {
+  width: 100%;
+  padding: 6px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#logout-btn:hover {
+  background: #d32f2f;
+}
 
 /* Process Info Card */
 .process-info-card {
