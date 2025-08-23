@@ -41,9 +41,6 @@ let isPerformingUndoRedo = false;
     });
   }
 
-// Expor globalmente para o auth.js poder chamar
-window.loadUserAvatar = loadUserAvatar;
-
 // ======================
 // EXPOSIÇÃO DE FUNÇÕES GLOBAIS
 // ======================
