@@ -2455,10 +2455,10 @@ async function saveFlowToFirestore(flowName) {
 
     try {
         await setDoc(doc(collection(firebaseDB, "usuarios", uid, "flows"), flowId), flowData);
-        alert("Fluxo salvo no servidor!");
+        alert("Fluxo salvo!");
     } catch (error) {
         console.error("Erro ao salvar fluxo:", error);
-        alert("Erro ao salvar fluxo no servidor.");
+        alert("Erro ao salvar fluxo");
     }
 }
 
