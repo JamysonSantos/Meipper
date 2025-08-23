@@ -33,48 +33,6 @@ let historyIndex = -1;
 const MAX_HISTORY = 50;
 let isPerformingUndoRedo = false;
 
-// ======================
-// FUNÇÃO: Avatar do Usuário
-// ======================
-
-async 
-    if () {
-      avatarImg.src = ;
-      avatarImg.style.display = "block";
-      avatarText.style.display = "none";
-    } else {
-      const iniciais = nome
-        .split(" ")
-        .map(p => p.charAt(0).toUpperCase())
-        .slice(0, 2)
-        .join("");
-
-      avatarText.textContent = iniciais;
-      avatarImg.style.display = "none";
-      avatarText.style.display = "flex";
-    }
-
-    avatarCircle.style.display = "flex";
-  } catch (err) {
-    console.error("Erro ao carregar avatar:", err);
-  }
-}
-
-const avatarEl = document.getElementById("user-avatar-circle");
-const menuEl = document.getElementById("user-menu");
-
-if (avatarEl && menuEl) {
-  avatarEl.addEventListener("click", () => {
-    menuEl.classList.toggle("hidden");
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!avatarEl.contains(e.target) && !menuEl.contains(e.target)) {
-      menuEl.classList.add("hidden");
-    }
-  });
-}
-
   // Logout
   const logoutBtn = document.querySelector("[data-action='logout']");
   if (logoutBtn) {
