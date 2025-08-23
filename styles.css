@@ -602,9 +602,8 @@ body {
 }
 
 .menu-icon {
-  font-size: 22px;
+  font-size: 35px;
   cursor: pointer;
-  padding: 8px;
   user-select: none;
 }
 
