@@ -44,6 +44,27 @@ class AuthManager {
         // Forgot password form
         document.getElementById('forgot-password-form').addEventListener('submit', (e) => this.handleForgotPassword(e));
 
+
+        const photoInput = document.getElementById('register-photo');
+if (photoInput) {
+    photoInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        const feedback = document.getElementById('photo-feedback');
+        const previewWrapper = document.getElementById('photo-preview');
+        const previewImg = document.getElementById('preview-img');
+
+        if (file) {
+            feedback.style.display = 'block';
+            previewWrapper.style.display = 'block';
+            previewImg.src = URL.createObjectURL(file);
+        } else {
+            feedback.style.display = 'none';
+            previewWrapper.style.display = 'none';
+            previewImg.src = '';
+        }
+    });
+}
+
         // Navigation buttons
         document.getElementById('show-register-btn').addEventListener('click', () => this.showRegisterModal());
         document.getElementById('back-to-login').addEventListener('click', () => this.showLoginModal());
@@ -93,6 +114,8 @@ class AuthManager {
 
             this.showMainApp();
             console.log("Usuário autenticado:", user.email);
+            if (typeof loadUserAvatar === "function") loadUserAvatar(user);
+        } else {
             this.user = null;
             this.showLoginModal();
             console.log("Usuário não autenticado");
@@ -125,39 +148,65 @@ class AuthManager {
         }
     }
 
-    async handleRegister() {
-  const name = document.getElementById("register-name").value.trim();
-  const email = document.getElementById("register-email").value.trim();
-  const password = document.getElementById("register-password").value.trim();
+    async handleRegister(e) {
+        e.preventDefault();
 
-  if (!name) {
-    alert("Por favor, informe seu nome.");
-    return;
-  }
+        const email = document.getElementById('register-email').value.trim();
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-confirm-password').value;
+        const displayName = document.getElementById('register-name').value.trim();
+        const photoFile = document.getElementById('register-photo')?.files?.[0];
+        const previewImg = document.getElementById('preview-img');
+        const photoFeedback = document.getElementById('photo-feedback');
 
-  try {
-    const cred = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-    const user = cred.user;
+        if (photoFile && previewImg && photoFeedback) {
+        const reader = new FileReader();
+         reader.onload = (event) => {
+        previewImg.src = event.target.result;
+        previewImg.style.display = 'block';
+        photoFeedback.textContent = 'Foto selecionada ✅';
+        photoFeedback.style.display = 'block';
+        };
+        reader.readAsDataURL(photoFile);
+        }
 
-    // Define o nome exibido no Auth
-    await window.updateProfile(user, { displayName: name });
+        if (!displayName) {
+            alert("Por favor, preencha o nome.");
+            return;
+        }
+        if (password !== confirmPassword) {
+            alert("As senhas não coincidem.");
+            return;
+        }
 
-    // Salva/atualiza o documento do usuário no Firestore com campo padronizado "nome"
-    await window.setDoc(
-      window.doc(window.firebaseDB, "usuarios", user.uid),
-      {
-        nome: name,
-        email: email,
-        createdAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
+        try {
+            const cred = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+            const user = cred.user;
+            let photoURL = "";
 
-    this.closeAllModals();
-  } catch (error) {
-    alert("Erro ao cadastrar: " + error.message);
-  }
-}
+            if (photoFile) {
+                const storageRef = window.ref(window.firebaseStorage, `user_photos/${user.uid}`);
+                await window.uploadBytes(storageRef, photoFile);
+                photoURL = await window.getDownloadURL(storageRef);
+                await window.updateProfile(user, { displayName, photoURL });
+            } else {
+                await window.updateProfile(user, { displayName });
+            }
+
+            await window.setDoc(window.doc(window.firebaseDB, "usuarios", user.uid), {
+                email: user.email,
+                name: displayName,
+                photoURL,
+                createdAt: window.serverTimestamp()
+            });
+
+            alert("Cadastro realizado com sucesso!");
+            this.closeAllModals();
+        } catch (error) {
+            console.error("Erro no cadastro:", error);
+            alert(this.getAuthErrorMessage(error));
+        }
+    }
 
     async handleForgotPassword(e) {
         e.preventDefault();
@@ -381,6 +430,7 @@ async function salvarPerfilUsuario(user) {
       {
         nome: user.displayName || "Usuário",
         email: user.email || null,
+        photoURL: user.photoURL || null,
         updatedAt: window.serverTimestamp()
       },
       { merge: true }
