@@ -2063,7 +2063,7 @@ function collectAllTasks() {
 }
 
 async function exportDocumentationPDF() {
-    showLoading('Exportando Documentação PDF...', 'Coletando informações do processo...');
+    showLoading('Exportando Documentação PDF...', 'Coletando informações do Fluxo...');
     
     try {
         const { jsPDF } = window.jspdf;
@@ -2168,7 +2168,7 @@ async function exportDocumentationPDF() {
 }
 
 async function exportDocumentationWord() {
-    showLoading('Exportando Documentação Word...', 'Coletando informações do processo...');
+    showLoading('Exportando Documentação Word...', 'Coletando informações do Fluxo...');
     
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
