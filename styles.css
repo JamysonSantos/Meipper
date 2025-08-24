@@ -1131,10 +1131,10 @@ body {
 }
 
 .drawflow {
-    width: 100% !important;
-    height: 100% !important;
-    user-select: none !important;
-    perspective: 0 !important;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    perspective: 0;
 }
 
 .parent-drawflow {
