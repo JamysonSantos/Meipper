@@ -223,10 +223,26 @@ function setupButtonListeners() {
     // Botões de ação principais
     document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
     document.querySelector('[data-action="save-flow"]').addEventListener('click', async () => {
-     const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
-     await saveFlowToFirestore(processName); // salva no Firestore
+        const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
+        await saveFlowToFirestore(processName); // salva no Firestore
     });
+    
+    // BOTÃO CARREGAR - ADICIONAR ESTA LINHA:
+    document.querySelector('[data-action="load-flow"]').addEventListener('click', triggerLoadFlow);
+    
     document.querySelector('[data-action="show-saved-flows"]').addEventListener('click', openSavedFlowsPopupFromFirestore);
+    
+    // Adicionar tarefa ao pressionar Enter
+    document.getElementById('task-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTask('task');
+        }
+    });
+}
+
+// ADICIONAR ESTA FUNÇÃO PARA TRATAR O CARREGAMENTO DE ARQUIVOS:
+function triggerLoadFlow() {
     // Criar input file dinamicamente
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -237,20 +253,13 @@ function setupButtonListeners() {
     
     document.body.appendChild(fileInput);
     fileInput.click();
-    document.body.removeChild(fileInput);
-};
-    document.querySelector('[data-action="show-saved-flows"]').addEventListener('click', showSavedFlowsPopup);
-
-    // Adicionar tarefa ao pressionar Enter
-    document.getElementById('task-input').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addTask('task');
+    
+    // Limpar o input depois de um tempo
+    setTimeout(() => {
+        if (document.body.contains(fileInput)) {
+            document.body.removeChild(fileInput);
         }
-    });
-
-function loadFromLocalStorage() {
-    updateSavedFlowsList();
+    }, 1000);
 }
 
 // ======================
@@ -363,18 +372,6 @@ function setupDrawflowEvents() {
         taskDescriptions.delete(parseInt(id));
         if (!isPerformingUndoRedo) saveState();
     });
-        
-        // Preencher campos da interface
-        if (flowData.processName) {
-            const processNameInput = document.getElementById('process-name');
-            const processDisplayName = document.getElementById('process-display-name');
-            if (processNameInput) {
-                processNameInput.value = flowData.processName;
-            }
-            if (processDisplayName) {
-                processDisplayName.textContent = flowData.processName;
-            }
-        }
 
     editor.on('nodeMoved', function(id) {
         setTimeout(() => {
@@ -2467,10 +2464,10 @@ async function saveFlowToFirestore(flowName) {
 
     try {
         await setDoc(doc(collection(firebaseDB, "usuarios", uid, "flows"), flowId), flowData);
-        alert("Fluxo salvo no servidor!");
+        alert("Fluxo salvo!");
     } catch (error) {
         console.error("Erro ao salvar fluxo:", error);
-        alert("Erro ao salvar fluxo no servidor.");
+        alert("Erro ao salvar fluxo");
     }
 }
 
