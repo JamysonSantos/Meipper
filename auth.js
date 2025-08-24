@@ -35,59 +35,66 @@ class AuthManager {
     }
 
     setupEventListeners() {
-        // Login form
-        document.getElementById('login-form').addEventListener('submit', (e) => this.handleLogin(e));
+    // Login form
+    document.getElementById('login-form').addEventListener('submit', (e) => this.handleLogin(e));
 
-        // Register form
-        document.getElementById('register-form').addEventListener('submit', (e) => this.handleRegister(e));
+    // Register form
+    document.getElementById('register-form').addEventListener('submit', (e) => this.handleRegister(e));
 
-        // Forgot password form
-        document.getElementById('forgot-password-form').addEventListener('submit', (e) => this.handleForgotPassword(e));
+    // Forgot password form
+    document.getElementById('forgot-password-form').addEventListener('submit', (e) => this.handleForgotPassword(e));
 
-        // Navigation buttons
-        document.getElementById('show-register-btn').addEventListener('click', () => this.showRegisterModal());
-        document.getElementById('back-to-login').addEventListener('click', () => this.showLoginModal());
-        document.getElementById('back-to-login-from-forgot').addEventListener('click', () => this.showLoginModal());
-        document.getElementById('show-forgot-password').addEventListener('click', () => this.showForgotPasswordModal());
-        document.getElementById('success-ok-btn').addEventListener('click', () => this.showLoginModal());
+    // Navigation buttons
+    document.getElementById('show-register-btn').addEventListener('click', () => this.showRegisterModal());
+    document.getElementById('back-to-login').addEventListener('click', () => this.showLoginModal());
+    document.getElementById('back-to-login-from-forgot').addEventListener('click', () => this.showLoginModal());
+    document.getElementById('show-forgot-password').addEventListener('click', () => this.showForgotPasswordModal());
+    
+    // ALTERADO: Botão de sucesso agora apenas fecha o modal
+    document.getElementById('success-ok-btn').addEventListener('click', () => this.hideSuccessModal());
 
-        // User menu toggle
-        const userMenuToggle = document.getElementById('user-menu-toggle');
-        const userMenu = document.getElementById('user-menu');
-        if (userMenuToggle && userMenu) {
-            userMenuToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userMenu.classList.toggle('hidden');
-            });
-            
-            // Close menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!userMenuToggle.contains(e.target) && !userMenu.contains(e.target)) {
-                    userMenu.classList.add('hidden');
-                }
-            });
-        }
-
-        // Logout button
-        const logoutBtn = document.querySelector('#logout-btn, [data-action="logout"]');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.handleLogout());
-        }
-
-        // Password toggles
-        document.querySelectorAll('.password-toggle').forEach(toggle => {
-            toggle.addEventListener('click', (e) => {
-                this.togglePassword(e.target.closest('.password-toggle').dataset.target);
-            });
+    // User menu toggle
+    const userMenuToggle = document.getElementById('user-menu-toggle');
+    const userMenu = document.getElementById('user-menu');
+    if (userMenuToggle && userMenu) {
+        userMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
         });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userMenuToggle.contains(e.target) && !userMenu.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
 
-        const confirmPasswordInput = document.getElementById('confirm-password');
+    // Logout button
+    const logoutBtn = document.querySelector('#logout-btn, [data-action="logout"]');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => this.handleLogout());
+    }
+
+    // Password toggles
+    document.querySelectorAll('.password-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            this.togglePassword(e.target.closest('.password-toggle').dataset.target);
+        });
+    });
+
+    const confirmPasswordInput = document.getElementById('confirm-password');
     const registerPasswordInput = document.getElementById('register-password');
 
     if (confirmPasswordInput && registerPasswordInput) {
         confirmPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
         registerPasswordInput.addEventListener('input', () => this.validatePasswordMatch());
     }
+}
+
+// Adicione este método à classe AuthManager:
+hideSuccessModal() {
+    this.successModal.classList.remove('active');
 }
 
     checkAuthState() {
