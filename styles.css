@@ -625,12 +625,12 @@ body {
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
-    color: #e74881;
+    color: #e70053;
     transition: background-color 0.2s ease;
 }
 
 .user-menu button:hover {
-    background: #ddc0ca;
+    background: #f7e0e8;
 }
 
 /* Process Info Card */
