@@ -49,8 +49,20 @@ class AuthManager {
         document.getElementById('back-to-login').addEventListener('click', () => this.showLoginModal());
         document.getElementById('back-to-login-from-forgot').addEventListener('click', () => this.showLoginModal());
         document.getElementById('show-forgot-password').addEventListener('click', () => this.showForgotPasswordModal());
-        document.getElementById('success-ok-btn').addEventListener('click', () => this.showLoginModal());
-
+        document.getElementById('success-ok-btn').addEventListener('click', async () => {
+        this.hideModal('success-modal');
+    
+        try {
+           const email = document.getElementById('register-email').value;
+           const password = document.getElementById('register-password').value;
+        
+        await signInWithEmailAndPassword(window.firebaseAuth, email, password);
+        } catch (error) {
+        console.error('Login automático falhou:', error);
+        this.showLoginModal();
+        }
+    });
+        
         // User menu toggle
         const userMenuToggle = document.getElementById('user-menu-toggle');
         const userMenu = document.getElementById('user-menu');
