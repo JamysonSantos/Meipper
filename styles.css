@@ -404,7 +404,6 @@ body {
 
 .header-btn {
     font-family: 'Segoe UI', sans-serif; /* só os botões mudam */
-    display: flex;
     align-items: center;
     padding: 2px 8px;
     gap: 6px;
