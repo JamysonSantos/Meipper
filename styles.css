@@ -971,9 +971,9 @@ body {
 
 .history-controls .modern-btn {
     flex: 1;
-    padding: 8px 12px;
-    font-size: 12px;
-    min-height: 38px;
+    padding: 5px 12px;
+    font-size: 15px;
+    min-height: 28px;
 }
 
 /* Gateway Panel */
