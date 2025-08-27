@@ -403,13 +403,13 @@ body {
 }
 
 .header-btn {
-    font-family: 'Lexend', serif; /* só os botões mudam */
+    font-family: 'Segoe UI', sans-serif; /* só os botões mudam */
     display: flex;
     align-items: center;
     padding: 2px 8px;
     border: none;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
