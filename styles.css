@@ -403,7 +403,8 @@ body {
 }
 
 .header-btn {
-  display: flex;
+    font-family: 'Poppins', sans-serif; /* só os botões mudam */
+    display: flex;
     align-items: center;
     padding: 2px 8px;
     border: none;
