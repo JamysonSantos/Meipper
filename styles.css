@@ -403,7 +403,7 @@ body {
 }
 
 .header-btn {
-    font-family: 'Alumni Sans Pinstripe', serif; /* só os botões mudam */
+    font-family: 'Lexend', serif; /* só os botões mudam */
     display: flex;
     align-items: center;
     padding: 2px 8px;
