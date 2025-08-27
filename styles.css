@@ -423,16 +423,16 @@ body {
 }
 
 .header-btn.primary {
-    background: rgba(59, 130, 246, 0.8);
+    background: rgba(55, 191, 61, 30%);
     border-color: rgba(59, 130, 246, 0.3);
 }
 
 .header-btn.primary:hover {
-    background: rgba(59, 130, 246, 0.9);
+    background: rgba(55, 191, 61, 80%);
 }
 
 .header-btn.secondary {
-    background: rgba(107, 114, 128, 0.8);
+    background: rgba(107, 114, 128, 20%);
     border-color: rgba(107, 114, 128, 0.3);
 }
 
@@ -441,7 +441,7 @@ body {
 }
 
 .header-btn.export {
-    background: rgba(139, 92, 246, 0.8);
+    background: rgba(139, 92, 246, 38%);
     border-color: rgba(139, 92, 246, 0.3);
 }
 
