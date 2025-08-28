@@ -1536,17 +1536,20 @@ body {
     right: -10px !important;
     top: 50% !important;
     transform: translateY(15%) !important;
+    width: 14px !important;
+    height: 14px !important;
     background: white !important;
-    border: 2px solid #00774f !important;
-    border-color: #10B981 !important;
+    border: 2px solid #10B981 !important; /* verde */
 }
 
 .drawflow .drawflow-node.end .input {
     left: -10px !important;
     top: 50% !important;
     transform: translateY(30%) !important;
+    width: 14px !important;
+    height: 14px !important;
     background: white !important;
-    border: 2px solid #a73030 !important;
+    border: 2px solid #dc2626 !important; /* vermelho */
 }
 
 .drawflow .drawflow-node.task .input {
@@ -1572,11 +1575,11 @@ body {
 .drawflow .drawflow-node.gateway .input {
     width: 14px !important;
     height: 14px !important;
-    left: -0px !important;
+    left: 0px !important;
     top: 50% !important;
     transform: translateY(15%) !important;
     background: white !important;
-    border: 2px solid #f59e0b !important;
+    border: 2px solid #f59e0b !important; /* laranja */
 }
 
 .drawflow .drawflow-node.gateway .output {
