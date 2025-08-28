@@ -780,10 +780,9 @@ function createEndNode() {
 function createTaskNode(taskName, actor, color) {
     const html = `
         <div class="task-node">
-            <div class="task-content"
-+         ondblclick="editTaskText(event, this.closest('.drawflow-node').id.replace('node-',''))">
-                <button class="task-description-btn"
-+            onclick="showTaskDescription(event, this.closest('.drawflow-node').id.replace('node-',''))">?</button>
+            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, 'node-'+id)">
+                ${taskName}
+                <button class="task-description-btn" onclick="showTaskDescription('node-'+id, '${taskName.replace(/'/g, "\\'")}')">+</button>
             </div>
             <div class="task-actor">${actor}</div>
         </div>
@@ -817,8 +816,7 @@ function createGatewayNode(question) {
     const html = `
         <div class="gateway-node">
             <div class="gateway-shape" style="width: 80%; height: 80%;"></div>
-            <div class="gateway-label"
-+         ondblclick="editGatewayText(event, this.closest('.drawflow-node').id.replace('node-',''))">
+            <div class="gateway-label" ondblclick="editGatewayText(event, 'node-'+id)">${question}</div>
         </div>
     `;
     const pos = getNextPosition();
