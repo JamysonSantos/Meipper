@@ -343,7 +343,7 @@ function updateDescriptionButton(nodeId) {
     
     if (hasDescription) {
         btn.classList.add('has-description');
-        btn.textContent = '+'; // Mantém o mesmo sinal de "+"
+        btn.textContent = '+';
     } else {
         btn.classList.remove('has-description');
         btn.textContent = '+';
@@ -369,7 +369,7 @@ function setupDrawflowEvents() {
 
     editor.on('nodeRemoved', function(id) {
         removeLabelsForNode(id);
-        taskDescriptions.delete(parseInt(id));
+        taskDescriptions.delete(id);
         if (!isPerformingUndoRedo) saveState();
     });
 
@@ -389,6 +389,7 @@ function setupDrawflowEvents() {
         if (!isPerformingUndoRedo) saveState();
     });
 
+    // Observador para atualizar posições dos labels
     const observer = new MutationObserver(function(mutations) {
         let shouldUpdate = false;
         mutations.forEach(function(mutation) {
@@ -416,7 +417,6 @@ function saveState() {
     const state = {
         drawflow: editor.export(),
         actors: JSON.parse(JSON.stringify(actors)),
-        nodeIdCounter: nodeIdCounter,
         processName: document.getElementById('process-name').value,
         selectedColor: selectedColor,
         colors: [...colors],
@@ -467,7 +467,6 @@ function restoreState(state) {
         if (existingLabelContainer) existingLabelContainer.remove();
         
         actors = state.actors;
-        nodeIdCounter = state.nodeIdCounter;
         selectedColor = state.selectedColor;
         colors = state.colors;
         
@@ -764,67 +763,82 @@ function addTask(type) {
 }
 
 function createStartNode() {
-  const html = `<div class="start-node">▶</div>`;
-  const pos = getNextPosition();
-  const newId = editor.addNode('start', 0, 1, pos.x - 100, pos.y - 1, 'start', { name: 'Início' }, html);
-  return newId;
+    const html = `<div class="start-node">▶</div>`;
+    const pos = getNextPosition();
+    const nodeId = editor.addNode('start', 0, 1, pos.x - 100, pos.y - 1, 'start', { name: 'Início' }, html);
+    return nodeId;
 }
 
 function createEndNode() {
-  const html = `<div class="end-node">⏹</div>`;
-  const pos = getNextPosition();
-  const newId = editor.addNode('end', 1, 0, pos.x + 50, pos.y, 'end', { name: 'Fim' }, html);
-  return newId;
+    const html = `<div class="end-node">⏹</div>`;
+    const pos = getNextPosition();
+    
+    const nodeId = editor.addNode('end', 1, 0, pos.x + 50, pos.y, 'end', { name: 'Fim' }, html);
+    return nodeId;
 }
 
 function createTaskNode(taskName, actor, color) {
-  const html = `
-    <div class="task-node">
-      <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event)">
-        ${taskName}
-        <button class="task-description-btn">+</button>
-      </div>
-      <div class="task-actor">${actor}</div>
-    </div>
-  `;
-  const pos = getNextPosition();
-  const newId = editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { name: taskName, actor, color }, html);
-
-  // Ajusta os handlers agora que temos o ID real
-  const nodeEl = document.getElementById(`node-${newId}`);
-  if (nodeEl) {
-    const content = nodeEl.querySelector('.task-content');
-    if (content) content.setAttribute('ondblclick', `editTaskText(event, ${newId})`);
-    const btn = nodeEl.querySelector('.task-description-btn');
-    if (btn) btn.setAttribute('onclick', `showTaskDescription(${newId}, '${taskName.replace(/'/g, "\\'")}')`);
-  }
-  return newId;
+    const html = `
+        <div class="task-node">
+            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, 'node-'+id)">
+                ${taskName}
+                <button class="task-description-btn" onclick="showTaskDescription('node-'+id, '${taskName.replace(/'/g, "\\'")}')">+</button>
+            </div>
+            <div class="task-actor">${actor}</div>
+        </div>
+    `;
+    const pos = getNextPosition();
+    
+    const nodeId = editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { 
+        name: taskName, 
+        actor: actor, 
+        color: color 
+    }, html);
+    
+    // Atualizar os event listeners com o ID correto
+    const nodeElement = document.getElementById(`node-${nodeId}`);
+    if (nodeElement) {
+        const content = nodeElement.querySelector('.task-content');
+        if (content) {
+            content.setAttribute('ondblclick', `editTaskText(event, ${nodeId})`);
+        }
+        
+        const button = nodeElement.querySelector('.task-description-btn');
+        if (button) {
+            button.setAttribute('onclick', `showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')`);
+        }
+    }
+    
+    return nodeId;
 }
 
 function createGatewayNode(question) {
-  const html = `
-    <div class="gateway-node">
-      <div class="gateway-shape" style="width: 80%; height: 80%;"></div>
-      <div class="gateway-label">${question}</div>
-    </div>
-  `;
-  const pos = getNextPosition();
-  const newId = editor.addNode('gateway', 1, 1, pos.x + 25, pos.y, 'gateway', { question }, html);
-
-  const nodeEl = document.getElementById(`node-${newId}`);
-  if (nodeEl) {
-    const label = nodeEl.querySelector('.gateway-label');
-    if (label) label.setAttribute('ondblclick', `editGatewayText(event, ${newId})`);
-  }
-  return newId;
+    const html = `
+        <div class="gateway-node">
+            <div class="gateway-shape" style="width: 80%; height: 80%;"></div>
+            <div class="gateway-label" ondblclick="editGatewayText(event, 'node-'+id)">${question}</div>
+        </div>
+    `;
+    const pos = getNextPosition();
+    
+    const nodeId = editor.addNode('gateway', 1, 1, pos.x + 25, pos.y, 'gateway', { 
+        question: question 
+    }, html);
+    
+    // Atualizar o event listener com o ID correto
+    const nodeElement = document.getElementById(`node-${nodeId}`);
+    if (nodeElement) {
+        const label = nodeElement.querySelector('.gateway-label');
+        if (label) {
+            label.setAttribute('ondblclick', `editGatewayText(event, ${nodeId})`);
+        }
+    }
+    
+    return nodeId;
 }
 
 function getNextPosition() {
-    const nodes = editor.getNodesFromName('task').concat(
-        editor.getNodesFromName('start'),
-        editor.getNodesFromName('end'),
-        editor.getNodesFromName('gateway')
-    );
+    const nodes = Object.values(editor.drawflow.drawflow.Home.data);
     
     if (nodes.length === 0) return { x: 100, y: 200 };
     
@@ -845,10 +859,10 @@ function getNextPosition() {
 }
 
 function deleteNode(nodeId) {
-  removeLabelsForNode(nodeId);
-  taskDescriptions.delete(nodeId);
-  editor.removeNodeId(parseInt(nodeId, 10)); // <- sem 'node-'
-  if (selectedNodeId === nodeId) selectedNodeId = null;
+    removeLabelsForNode(nodeId);
+    taskDescriptions.delete(parseInt(nodeId));
+    editor.removeNodeId(nodeId); // Usar o ID diretamente, sem o prefixo 'node-'
+    if (selectedNodeId === nodeId) selectedNodeId = null;
 }
 
 // ======================
@@ -1016,16 +1030,15 @@ function updateAllGatewayPathsFromUI() {
 }
 
 function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName, description = '') {
-    const nodeId = nodeIdCounter++;
     const hasDescription = description && description.trim() !== '';
     
     const html = `
-        <div class="task-node" id="node-${nodeId}">
-            <div class="path-label" ondblclick="editPathLabel(event, ${nodeId})">${pathName}</div>
-            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
+        <div class="task-node">
+            <div class="path-label" ondblclick="editPathLabel(event, 'node-'+id)">${pathName}</div>
+            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, 'node-'+id)">
                 ${taskName}
                 <button class="task-description-btn ${hasDescription ? 'has-description' : ''}" 
-                        onclick="showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')">
+                        onclick="showTaskDescription('node-'+id, '${taskName.replace(/'/g, "\\'")}')">
                     +
                 </button>
             </div>
@@ -1033,13 +1046,32 @@ function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName, descri
         </div>
     `;
     
-    editor.addNode('task', 1, 1, x, y, 'task', { 
+    const nodeId = editor.addNode('task', 1, 1, x, y, 'task', { 
         name: taskName,
         actor: actor,
         color: color,
         pathName: pathName,
         description: description
     }, html);
+    
+    // Atualizar os event listeners com o ID correto
+    const nodeElement = document.getElementById(`node-${nodeId}`);
+    if (nodeElement) {
+        const pathLabel = nodeElement.querySelector('.path-label');
+        if (pathLabel) {
+            pathLabel.setAttribute('ondblclick', `editPathLabel(event, ${nodeId})`);
+        }
+        
+        const content = nodeElement.querySelector('.task-content');
+        if (content) {
+            content.setAttribute('ondblclick', `editTaskText(event, ${nodeId})`);
+        }
+        
+        const button = nodeElement.querySelector('.task-description-btn');
+        if (button) {
+            button.setAttribute('onclick', `showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')`);
+        }
+    }
     
     // Se já tiver descrição, salva no mapa global
     if (hasDescription) {
