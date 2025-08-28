@@ -764,41 +764,42 @@ function addTask(type) {
 }
 
 function createStartNode() {
-  const html = `<div class="start-node">▶</div>`;
-  const pos = getNextPosition();
-  const newId = editor.addNode('start', 0, 1, pos.x - 100, pos.y - 1, 'start', { name: 'Início' }, html);
-  return newId;
+    const nodeId = nodeIdCounter++;
+    const html = `<div class="start-node">▶</div>`;
+    const pos = getNextPosition();
+    
+    editor.addNode('start', 0, 1, pos.x - 100, pos.y - 1, 'start', { name: 'Início' }, html);
+    return nodeId;
 }
 
 function createEndNode() {
-  const html = `<div class="end-node">⏹</div>`;
-  const pos = getNextPosition();
-  const newId = editor.addNode('end', 1, 0, pos.x + 50, pos.y, 'end', { name: 'Fim' }, html);
-  return newId;
+  const nodeId = nodeIdCounter++;
+    const html = `<div class="end-node">⏹</div>`;
+    const pos = getNextPosition();
+    
+    editor.addNode('end', 1, 0, pos.x + 50, pos.y, 'end', { name: 'Fim' }, html);
+    return nodeId;
 }
 
 function createTaskNode(taskName, actor, color) {
-  const html = `
-    <div class="task-node">
-      <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event)">
-        ${taskName}
-        <button class="task-description-btn">+</button>
-      </div>
-      <div class="task-actor">${actor}</div>
-    </div>
-  `;
-  const pos = getNextPosition();
-  const newId = editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { name: taskName, actor, color }, html);
-
-  // Ajusta os handlers agora que temos o ID real
-  const nodeEl = document.getElementById(`node-${newId}`);
-  if (nodeEl) {
-    const content = nodeEl.querySelector('.task-content');
-    if (content) content.setAttribute('ondblclick', `editTaskText(event, ${newId})`);
-    const btn = nodeEl.querySelector('.task-description-btn');
-    if (btn) btn.setAttribute('onclick', `showTaskDescription(${newId}, '${taskName.replace(/'/g, "\\'")}')`);
-  }
-  return newId;
+    const nodeId = nodeIdCounter++;
+    const html = `
+        <div class="task-node">
+            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
+                ${taskName}
+                <button class="task-description-btn" onclick="showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')">+</button>
+            </div>
+            <div class="task-actor">${actor}</div>
+        </div>
+    `;
+    const pos = getNextPosition();
+    
+    editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { 
+        name: taskName, 
+        actor: actor, 
+        color: color 
+    }, html);
+    return nodeId;
 }
 
 function createGatewayNode(question) {
