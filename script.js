@@ -709,7 +709,7 @@ function updateProcessInfo() {
 }
 
 // ======================
-// FUNÇÕES DE NÓS
+// FUNÇÕES DE NÓS - CORRIGIDAS PARA COMPORTAMENTO DA VERSÃO ANTIGA
 // ======================
 function addTask(type) {
     if (type === 'task') {
@@ -763,6 +763,7 @@ function addTask(type) {
     }
 }
 
+// CORRIGIDAS: Funções de criação de nós para usar o mesmo padrão da versão antiga
 function createStartNode() {
     const nodeId = nodeIdCounter++;
     const html = `<div class="start-node">▶</div>`;
@@ -843,15 +844,16 @@ function getNextPosition() {
     return { x: maxX + 350, y: maxY };
 }
 
+// CORRIGIDA: Função deleteNode para usar o padrão da versão antiga
 function deleteNode(nodeId) {
-  removeLabelsForNode(nodeId);
-  taskDescriptions.delete(nodeId);
-  editor.removeNodeId(parseInt(nodeId, 10)); // <- sem 'node-'
-  if (selectedNodeId === nodeId) selectedNodeId = null;
+    removeLabelsForNode(nodeId);
+    taskDescriptions.delete(nodeId);
+    editor.removeNodeId('node-' + nodeId);
+    if (selectedNodeId === nodeId) selectedNodeId = null;
 }
 
 // ======================
-// FUNÇÕES DE GATEWAY
+// FUNÇÕES DE GATEWAY - MANTENDO O COMPORTAMENTO DA VERSÃO ANTIGA
 // ======================
 function startGatewayMode() {
     if (!selectedNodeId) {
@@ -941,6 +943,7 @@ function removeGatewayPath(index) {
     }
 }
 
+// CORRIGIDA: Função finalizeGateway para comportamento idêntico à versão antiga
 function finalizeGateway() {
     const question = document.getElementById('gateway-question').value.trim();
     
@@ -1014,6 +1017,7 @@ function updateAllGatewayPathsFromUI() {
     });
 }
 
+// CORRIGIDA: Função createTaskNodeAtPosition para usar nodeIdCounter++ como na versão antiga
 function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName, description = '') {
     const nodeId = nodeIdCounter++;
     const hasDescription = description && description.trim() !== '';
@@ -1124,6 +1128,7 @@ function editPathLabel(event, nodeId) {
     element.addEventListener('blur', finishEditing);
     element.addEventListener('keydown', handleKeydown);
 }
+
 function cancelGateway() {
     gatewayMode = false;
     const panel = document.getElementById('gateway-panel');
@@ -2416,13 +2421,6 @@ function clearAll() {
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
-        
-        // ✅ Reconfigurar eventos do Drawflow
-        if (typeof setupEditorEvents === "function") {
-            setupEditorEvents();
-        } else if (typeof initializeDrawflow === "function") {
-            initializeDrawflow();
-        }
     }
 }
 
