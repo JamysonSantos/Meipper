@@ -709,7 +709,7 @@ function updateProcessInfo() {
 }
 
 // ======================
-// FUNÇÕES DE NÓS - CORRIGIDAS PARA COMPORTAMENTO DA VERSÃO ANTIGA
+// FUNÇÕES DE NÓS
 // ======================
 function addTask(type) {
     if (type === 'task') {
@@ -763,60 +763,60 @@ function addTask(type) {
     }
 }
 
-// CORRIGIDAS: Funções de criação de nós para usar o mesmo padrão da versão antiga
 function createStartNode() {
-    const nodeId = nodeIdCounter++;
-    const html = `<div class="start-node">▶</div>`;
-    const pos = getNextPosition();
-    
-    editor.addNode('start', 0, 1, pos.x - 100, pos.y - 1, 'start', { name: 'Início' }, html);
-    return nodeId;
+  const html = `<div class="start-node">▶</div>`;
+  const pos = getNextPosition();
+  const newId = editor.addNode('start', 0, 1, pos.x - 100, pos.y - 1, 'start', { name: 'Início' }, html);
+  return newId;
 }
 
 function createEndNode() {
-    const nodeId = nodeIdCounter++;
-    const html = `<div class="end-node">⏹</div>`;
-    const pos = getNextPosition();
-    
-    editor.addNode('end', 1, 0, pos.x + 50, pos.y, 'end', { name: 'Fim' }, html);
-    return nodeId;
+  const html = `<div class="end-node">⏹</div>`;
+  const pos = getNextPosition();
+  const newId = editor.addNode('end', 1, 0, pos.x + 50, pos.y, 'end', { name: 'Fim' }, html);
+  return newId;
 }
 
 function createTaskNode(taskName, actor, color) {
-    const nodeId = nodeIdCounter++;
-    const html = `
-        <div class="task-node">
-            <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event, ${nodeId})">
-                ${taskName}
-                <button class="task-description-btn" onclick="showTaskDescription(${nodeId}, '${taskName.replace(/'/g, "\\'")}')">+</button>
-            </div>
-            <div class="task-actor">${actor}</div>
-        </div>
-    `;
-    const pos = getNextPosition();
-    
-    editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { 
-        name: taskName, 
-        actor: actor, 
-        color: color 
-    }, html);
-    return nodeId;
+  const html = `
+    <div class="task-node">
+      <div class="task-content" style="background-color: ${color}" ondblclick="editTaskText(event)">
+        ${taskName}
+        <button class="task-description-btn">+</button>
+      </div>
+      <div class="task-actor">${actor}</div>
+    </div>
+  `;
+  const pos = getNextPosition();
+  const newId = editor.addNode('task', 1, 1, pos.x, pos.y, 'task', { name: taskName, actor, color }, html);
+
+  // Ajusta os handlers agora que temos o ID real
+  const nodeEl = document.getElementById(`node-${newId}`);
+  if (nodeEl) {
+    const content = nodeEl.querySelector('.task-content');
+    if (content) content.setAttribute('ondblclick', `editTaskText(event, ${newId})`);
+    const btn = nodeEl.querySelector('.task-description-btn');
+    if (btn) btn.setAttribute('onclick', `showTaskDescription(${newId}, '${taskName.replace(/'/g, "\\'")}')`);
+  }
+  return newId;
 }
 
 function createGatewayNode(question) {
-    const nodeId = nodeIdCounter++;
-    const html = `
-        <div class="gateway-node">
-            <div class="gateway-shape" style="width: 80%; height: 80%;"></div>
-            <div class="gateway-label" ondblclick="editGatewayText(event, ${nodeId})">${question}</div>
-        </div>
-    `;
-    const pos = getNextPosition();
-    
-    editor.addNode('gateway', 1, 1, pos.x + 25, pos.y, 'gateway', { 
-        question: question 
-    }, html);
-    return nodeId;
+  const html = `
+    <div class="gateway-node">
+      <div class="gateway-shape" style="width: 80%; height: 80%;"></div>
+      <div class="gateway-label">${question}</div>
+    </div>
+  `;
+  const pos = getNextPosition();
+  const newId = editor.addNode('gateway', 1, 1, pos.x + 25, pos.y, 'gateway', { question }, html);
+
+  const nodeEl = document.getElementById(`node-${newId}`);
+  if (nodeEl) {
+    const label = nodeEl.querySelector('.gateway-label');
+    if (label) label.setAttribute('ondblclick', `editGatewayText(event, ${newId})`);
+  }
+  return newId;
 }
 
 function getNextPosition() {
@@ -844,16 +844,15 @@ function getNextPosition() {
     return { x: maxX + 350, y: maxY };
 }
 
-// CORRIGIDA: Função deleteNode para usar o padrão da versão antiga
 function deleteNode(nodeId) {
-    removeLabelsForNode(nodeId);
-    taskDescriptions.delete(nodeId);
-    editor.removeNodeId('node-' + nodeId);
-    if (selectedNodeId === nodeId) selectedNodeId = null;
+  removeLabelsForNode(nodeId);
+  taskDescriptions.delete(nodeId);
+  editor.removeNodeId(parseInt(nodeId, 10)); // <- sem 'node-'
+  if (selectedNodeId === nodeId) selectedNodeId = null;
 }
 
 // ======================
-// FUNÇÕES DE GATEWAY - MANTENDO O COMPORTAMENTO DA VERSÃO ANTIGA
+// FUNÇÕES DE GATEWAY
 // ======================
 function startGatewayMode() {
     if (!selectedNodeId) {
@@ -943,7 +942,6 @@ function removeGatewayPath(index) {
     }
 }
 
-// CORRIGIDA: Função finalizeGateway para comportamento idêntico à versão antiga
 function finalizeGateway() {
     const question = document.getElementById('gateway-question').value.trim();
     
@@ -1017,7 +1015,6 @@ function updateAllGatewayPathsFromUI() {
     });
 }
 
-// CORRIGIDA: Função createTaskNodeAtPosition para usar nodeIdCounter++ como na versão antiga
 function createTaskNodeAtPosition(taskName, actor, color, x, y, pathName, description = '') {
     const nodeId = nodeIdCounter++;
     const hasDescription = description && description.trim() !== '';
@@ -1128,7 +1125,6 @@ function editPathLabel(event, nodeId) {
     element.addEventListener('blur', finishEditing);
     element.addEventListener('keydown', handleKeydown);
 }
-
 function cancelGateway() {
     gatewayMode = false;
     const panel = document.getElementById('gateway-panel');
@@ -2421,6 +2417,13 @@ function clearAll() {
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
+        
+        // ✅ Reconfigurar eventos do Drawflow
+        if (typeof setupEditorEvents === "function") {
+            setupEditorEvents();
+        } else if (typeof initializeDrawflow === "function") {
+            initializeDrawflow();
+        }
     }
 }
 
