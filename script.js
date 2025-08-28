@@ -838,24 +838,44 @@ function createGatewayNode(question) {
 }
 
 function getNextPosition() {
-    const nodes = Object.values(editor.drawflow.drawflow.Home.data);
+    const nodes = editor.getNodesFromName('task').concat(
+        editor.getNodesFromName('start'),
+        editor.getNodesFromName('end'),
+        editor.getNodesFromName('gateway')
+    );
     
     if (nodes.length === 0) return { x: 100, y: 200 };
     
     if (selectedNodeId) {
         const selectedNode = editor.getNodeFromId(selectedNodeId);
-        if (selectedNode) return { x: selectedNode.pos_x + 150, y: selectedNode.pos_y };
+        if (selectedNode) {
+            // Distância horizontal padrão entre nós
+            const HORIZONTAL_SPACING = 200;
+            
+            // Posiciona o novo nó à direita do nó selecionado
+            return { 
+                x: selectedNode.pos_x + HORIZONTAL_SPACING, 
+                y: selectedNode.pos_y 
+            };
+        }
     }
     
-    let maxX = 0, maxY = 200;
+    // Se não há nó selecionado, encontra o nó mais à direita
+    let rightmostX = 0;
+    let rightmostY = 200;
+    const HORIZONTAL_SPACING = 200;
+    
     nodes.forEach(node => {
-        if (node.pos_x > maxX) {
-            maxX = node.pos_x;
-            maxY = node.pos_y;
+        if (node.pos_x > rightmostX) {
+            rightmostX = node.pos_x;
+            rightmostY = node.pos_y;
         }
     });
     
-    return { x: maxX + 350, y: maxY };
+    return { 
+        x: rightmostX + HORIZONTAL_SPACING, 
+        y: rightmostY 
+    };
 }
 
 function deleteNode(nodeId) {
