@@ -145,15 +145,18 @@ document.addEventListener('DOMContentLoaded', function() {
     saveState();
 });
 
+let __DF_INIT = false;
 function initializeDrawflow() {
-    container = document.getElementById('drawflow');
-    editor = new Drawflow(container);
-    editor.reroute = true;
-    editor.reroute_fix_curvature = true;
-    editor.force_first_input = false;
-    editor.start();
+  if (__DF_INIT) return;        // evita segunda criação
+  __DF_INIT = true;
 
-    setupDrawflowEvents();
+  container = document.getElementById('drawflow');
+  editor = new Drawflow(container);
+  editor.reroute = true;
+  editor.reroute_fix_curvature = true;
+  editor.force_first_input = false;
+  editor.start();
+  setupDrawflowEvents();
 }
 
 function setupExportDropdown() {
@@ -2469,12 +2472,6 @@ function clearAll() {
         history = [];
         historyIndex = -1;
         updateHistoryButtons();
-        
-        // ✅ Reconfigurar eventos do Drawflow
-        if (typeof setupEditorEvents === "function") {
-            setupEditorEvents();
-        } else if (typeof initializeDrawflow === "function") {
-            initializeDrawflow();
         }
     }
 }
