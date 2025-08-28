@@ -2442,38 +2442,38 @@ function hideLoading() {
 }
 
 function clearAll() {
-    if (confirm('Tem certeza que deseja limpar todo o fluxo?')) {
-        // Limpar dados do Drawflow
-        editor.clear();
-        
-        // Limpar dados da aplicação
-        actors = {};
-        selectedColor = COLORS[0];
-        colors = [...COLORS];
-        selectedNodeId = null;
-        gatewayMode = false;
-        nodeIdCounter = 1;
-        taskDescriptions.clear();
-        connectionLabels.clear();
-        labelUpdateCallbacks.clear();
-        
-        // Limpar UI
-        document.getElementById('process-name').value = '';
-        updateActorSelect();
-        updateActorsList();
-        updateProcessInfo();
-        renderColorPicker();
-        
-        // Limpar container de labels
-        const labelContainer = document.querySelector('.connection-label-container');
-        if (labelContainer) labelContainer.remove();
-        
-        // Resetar histórico
-        history = [];
-        historyIndex = -1;
-        updateHistoryButtons();
-        }
-    }
+  if (!confirm('Tem certeza que deseja limpar todo o fluxo?')) return;
+
+  // Limpar dados do Drawflow
+  if (typeof editor !== 'undefined' && editor) editor.clear();
+
+  // Limpar dados da aplicação
+  actors = {};
+  selectedColor = COLORS[0];
+  colors = [...COLORS];
+  selectedNodeId = null;
+  gatewayMode = false;
+  nodeIdCounter = 1;
+  taskDescriptions.clear();
+  connectionLabels.clear();
+  labelUpdateCallbacks.clear();
+
+  // Limpar UI
+  const processName = document.getElementById('process-name');
+  if (processName) processName.value = '';
+  updateActorSelect();
+  updateActorsList();
+  updateProcessInfo();
+  renderColorPicker();
+
+  // Limpar container de labels
+  const labelContainer = document.querySelector('.connection-label-container');
+  if (labelContainer) labelContainer.remove();
+
+  // Resetar histórico
+  history = [];
+  historyIndex = -1;
+  updateHistoryButtons();
 }
 
 // Listener para nome do processo
