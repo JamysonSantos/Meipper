@@ -1121,6 +1121,7 @@ body {
 }
 
 #drawflow .drawflow {
+    position: absolute;   /* mantém o posicionamento correto dos nós */
     width: 100%;
     height: 100%;
 }
