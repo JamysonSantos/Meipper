@@ -1015,6 +1015,7 @@ body {
 .path-label {
     font-weight: 600;
     color: #1e293b;
+    text-align: center;
 }
 
 .path-label[contenteditable="true"] {
