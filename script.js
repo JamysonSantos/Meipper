@@ -1971,18 +1971,25 @@ async function exportToPDF() {
         });
         document.body.appendChild(exportContainer);
 
-        // 6. Add header
+        // 6. Add header with logo
         const header = document.createElement('div');
         header.innerHTML = `
-            <h2 style="font-size: 20px; margin: 0 0 10px 0;">${processName}</h2>
-            <div style="font-size: 14px;">
-                <strong>Responsáveis:</strong>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                    ${actorsList.map(actor => `
-                        <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px;">
-                            ${actor.name}
-                        </span>
-                    `).join('')}
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                <div style="flex: 1;">
+                    <h2 style="font-size: 20px; margin: 0 0 10px 0;">${processName}</h2>
+                    <div style="font-size: 14px;">
+                        <strong>Responsáveis:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                            ${actorsList.map(actor => `
+                                <span style="background: ${actor.color}; color: white; padding: 4px 12px; border-radius: 20px;">
+                                    ${actor.name}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-left: 20px; text-align: right;">
+                    <img src="logomeipper01.png" alt="Logo" style="height: 60px; width: auto; max-width: 200px;">
                 </div>
             </div>
         `;
