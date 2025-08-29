@@ -1927,3 +1927,41 @@ body {
   border-color: #3b82f6; /* azul */
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
+
+#actor-select {
+    appearance: none;               /* remove estilo nativo do select */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #ffffff;      /* fundo branco */
+    border: 1px solid #e5e7eb;      /* cinza claro */
+    border-radius: 12px;            /* bordas arredondadas */
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;                 /* cinza escuro */
+    cursor: pointer;
+    width: 100%;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 2px 6px;
+    transition: all 0.2s ease;
+}
+
+/* Hover e foco */
+#actor-select:hover {
+    border-color: #d1d5db;          /* cinza médio */
+    box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 8px;
+}
+
+#actor-select:focus {
+    outline: none;
+    border-color: #3b82f6;          /* azul */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Setinha personalizada (usando background SVG) */
+#actor-select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg width='12' height='12' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M6 8L10 12L14 8' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px; /* espaço para a setinha */
+}
