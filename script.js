@@ -851,34 +851,18 @@ function getNextPosition() {
     
     if (selectedNodeId) {
         const selectedNode = editor.getNodeFromId(selectedNodeId);
-        if (selectedNode) {
-            // Distância horizontal padrão entre nós
-            const HORIZONTAL_SPACING = 200;
-            
-            // Posiciona o novo nó à direita do nó selecionado
-            return { 
-                x: selectedNode.pos_x + HORIZONTAL_SPACING, 
-                y: selectedNode.pos_y 
-            };
-        }
+        if (selectedNode) return { x: selectedNode.pos_x + 150, y: selectedNode.pos_y };
     }
     
-    // Se não há nó selecionado, encontra o nó mais à direita
-    let rightmostX = 0;
-    let rightmostY = 200;
-    const HORIZONTAL_SPACING = 200;
-    
+    let maxX = 0, maxY = 200;
     nodes.forEach(node => {
-        if (node.pos_x > rightmostX) {
-            rightmostX = node.pos_x;
-            rightmostY = node.pos_y;
+        if (node.pos_x > maxX) {
+            maxX = node.pos_x;
+            maxY = node.pos_y;
         }
     });
     
-    return { 
-        x: rightmostX + HORIZONTAL_SPACING, 
-        y: rightmostY 
-    };
+    return { x: maxX + 350, y: maxY };
 }
 
 function deleteNode(nodeId) {
