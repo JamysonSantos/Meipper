@@ -2523,9 +2523,23 @@ async function saveFlowToFirestore(processName) {
 
         alert(`✅ Fluxo "${processName}" salvo com sucesso!`);
     } catch (error) {
-        console.error("Erro ao salvar fluxo:", error);
-        alert("Erro ao salvar fluxo: " + (error.message || JSON.stringify(error)));
+    console.error("Erro ao salvar fluxo (objeto completo):", error);
+
+    let errMsg = "Erro desconhecido ao salvar fluxo.";
+    if (error.message) {
+        errMsg = error.message;
+    } else if (typeof error === "string") {
+        errMsg = error;
+    } else {
+        try {
+            errMsg = JSON.stringify(error);
+        } catch (e) {
+            errMsg = String(error);
+        }
     }
+
+    alert("Erro ao salvar fluxo: " + errMsg);
+  }
 }
 
 // Carregar lista de fluxos
