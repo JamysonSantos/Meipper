@@ -108,9 +108,10 @@ window.loadUserAvatar = loadUserAvatar;
 // ======================
 // VARIÁVEIS GLOBAIS DO TUTORIAL
 // ======================
-let tutorialSteps = [];
-let currentTutorialStep = 0;
 let tutorialActive = false;
+let currentTutorialStep = 0;
+let tutorialLastElement = null;         // último elemento destacado
+let tutorialClickHandlerRef = null;
 
 // ======================
 // EXPOSIÇÃO DE FUNÇÕES GLOBAIS
