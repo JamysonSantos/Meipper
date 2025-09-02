@@ -2717,7 +2717,7 @@ tutorialSteps = [
     },
     {
         title: "Salvar seu Trabalho",
-        description: "Não se esqueça de salvar seu fluxo para poder editá-lo posteriormente. Seu trabalho será armazenado no navegador.",
+        description: "Não se esqueça de salvar seu fluxo a cada etapa para garantir o progresso do salvamento e evitar algum contra tempo indesejado e para poder editá-lo posteriormente.",
         element: "[data-action='save-flow']",
         position: "bottom",
         specialClass: "header-element"
