@@ -106,6 +106,13 @@ if (avatarEl && menuEl) {
 window.loadUserAvatar = loadUserAvatar;
 
 // ======================
+// VARIÁVEIS GLOBAIS DO TUTORIAL
+// ======================
+let tutorialSteps = [];
+let currentTutorialStep = 0;
+let tutorialActive = false;
+
+// ======================
 // EXPOSIÇÃO DE FUNÇÕES GLOBAIS
 // ======================
 window.removeActor = removeActor;
@@ -2642,4 +2649,310 @@ async function openSavedFlowsPopupFromFirestore() {
     });
   }, { once: true });
 }
+
+// Tutorial System
+tutorialSteps = [
+    {
+        title: "Nome do Processo",
+        description: "Comece dando um nome claro para seu processo. Isso ajudará na identificação posterior.",
+        element: "#process-name",
+        position: "bottom",
+        action: "focus"
+    },
+    {
+        title: "Adicionar Responsáveis",
+        description: "Defina os responsáveis ou setores envolvidos no processo. Cada um terá uma cor única.",
+        element: "#actor-input",
+        position: "bottom",
+        action: "focus"
+    },
+    {
+        title: "Selecionar Cor",
+        description: "Escolha uma cor para identificar visualmente este responsável no fluxo.",
+        element: "#color-picker",
+        position: "bottom"
+    },
+    {
+        title: "Salvar Responsável",
+        description: "Clique para adicionar o responsável à lista. Você pode adicionar quantos precisar.",
+        element: "[data-action='add-actor']",
+        position: "top"
+    },
+    {
+        title: "Iniciar o Processo",
+        description: "Todo fluxo precisa de um ponto de início. Clique aqui para adicionar o nó inicial.",
+        element: "[data-action='add-start-task']",
+        position: "top"
+    },
+    {
+        title: "Adicionar Tarefas",
+        description: "Agora você pode adicionar tarefas ao fluxo. Digite o nome e selecione o responsável.",
+        element: "#task-input",
+        position: "bottom",
+        action: "focus"
+    },
+    {
+        title: "Descrição da Tarefa",
+        description: "Opcionalmente, adicione uma descrição detalhada para esta tarefa.",
+        element: "#task-description-input",
+        position: "bottom"
+    },
+    {
+        title: "Confirmar Tarefa",
+        description: "Clique para adicionar a tarefa ao fluxo. Ela será conectada automaticamente.",
+        element: "[data-action='add-task']",
+        position: "top"
+    },
+    {
+        title: "Criar Decisões",
+        description: "Para fluxos complexos, você pode adicionar pontos de decisão com múltiplos caminhos.",
+        element: "[data-action='start-gateway']",
+        position: "top"
+    },
+    {
+        title: "Finalizar Processo",
+        description: "Todo fluxo precisa de um ponto final. Adicione aqui para completar seu processo.",
+        element: "[data-action='add-end-task']",
+        position: "top"
+    },
+    {
+        title: "Salvar seu Trabalho",
+        description: "Não se esqueça de salvar seu fluxo para poder editá-lo posteriormente. Seu trabalho será armazenado no navegador.",
+        element: "[data-action='save-flow']",
+        position: "bottom",
+        specialClass: "header-element"
+    },
+    {
+        title: "Exportar seu Fluxo",
+        description: "Você pode exportar seu fluxo como imagem PNG, PDF ou documentação completa em vários formatos.",
+        element: "[data-action='toggle-export']",
+        position: "bottom", 
+        specialClass: "header-element"
+    }
+];
+
+// Initialize tutorial
+function initTutorial() {
+    // Add tutorial button to header - SOMENTE SE NÃO EXISTIR
+    if (!document.querySelector('.header-btn[onclick="startTutorial"]')) {
+        const headerActions = document.querySelector('.header-actions');
+        const tutorialBtn = document.createElement('button');
+        tutorialBtn.className = 'header-btn secondary';
+        tutorialBtn.innerHTML = '<span class="btn-icon"></span><span class="btn-text">Ver Tutorial</span>';
+        tutorialBtn.onclick = startTutorial;
+        headerActions.appendChild(tutorialBtn);
+    }
+    
+    // Add keyboard shortcut (F1)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F1') {
+            e.preventDefault();
+            startTutorial();
+        }
+    });
+}
+
+// Start tutorial
+function startTutorial() {
+    tutorialActive = true;
+    currentTutorialStep = 0;
+    document.getElementById('tutorial-overlay').style.display = 'flex';
+    showTutorialStep(0);
+}
+
+// Show specific tutorial step 
+
+function showTutorialStep(stepIndex) {
+    if (stepIndex >= tutorialSteps.length) {
+        completeTutorial();
+        return;
+    }
+    
+    const step = tutorialSteps[stepIndex];
+    const highlight = document.querySelector('.tutorial-highlight');
+    const popup = document.querySelector('.tutorial-popup');
+    
+    // Update step info
+    document.getElementById('tutorial-title').textContent = step.title;
+    document.getElementById('tutorial-description').textContent = step.description;
+    document.getElementById('tutorial-current-step').textContent = stepIndex + 1;
+    document.getElementById('tutorial-total-steps').textContent = tutorialSteps.length;
+    
+    // Highlight target element
+    const targetElement = document.querySelector(step.element);
+    if (targetElement) {
+        // DETECÇÃO CORRIGIDA - Verificar se é elemento do header
+        const isHeaderElement = isElementInHeader(targetElement);
+        
+        if (!isHeaderElement) {
+            // Scroll apenas para elementos do sidebar
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Aguardar o scroll completar antes de posicionar
+        setTimeout(() => {
+    const rect = targetElement.getBoundingClientRect();
+    
+    highlight.style.width = `${rect.width + 20}px`;
+    highlight.style.height = `${rect.height + 20}px`;
+    highlight.style.top = `${rect.top - 10}px`;
+    highlight.style.left = `${rect.left - 10}px`;
+    
+    // Position popup - VERSÃO MELHORADA
+    positionPopupImproved(popup, step.position, rect, isHeaderElement);
+    
+    // Add highlight class to element - COM Z-INDEX FORÇADO PARA HEADER
+    targetElement.classList.add('tutorial-highlighted');
+    
+    // Para elementos do header, garantir z-index extra
+    if (isHeaderElement) {
+        targetElement.style.zIndex = '10011';
+        targetElement.style.position = 'relative';
+    }
+    
+    // Focus on element if needed
+    if (step.action === 'focus') {
+        targetElement.focus();
+    }
+}, isHeaderElement ? 100 : 300);
+    }
+    
+    // Update navigation buttons
+    document.getElementById('tutorial-prev').style.display = stepIndex > 0 ? 'block' : 'none';
+    document.getElementById('tutorial-next').style.display = stepIndex < tutorialSteps.length - 1 ? 'block' : 'none';
+    document.getElementById('tutorial-complete').style.display = stepIndex === tutorialSteps.length - 1 ? 'block' : 'none';
+}
+
+// FUNÇÃO AUXILIAR PARA DETECTAR ELEMENTOS NO HEADER
+function isElementInHeader(element) {
+    // Verificar se é um botão de ação do header
+    const isActionButton = element.hasAttribute('data-action') && 
+                          (element.closest('.header-actions') || 
+                           element.closest('.header-right'));
+    
+    // Verificar se é um elemento dentro do header
+    const isInHeader = element.closest('.header');
+    
+    // Verificar botões específicos por data-action
+    const isSaveButton = element.getAttribute('data-action') === 'save-flow';
+    const isExportButton = element.getAttribute('data-action') === 'toggle-export';
+    
+    return isActionButton || isInHeader || isSaveButton || isExportButton;
+}
+
+// POSITION POPUP IMPROVED
+
+// POSITION POPUP IMPROVED - Versão corrigida
+// POSITION POPUP IMPROVED - Versão final
+function positionPopupImproved(popup, position, targetRect, isHeaderElement) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const popupWidth = popup.offsetWidth;
+    const popupHeight = popup.offsetHeight;
+    
+    let top, left;
+    
+    if (isHeaderElement) {
+        // PARA HEADER: Popup ABAIXO do elemento
+        top = targetRect.bottom + 15;
+        left = targetRect.left + (targetRect.width - popupWidth) / 2;
+        
+        // Se não couber abaixo, colocar acima
+        if (top + popupHeight > viewportHeight - 20) {
+            top = targetRect.top - popupHeight - 15;
+        }
+    } else {
+        // PARA SIDEBAR: Popup ACIMA do elemento
+        top = targetRect.top - popupHeight - 20;
+        left = targetRect.left + (targetRect.width - popupWidth) / 2;
+        
+        // Se não couber acima, colocar abaixo
+        if (top < 20) {
+            top = targetRect.bottom + 20;
+        }
+    }
+    
+    // Garantir que não saia da viewport
+    left = Math.max(20, Math.min(left, viewportWidth - popupWidth - 20));
+    top = Math.max(20, Math.min(top, viewportHeight - popupHeight - 20));
+    
+    popup.style.position = 'fixed';
+    popup.style.top = `${top}px`;
+    popup.style.left = `${left}px`;
+    popup.style.zIndex = '10003';
+}
+
+// Navigation functions (mantenha estas)
+function nextTutorialStep() {
+    const currentElement = document.querySelector(tutorialSteps[currentTutorialStep].element);
+    if (currentElement) {
+        currentElement.classList.remove('tutorial-highlighted');
+    }
+    currentTutorialStep++;
+    showTutorialStep(currentTutorialStep);
+}
+
+function prevTutorialStep() {
+    const currentElement = document.querySelector(tutorialSteps[currentTutorialStep].element);
+    if (currentElement) {
+        currentElement.classList.remove('tutorial-highlighted');
+    }
+    currentTutorialStep--;
+    showTutorialStep(currentTutorialStep);
+}
+
+function completeTutorial() {
+    tutorialActive = false;
+    document.getElementById('tutorial-overlay').style.display = 'none';
+    document.querySelectorAll('.tutorial-highlighted').forEach(el => {
+        el.classList.remove('tutorial-highlighted');
+    });
+    alert('Tutorial concluído! 🎉');
+}
+
+function skipTutorial() {
+    if (confirm('Pular tutorial?')) {
+        completeTutorial();
+    }
+}
+
+// Initialize tutorial when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initTutorial();
+    
+    document.getElementById('tutorial-next').addEventListener('click', nextTutorialStep);
+    document.getElementById('tutorial-prev').addEventListener('click', prevTutorialStep);
+    document.getElementById('tutorial-complete').addEventListener('click', completeTutorial);
+    document.getElementById('tutorial-skip').addEventListener('click', skipTutorial);
+    
+    document.getElementById('tutorial-overlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            skipTutorial();
+        }
+    });
+});
+
+// Adicione este CSS para melhorar o posicionamento
+const tutorialStyle = `
+.tutorial-popup {
+    position: fixed !important;
+    z-index: 10003 !important;
+    max-width: 400px;
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.tutorial-highlight {
+    transition: all 0.5s ease;
+    z-index: 10002 !important;
+}
+`;
+
+// Inject the styles
+const styleSheet = document.createElement('style');
+styleSheet.textContent = tutorialStyle;
+document.head.appendChild(styleSheet);
 // ====================================================================
