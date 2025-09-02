@@ -11,7 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, setDoc, getDocs, getDoc,
-  updateDoc, deleteDoc, serverTimestamp
+  updateDoc, deleteDoc, serverTimestamp, query, where, addDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL
@@ -54,6 +54,9 @@ window.getDoc = getDoc;
 window.updateDoc = updateDoc;
 window.deleteDoc = deleteDoc;
 window.serverTimestamp = serverTimestamp;
+window.query = query;
+window.where = where;
+window.addDoc = addDoc;
 
 // Expor globalmente (Storage)
 window.firebaseStorage = storage;
