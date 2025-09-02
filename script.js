@@ -2733,17 +2733,14 @@ tutorialSteps = [
 
 // Initialize tutorial
 function initTutorial() {
-    // Add tutorial button to header - SOMENTE SE NÃO EXISTIR
-    if (!document.querySelector('.header-btn[onclick="startTutorial"]')) {
-        const headerActions = document.querySelector('.header-actions');
-        const tutorialBtn = document.createElement('button');
-        tutorialBtn.className = 'header-btn secondary';
-        tutorialBtn.innerHTML = '<span class="btn-icon"></span><span class="btn-text">Ver Tutorial</span>';
-        tutorialBtn.onclick = startTutorial;
-        headerActions.appendChild(tutorialBtn);
+    // Usar o botão já existente no HTML
+    const tutorialBtn = document.getElementById('tutorial-btn');
+    
+    if (tutorialBtn) {
+        tutorialBtn.addEventListener('click', startTutorial);
     }
     
-    // Add keyboard shortcut (F1)
+    // Manter atalho de teclado (F1)
     document.addEventListener('keydown', function(e) {
         if (e.key === 'F1') {
             e.preventDefault();
