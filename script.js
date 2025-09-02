@@ -2503,43 +2503,32 @@ async function saveFlowToFirestore(processName) {
 
     try {
         const userId = window.authManager.user.uid;
-        const flowsRef = firebase.firestore().collection("usuarios").doc(userId).collection("fluxos");
+        const flowsRef = window.collection(window.firebaseDB, "usuarios", userId, "fluxos");
 
-        // Verificar duplicado
-        const querySnapshot = await flowsRef.where("name", "==", processName.trim()).get();
+        // Verificar se já existe um fluxo com esse nome
+        const q = window.query(flowsRef, window.where("name", "==", processName.trim()));
+        const querySnapshot = await window.getDocs(q);
 
         if (!querySnapshot.empty) {
             alert(`⚠️ Já existe um fluxo com o nome "${processName}". Escolha outro nome.`);
             return;
         }
 
-        // Criar fluxo
-        await flowsRef.add({
+        // Criar novo fluxo
+        await window.addDoc(flowsRef, {
             name: processName.trim(),
             data: editor.export(),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: window.serverTimestamp(),
+            updatedAt: window.serverTimestamp()
         });
 
         alert(`✅ Fluxo "${processName}" salvo com sucesso!`);
     } catch (error) {
-    console.error("Erro ao salvar fluxo (objeto completo):", error);
+        console.error("Erro ao salvar fluxo (objeto completo):", error);
 
-    let errMsg = "Erro desconhecido ao salvar fluxo.";
-    if (error.message) {
-        errMsg = error.message;
-    } else if (typeof error === "string") {
-        errMsg = error;
-    } else {
-        try {
-            errMsg = JSON.stringify(error);
-        } catch (e) {
-            errMsg = String(error);
-        }
+        let errMsg = error.message || JSON.stringify(error);
+        alert("Erro ao salvar fluxo: " + errMsg);
     }
-
-    alert("Erro ao salvar fluxo: " + errMsg);
-  }
 }
 
 // Carregar lista de fluxos
