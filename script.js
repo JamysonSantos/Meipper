@@ -2754,219 +2754,114 @@ tutorialSteps = [
 
 // Initialize tutorial
 function initTutorial() {
-  const tutorialBtn = document.getElementById('tutorial-btn');
-  if (tutorialBtn) {
-    tutorialBtn.addEventListener('click', startTutorial);
-  }
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'F1') {
-      e.preventDefault();
-      startTutorial();
+    // Usar o botão já existente no HTML
+    const tutorialBtn = document.getElementById('tutorial-btn');
+    
+    if (tutorialBtn) {
+        tutorialBtn.addEventListener('click', startTutorial);
     }
-  });
+    
+    // Manter atalho de teclado (F1)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F1') {
+            e.preventDefault();
+            startTutorial();
+        }
+    });
 }
 
-// Ao carregar a página, conectar botões de navegação
-document.addEventListener('DOMContentLoaded', function () {
-  initTutorial();
-
-  document.getElementById('tutorial-next')?.addEventListener('click', nextTutorialStep);
-  document.getElementById('tutorial-prev')?.addEventListener('click', prevTutorialStep);
-  document.getElementById('tutorial-complete')?.addEventListener('click', completeTutorial);
-  document.getElementById('tutorial-skip')?.addEventListener('click', skipTutorial);
-
-  // Fechar ao clicar fora (overlay)
-  document.getElementById('tutorial-overlay')?.addEventListener('click', function (e) {
-    if (e.target === this) {
-      skipTutorial();
-    }
-  });
-});
-
 // Start tutorial
-
 function startTutorial() {
-  // Precaução: precisa ter passos
-  if (!Array.isArray(tutorialSteps) || tutorialSteps.length === 0) {
-    console.warn("Tutorial: nenhum passo definido.");
-    return;
-  }
-
-  // Reset de estado
-  tutorialActive = false;
-
-  const overlay = document.getElementById('tutorial-overlay');
-  const highlight = document.querySelector('.tutorial-highlight');
-
-  // Limpar highlight visível (sem animação)
-  if (highlight) {
-    highlight.style.transition = 'none';
-    highlight.style.width = '0px';
-    highlight.style.height = '0px';
-    highlight.style.top = '0px';
-    highlight.style.left = '0px';
-  }
-
-  // Remover classes de highlight anteriores
-  document.querySelectorAll('.tutorial-highlighted').forEach(el => {
-    el.classList.remove('tutorial-highlighted');
-    el.style.zIndex = '';
-    el.style.position = '';
-  });
-
-  // Esconde overlay enquanto posicionamos (evita medir popup com display:none)
-  if (overlay) overlay.style.display = 'none';
-
-  // Reset do índice
-  currentTutorialStep = 0;
-
-  // Ativa o tutorial
-  tutorialActive = true;
-
-  // Exibe overlay e, no próximo frame, mostra o passo 0
-  if (overlay) overlay.style.display = 'flex';
-
-  // Aguarda o layout “assentar” para medir corretamente
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      showTutorialStep(0);
-    });
-  });
+    tutorialActive = true;
+    currentTutorialStep = 0;
+    document.getElementById('tutorial-overlay').style.display = 'flex';
+    showTutorialStep(0);
 }
 
 // Show specific tutorial step 
 
 function showTutorialStep(stepIndex) {
-  if (!tutorialActive) return;
-
-  // Fim dos passos
-  if (stepIndex >= tutorialSteps.length) {
-    completeTutorial();
-    return;
-  }
-
-  const step = tutorialSteps[stepIndex];
-  const overlay = document.getElementById('tutorial-overlay');
-  const highlight = document.querySelector('.tutorial-highlight');
-  const popup = document.querySelector('.tutorial-popup');
-
-  // Garante que overlay/popup estejam visíveis para medir
-  if (overlay) overlay.style.display = 'flex';
-  if (popup) {
-    popup.style.visibility = 'hidden';  // fica “invisível”, mas com tamanho medível
-    popup.style.display = 'block';
-  }
-
-  // Atualiza textos do popup
-  document.getElementById('tutorial-title').textContent = step.title || '';
-  document.getElementById('tutorial-description').textContent = step.description || '';
-  document.getElementById('tutorial-current-step').textContent = stepIndex + 1;
-  document.getElementById('tutorial-total-steps').textContent = tutorialSteps.length;
-
-  // Procura o elemento de destino
-  let targetElement = null;
-  try {
-    targetElement = document.querySelector(step.element);
-  } catch (e) {
-    console.warn('Seletor inválido no tutorial:', step.element);
-  }
-
-  // Se não achou o elemento, tenta novamente depois de um pequeno delay (evita “pular tudo”)
-  if (!targetElement) {
-    console.warn('Elemento do tutorial não encontrado agora, tentando novamente:', step.element);
-    setTimeout(() => {
-      if (!tutorialActive) return;
-      const retry = document.querySelector(step.element);
-      if (retry) {
-        showTutorialStep(stepIndex);
-      } else {
-        // Se realmente não existir, pule só este passo
-        nextTutorialStep();
-      }
-    }, 200);
-    return;
-  }
-
-  // Rolagem se não for item do header
-  const isHeaderElement = isElementInHeader(targetElement);
-  if (!isHeaderElement) {
-    targetElement.scrollIntoView({ behavior: 'instant', block: 'center' });
-  }
-
-  // Remover listener do passo anterior
-  if (tutorialLastElement && tutorialClickHandlerRef) {
-    tutorialLastElement.removeEventListener('click', tutorialClickHandlerRef);
-    tutorialLastElement.removeAttribute('data-tutorial-click');
-  }
-
-  // Próximo frame para ler posição após possível scroll
-  requestAnimationFrame(() => {
+    if (stepIndex >= tutorialSteps.length) {
+        completeTutorial();
+        return;
+    }
+    
+    const step = tutorialSteps[stepIndex];
+    const highlight = document.querySelector('.tutorial-highlight');
+    const popup = document.querySelector('.tutorial-popup');
+    
+    // Update step info
+    document.getElementById('tutorial-title').textContent = step.title;
+    document.getElementById('tutorial-description').textContent = step.description;
+    document.getElementById('tutorial-current-step').textContent = stepIndex + 1;
+    document.getElementById('tutorial-total-steps').textContent = tutorialSteps.length;
+    
+    // Highlight target element
+    const targetElement = document.querySelector(step.element);
+    if (targetElement) {
+        // DETECÇÃO CORRIGIDA - Verificar se é elemento do header
+        const isHeaderElement = isElementInHeader(targetElement);
+        
+        if (!isHeaderElement) {
+            // Scroll apenas para elementos do sidebar
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Aguardar o scroll completar antes de posicionar
+        setTimeout(() => {
     const rect = targetElement.getBoundingClientRect();
-
-    // Reaplica transição suave no highlight
-    if (highlight) {
-      highlight.style.transition = 'all 0.5s ease';
-      highlight.style.width = `${rect.width + 20}px`;
-      highlight.style.height = `${rect.height + 20}px`;
-      highlight.style.top = `${rect.top - 10}px`;
-      highlight.style.left = `${rect.left - 10}px`;
-    }
-
-    // Posiciona popup
-    if (popup) {
-      positionPopupImproved(popup, step.position, rect, isHeaderElement);
-      // torna visível após posicionar
-      popup.style.visibility = 'visible';
-    }
-
-    // Marca elemento destacado
+    
+    highlight.style.width = `${rect.width + 20}px`;
+    highlight.style.height = `${rect.height + 20}px`;
+    highlight.style.top = `${rect.top - 10}px`;
+    highlight.style.left = `${rect.left - 10}px`;
+    
+    // Position popup - VERSÃO MELHORADA
+    positionPopupImproved(popup, step.position, rect, isHeaderElement);
+    
+    // Add highlight class to element - COM Z-INDEX FORÇADO PARA HEADER
     targetElement.classList.add('tutorial-highlighted');
+    
+    // Para elementos do header, garantir z-index extra
     if (isHeaderElement) {
-      targetElement.style.zIndex = '10011';
-      targetElement.style.position = 'relative';
+        targetElement.style.zIndex = '10011';
+        targetElement.style.position = 'relative';
     }
-
-    // Se for passo “interativo”, passar ao próximo no clique do elemento
-    tutorialClickHandlerRef = function () {
-      if (tutorialActive) nextTutorialStep();
-    };
-    targetElement.addEventListener('click', tutorialClickHandlerRef);
-    targetElement.setAttribute('data-tutorial-click', 'true');
-
-    // Foco, se pedido
-    if (step.action === 'focus' && typeof targetElement.focus === 'function') {
-      targetElement.focus();
+    
+    // Focus on element if needed
+    if (step.action === 'focus') {
+        targetElement.focus();
     }
-
-    // Guarda referência para limpar no próximo passo
-    tutorialLastElement = targetElement;
-  });
-
-  // Botões de navegação
-  document.getElementById('tutorial-prev').style.display = stepIndex > 0 ? 'block' : 'none';
-  document.getElementById('tutorial-next').style.display = stepIndex < tutorialSteps.length - 1 ? 'block' : 'none';
-  document.getElementById('tutorial-complete').style.display = stepIndex === tutorialSteps.length - 1 ? 'block' : 'none';
+}, isHeaderElement ? 100 : 300);
+    }
+    
+    // Update navigation buttons
+    document.getElementById('tutorial-prev').style.display = stepIndex > 0 ? 'block' : 'none';
+    document.getElementById('tutorial-next').style.display = stepIndex < tutorialSteps.length - 1 ? 'block' : 'none';
+    document.getElementById('tutorial-complete').style.display = stepIndex === tutorialSteps.length - 1 ? 'block' : 'none';
 }
 
 // FUNÇÃO AUXILIAR PARA DETECTAR ELEMENTOS NO HEADER
-
 function isElementInHeader(element) {
-    return element.closest('.header') || 
-           element.closest('.header-actions') ||
-           element.closest('.header-right') ||
-           element.closest('.header-left') ||
-           (element.hasAttribute('data-action') && 
-            (element.getAttribute('data-action') === 'save-flow' || 
-             element.getAttribute('data-action') === 'toggle-export' ||
-             element.getAttribute('data-action') === 'show-saved-flows' ||
-             element.getAttribute('data-action') === 'load-flow' ||
-             element.getAttribute('data-action') === 'clear-all'));
+    // Verificar se é um botão de ação do header
+    const isActionButton = element.hasAttribute('data-action') && 
+                          (element.closest('.header-actions') || 
+                           element.closest('.header-right'));
+    
+    // Verificar se é um elemento dentro do header
+    const isInHeader = element.closest('.header');
+    
+    // Verificar botões específicos por data-action
+    const isSaveButton = element.getAttribute('data-action') === 'save-flow';
+    const isExportButton = element.getAttribute('data-action') === 'toggle-export';
+    
+    return isActionButton || isInHeader || isSaveButton || isExportButton;
 }
 
+// POSITION POPUP IMPROVED
 
-// POSITION POPUP IMPROVED 
-
+// POSITION POPUP IMPROVED - Versão corrigida
+// POSITION POPUP IMPROVED - Versão final
 function positionPopupImproved(popup, position, targetRect, isHeaderElement) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -2985,7 +2880,7 @@ function positionPopupImproved(popup, position, targetRect, isHeaderElement) {
             top = targetRect.top - popupHeight - 15;
         }
     } else {
-        // PARA SIDEBAR: Popup ACIMA do elemento (como solicitado)
+        // PARA SIDEBAR: Popup ACIMA do elemento
         top = targetRect.top - popupHeight - 20;
         left = targetRect.left + (targetRect.width - popupWidth) / 2;
         
@@ -3005,42 +2900,14 @@ function positionPopupImproved(popup, position, targetRect, isHeaderElement) {
     popup.style.zIndex = '10003';
 }
 
-// Navigation functions 
-
+// Navigation functions (mantenha estas)
 function nextTutorialStep() {
-  if (!tutorialActive) return;
-
-  // Limpa destaque/handlers do passo atual
-  if (tutorialLastElement) {
-    tutorialLastElement.classList.remove('tutorial-highlighted');
-    tutorialLastElement.style.zIndex = '';
-    tutorialLastElement.style.position = '';
-    if (tutorialClickHandlerRef) {
-      tutorialLastElement.removeEventListener('click', tutorialClickHandlerRef);
-      tutorialLastElement.removeAttribute('data-tutorial-click');
+    const currentElement = document.querySelector(tutorialSteps[currentTutorialStep].element);
+    if (currentElement) {
+        currentElement.classList.remove('tutorial-highlighted');
     }
-  }
-
-  currentTutorialStep++;
-  showTutorialStep(currentTutorialStep);
-}
-
-function prevTutorialStep() {
-  if (!tutorialActive) return;
-
-  // Limpa destaque/handlers do passo atual
-  if (tutorialLastElement) {
-    tutorialLastElement.classList.remove('tutorial-highlighted');
-    tutorialLastElement.style.zIndex = '';
-    tutorialLastElement.style.position = '';
-    if (tutorialClickHandlerRef) {
-      tutorialLastElement.removeEventListener('click', tutorialClickHandlerRef);
-      tutorialLastElement.removeAttribute('data-tutorial-click');
-    }
-  }
-
-  currentTutorialStep = Math.max(0, currentTutorialStep - 1);
-  showTutorialStep(currentTutorialStep);
+    currentTutorialStep++;
+    showTutorialStep(currentTutorialStep);
 }
 
 function prevTutorialStep() {
@@ -3053,63 +2920,18 @@ function prevTutorialStep() {
 }
 
 function completeTutorial() {
-  if (!tutorialActive) return;
-
-  tutorialActive = false;
-
-  // Esconde overlay
-  const overlay = document.getElementById('tutorial-overlay');
-  if (overlay) overlay.style.display = 'none';
-
-  // Limpa destaque/handlers
-  document.querySelectorAll('.tutorial-highlighted').forEach(el => {
-    el.classList.remove('tutorial-highlighted');
-    el.style.zIndex = '';
-    el.style.position = '';
-  });
-  if (tutorialLastElement && tutorialClickHandlerRef) {
-    tutorialLastElement.removeEventListener('click', tutorialClickHandlerRef);
-    tutorialLastElement.removeAttribute('data-tutorial-click');
-  }
-  tutorialLastElement = null;
-  tutorialClickHandlerRef = null;
-
-  // Reset highlight box
-  const highlight = document.querySelector('.tutorial-highlight');
-  if (highlight) {
-    highlight.style.width = '0px';
-    highlight.style.height = '0px';
-    highlight.style.top = '0px';
-    highlight.style.left = '0px';
-  }
-
-  alert('Tutorial concluído! 🎉');
+    tutorialActive = false;
+    document.getElementById('tutorial-overlay').style.display = 'none';
+    document.querySelectorAll('.tutorial-highlighted').forEach(el => {
+        el.classList.remove('tutorial-highlighted');
+    });
+    alert('Tutorial concluído! 🎉');
 }
 
 function skipTutorial() {
-  if (!tutorialActive) return;
-  tutorialActive = false;
-
-  const overlay = document.getElementById('tutorial-overlay');
-  if (overlay) overlay.style.display = 'none';
-
-  if (tutorialLastElement && tutorialClickHandlerRef) {
-    tutorialLastElement.removeEventListener('click', tutorialClickHandlerRef);
-    tutorialLastElement.removeAttribute('data-tutorial-click');
-  }
-  document.querySelectorAll('.tutorial-highlighted').forEach(el => {
-    el.classList.remove('tutorial-highlighted');
-    el.style.zIndex = '';
-    el.style.position = '';
-  });
-
-  const highlight = document.querySelector('.tutorial-highlight');
-  if (highlight) {
-    highlight.style.width = '0px';
-    highlight.style.height = '0px';
-    highlight.style.top = '0px';
-    highlight.style.left = '0px';
-  }
+    if (confirm('Pular tutorial?')) {
+        completeTutorial();
+    }
 }
 
 // Initialize tutorial when page loads
