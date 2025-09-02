@@ -105,6 +105,16 @@ if (avatarEl && menuEl) {
 // Expor globalmente para o auth.js poder chamar
 window.loadUserAvatar = loadUserAvatar;
 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  serverTimestamp
+} from "firebase/firestore";
+import { firebaseDB } from "./firebase-config.js";
+
 // ======================
 // VARIÁVEIS GLOBAIS DO TUTORIAL
 // ======================
@@ -2503,11 +2513,11 @@ async function saveFlowToFirestore(processName) {
 
     try {
         const userId = window.authManager.user.uid;
-        const flowsRef = collection(window.firebaseDB, "usuarios", userId, "fluxos");
+        const flowsRef = window.collection(window.firebaseDB, "usuarios", userId, "fluxos");
 
         // 🔍 Verificar se já existe fluxo com mesmo nome
-        const q = query(flowsRef, where("name", "==", processName.trim()));
-        const querySnapshot = await getDocs(q);
+        const q = window.query(flowsRef, window.where("name", "==", processName.trim()));
+        const querySnapshot = await window.getDocs(q);
 
         if (!querySnapshot.empty) {
             alert(`⚠️ Já existe um fluxo com o nome "${processName}". Escolha outro nome.`);
@@ -2518,11 +2528,11 @@ async function saveFlowToFirestore(processName) {
         const flowData = {
             name: processName.trim(),
             data: editor.export(),
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
+            createdAt: window.serverTimestamp(),
+            updatedAt: window.serverTimestamp()
         };
 
-        await addDoc(flowsRef, flowData);
+        await window.addDoc(flowsRef, flowData);
 
         alert(`✅ Fluxo "${processName}" salvo com sucesso!`);
     } catch (error) {
