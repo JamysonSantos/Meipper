@@ -432,27 +432,48 @@
           </div>
 
         <!-- Saved Flows Popup -->
-        <div id="saved-flows-popup" class="popup-overlay" style="display: none;">
-        <div class="popup-content">
-            <div class="popup-header">
-                <h3>Biblioteca de Fluxos</h3>
-                <button class="popup-close" id="close-saved-flows-popup">×</button>
+    <div id="saved-flows-popup" class="popup-overlay" style="display: none;">
+    <div class="popup-content">
+        <div class="popup-header">
+            <h3>Biblioteca de Fluxos</h3>
+            <button class="popup-close" id="close-saved-flows-popup">×</button>
+        </div>
+        <div class="popup-body">
+            <div class="search-container">
+                <input type="text" id="flow-search" placeholder="Buscar fluxo..." class="search-input">
             </div>
-            <div class="popup-body">
-                <div class="search-container">
-                    <input type="text" id="flow-search" placeholder="Buscar fluxo..." class="search-input">
-                </div>
-                <div id="saved-flows-container" class="flows-container">
-                    <!-- Os fluxos serão carregados aqui -->
-                    <div class="no-flows-message" style="display: none;">Nenhum fluxo salvo ainda</div>
-                    <div class="instructions" style="margin-top: 20px;">
-                        <p>Selecione um fluxo para carregá-lo (substituirá o fluxo atual)</p>
-                    </div>
+            <div id="saved-flows-container" class="flows-container">
+                <!-- Os fluxos serão carregados aqui -->
+                <div class="no-flows-message" style="display: none;">Nenhum fluxo salvo ainda</div>
+                <div class="instructions" style="margin-top: 20px;">
+                    <p>Selecione um fluxo para carregá-lo (substituirá o fluxo atual)</p>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Tutorial Overlay -->
+<div id="tutorial-overlay" class="tutorial-overlay" style="display: none;">
+    <div class="tutorial-highlight"></div>
+    <div class="tutorial-popup">
+        <div class="tutorial-header">
+            <h3 id="tutorial-title">Tutorial do Meipper</h3>
+            <div class="tutorial-progress">
+                <span id="tutorial-current-step">1</span>/<span id="tutorial-total-steps">12</span>
+            </div>
+        </div>
+        <div class="tutorial-body">
+            <p id="tutorial-description">Vamos aprender a usar o Meipper passo a passo!</p>
+        </div>
+        <div class="tutorial-footer">
+            <button class="modern-btn secondary tutorial-skip" id="tutorial-skip">Pular Tutorial</button>
+            <button class="modern-btn secondary tutorial-prev" id="tutorial-prev" style="display: none;">Anterior</button>
+            <button class="modern-btn primary tutorial-next" id="tutorial-next">Próximo</button>
+            <button class="modern-btn success tutorial-complete" id="tutorial-complete" style="display: none;">Concluir</button>
+        </div>
     </div>
+</div>
 
     <!-- Firebase Configuration -->
     <script type="module" src="firebase-config.js"></script>
