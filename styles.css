@@ -2065,10 +2065,9 @@ body {
 
 .header-btn.tutorial-highlighted {
     transform: scale(1.1) !important;
-    box-shadow: 0 0 0 3px #3b82f6, 
-                0 0 20px rgba(59, 130, 246, 0.8),
-                0 0 30px rgba(59, 130, 246, 0.4) !important;
-    z-index: 10011 !important; /* Mais alto que o header */
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.9),
+                0 0 40px rgba(59, 130, 246, 0.6) !important;
+    z-index: 10011 !important;
     animation: pulse 2s infinite !important;
     position: relative;
 }
@@ -2081,9 +2080,8 @@ body {
 
 .export-dropdown.tutorial-highlighted .header-btn {
     transform: scale(1.1) !important;
-    box-shadow: 0 0 0 3px #8b5cf6,
-                0 0 20px rgba(139, 92, 246, 0.8),
-                0 0 30px rgba(139, 92, 246, 0.4) !important;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.9),
+                0 0 40px rgba(139, 92, 246, 0.6) !important;
     animation: pulse 2s infinite !important;
 }
 
