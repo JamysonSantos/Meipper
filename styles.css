@@ -2002,10 +2002,7 @@ body {
 }
 
 .tutorial-progress {
-    background: #e5e7eb;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 600;
     color: #6b7280;
 }
