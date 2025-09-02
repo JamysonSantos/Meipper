@@ -2728,7 +2728,28 @@ tutorialSteps = [
         element: "[data-action='toggle-export']",
         position: "bottom", 
         specialClass: "header-element"
-    }
+    },
+   {
+        title: "Biblioteca de Fluxos Salvos",
+        description: "Acesse aqui todos os fluxos que você salvou. Você pode visualizar, carregar ou gerenciar seus projetos anteriores.",
+        element: "[data-action='show-saved-flows']",
+        position: "bottom",
+        specialClass: "header-element"
+    },
+    {
+        title: "Carregar Fluxo do Computador",
+        description: "Use este botão para carregar fluxos salvos em seu computador no formato .meipperflow (arquivos exportados anteriormente).",
+        element: "[data-action='load-flow']",
+        position: "bottom", 
+        specialClass: "header-element"
+    },
+    {
+        title: "Limpar Todo o Fluxo",
+        description: "Cuidado! Este botão remove completamente todo o fluxo atual. Use apenas quando quiser começar do zero.",
+        element: "[data-action='clear-all']",
+        position: "bottom",
+        specialClass: "header-element"
+    },
 ];
 
 // Initialize tutorial
