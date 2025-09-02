@@ -2495,34 +2495,40 @@ if (processNameInput) {
 // ====================== FIRESTORE SAVE & LOAD ======================
 
 // Salvar fluxo no Firestore
-async function saveFlowToFirestore(flowName) {
-    if (!firebaseAuth.currentUser) {
-        alert("Você precisa estar logado para salvar.");
+async function saveFlowToFirestore(processName) {
+    if (!window.authManager || !window.authManager.user) {
+        alert("Você precisa estar logado para salvar fluxos.");
         return;
     }
 
-    const uid = firebaseAuth.currentUser.uid;
-    const flowId = flowName.replace(/\s+/g, "_") + "_" + Date.now();
-
-    const flowData = {
-        name: flowName || "Sem nome",
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        actors: Object.entries(actors).map(([name, color]) => ({ name, color })),
-        drawflowData: editor.export(),
-        nodeIdCounter: nodeIdCounter,
-        connectionLabels: Object.fromEntries(connectionLabels),
-        taskDescriptions: Object.fromEntries(taskDescriptions),
-        zoom: currentZoom,
-        exportCount: 0
-    };
-
     try {
-        await setDoc(doc(collection(firebaseDB, "usuarios", uid, "flows"), flowId), flowData);
-        alert("Fluxo salvo!");
+        const userId = window.authManager.user.uid;
+        const flowsRef = window.collection(window.firebaseDB, "usuarios", userId, "fluxos");
+
+        // 🔍 Verificar se já existe fluxo com mesmo nome
+        const q = window.query(flowsRef, window.where("name", "==", processName.trim()));
+        const querySnapshot = await window.getDocs(q);
+
+        if (!querySnapshot.empty) {
+            alert(`⚠️ Já existe um fluxo com o nome "${processName}". Escolha outro nome.`);
+            return;
+        }
+
+        // Exportar fluxo atual
+        const flowData = {
+            name: processName.trim(),
+            data: editor.export(), // exporta fluxo do Meipper
+            createdAt: window.serverTimestamp(),
+            updatedAt: window.serverTimestamp()
+        };
+
+        // Criar novo documento
+        await window.addDoc(flowsRef, flowData);
+
+        alert(`✅ Fluxo "${processName}" salvo com sucesso!`);
     } catch (error) {
         console.error("Erro ao salvar fluxo:", error);
-        alert("Erro ao salvar fluxo");
+        alert("Erro ao salvar fluxo: " + error.message);
     }
 }
 
