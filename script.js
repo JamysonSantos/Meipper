@@ -2494,52 +2494,46 @@ if (processNameInput) {
 
 // ====================== FIRESTORE SAVE & LOAD ======================
 
+// === Função auxiliar para limpar nome e usar como ID no Firestore ===
+function sanitizeFlowNameForDocId(name) {
+  const raw = (name ?? '').toString();
+  let cleaned = raw.trim().replace(/\s+/g, ' ');
+  cleaned = cleaned.replace(/[\/]+/g, '-');
+  if (cleaned.length > 150) cleaned = cleaned.slice(0, 150).trim();
+  return cleaned || 'Processo sem nome';
+}
+
 // Salvar fluxo no Firestore
 async function saveFlowToFirestore(processName) {
   try {
-    const user = window.firebaseAuth.currentUser;
+    const user = window.firebaseAuth?.currentUser;
     if (!user) {
       alert("Você precisa estar logado para salvar fluxos.");
       return;
     }
 
-    const flowsRef = window.collection(window.firebaseDB, "usuarios", user.uid, "flows");
+    const cleanedName = sanitizeFlowNameForDocId(processName || document.getElementById('process-name')?.value);
+    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", cleanedName);
 
-    // Procurar fluxo com o mesmo nome
-    const snapshot = await window.getDocs(flowsRef);
-    let existingDocId = null;
+    const existing = await window.getDoc(docRef);
 
-    snapshot.forEach((docSnap) => {
-      if (docSnap.data().metadata?.processName === processName) {
-        existingDocId = docSnap.id;
-      }
-    });
-
-    // Objeto do fluxo no mesmo padrão do arquivo
-    const flowData = {
+    const flowPayload = {
       drawflow: editor.export(),
       metadata: {
-        processName: processName,
-        actors: { ...actors },   // garante objeto plano
+        processName: cleanedName,
+        actors: { ...actors },
         selectedColor: selectedColor,
         colors: [...colors],
         nodeIdCounter: nodeIdCounter,
-        taskDescriptions: Array.from(taskDescriptions.entries()),
-        connectionLabels: Array.from(connectionLabels.entries()),
+        taskDescriptions: Array.from(taskDescriptions?.entries ? taskDescriptions.entries() : []),
+        connectionLabels: Array.from(connectionLabels?.entries ? connectionLabels.entries() : []),
         updatedAt: window.serverTimestamp(),
+        ...(existing.exists() ? {} : { createdAt: window.serverTimestamp() })
       }
     };
 
-    if (existingDocId) {
-      const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", existingDocId);
-      await window.setDoc(docRef, flowData, { merge: true });
-      alert(`Fluxo "${processName}" atualizado com sucesso!`);
-    } else {
-      const newDocRef = window.doc(window.collection(window.firebaseDB, "usuarios", user.uid, "flows"));
-      await window.setDoc(newDocRef, flowData);
-      alert(`Fluxo "${processName}" salvo com sucesso!`);
-    }
-
+    await window.setDoc(docRef, flowPayload, { merge: true });
+    alert(`Fluxo "${cleanedName}" salvo com sucesso!`);
   } catch (error) {
     console.error("Erro ao salvar fluxo:", error);
     alert("Erro ao salvar fluxo. Veja o console para mais detalhes.");
@@ -2548,19 +2542,39 @@ async function saveFlowToFirestore(processName) {
 
 // Carregar lista de fluxos
 async function loadFlowsFromFirestore() {
-  if (!firebaseAuth.currentUser) return [];
+  try {
+    const user = window.firebaseAuth?.currentUser;
+    if (!user) return [];
 
-  const uid = firebaseAuth.currentUser.uid;
-  const querySnapshot = await getDocs(collection(firebaseDB, "usuarios", uid, "flows"));
+    const flowsRef = window.collection(window.firebaseDB, "usuarios", user.uid, "flows");
+    const snapshot = await window.getDocs(flowsRef);
 
-  const flows = [];
-  querySnapshot.forEach((docSnap) => {
-    flows.push({ id: docSnap.id, ...docSnap.data() }); // <-- bug do ".docSnap" corrigido
-  });
+    const flows = snapshot.docs.map(d => {
+      const data = d.data() || {};
+      const meta = data.metadata || {};
+      return {
+        id: d.id,
+        name: meta.processName || data.name || d.id,
+        actors: meta.actors || data.actors || {},
+        drawflow: data.drawflow || data.drawflowData || null,
+        updatedAt: meta.updatedAt || data.updatedAt || null,
+        createdAt: meta.createdAt || data.createdAt || null,
+        _raw: data
+      };
+    });
 
-  // ordena por updatedAt (quando houver)
-  flows.sort((a, b) => (b.updatedAt?.toMillis?.() ?? 0) - (a.updatedAt?.toMillis?.() ?? 0));
-  return flows;
+    flows.sort((a, b) => {
+      const ta = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : 0;
+      const tb = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : 0;
+      return tb - ta;
+    });
+
+    console.log("Fluxos carregados:", flows);
+    return flows;
+  } catch (e) {
+    console.error("Erro ao carregar lista de fluxos:", e);
+    return [];
+  }
 }
 
 function updateActorListUI() {
@@ -2580,64 +2594,68 @@ function updateActorListUI() {
 // Carregar um fluxo específico
 async function loadFlowById(flowId) {
   try {
-    const user = firebaseAuth.currentUser;
+    const user = window.firebaseAuth?.currentUser;
     if (!user) {
       alert("Você precisa estar logado para carregar fluxos.");
       return;
     }
 
-    const docRef = doc(firebaseDB, "usuarios", user.uid, "flows", flowId);
-    const docSnap = await getDoc(docRef);
+    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", flowId);
+    const docSnap = await window.getDoc(docRef);
 
     if (!docSnap.exists()) {
       alert("Fluxo não encontrado.");
       return;
     }
 
-    const flowData = docSnap.data();
+    const data = docSnap.data() || {};
+    const meta = data.metadata || {};
 
     if (confirm('Carregar este fluxo? O fluxo atual será substituído.')) {
       clearAll();
 
-      // Restaurar metadados
-      const meta = flowData.metadata || {};
-      actors = meta.actors || {};
+      const processName = meta.processName || data.name || flowId || 'Processo sem nome';
+      actors        = (meta.actors && typeof meta.actors === 'object') ? meta.actors : (data.actors || {});
       selectedColor = meta.selectedColor || COLORS[0];
-      colors = meta.colors || [...COLORS];
-      nodeIdCounter = meta.nodeIdCounter || 1;
+      colors        = Array.isArray(meta.colors) ? meta.colors : [...COLORS];
+      nodeIdCounter = Number.isInteger(meta.nodeIdCounter) ? meta.nodeIdCounter : 1;
 
-      // Restaurar nome do processo
-      document.getElementById('process-name').value = meta.processName || '';
+      const nameInput = document.getElementById('process-name');
+      if (nameInput) nameInput.value = processName;
 
-      // Importar o fluxo
-      if (flowData.drawflow) {
-        editor.import(flowData.drawflow);
+      const drawflowObj = data.drawflow || data.drawflowData || null;
+      if (drawflowObj) {
+        editor.import(drawflowObj);
       }
 
-      // Restaurar labels de conexão
-      if (meta.connectionLabels) {
-        const labelContainer = document.querySelector('.connection-label-container') || 
-                              createLabelContainer();
-
-        meta.connectionLabels.forEach(([key, labelData]) => {
-          const [sourceId, targetId] = key.split('-');
-          createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+      const labels = meta.connectionLabels || data.connectionLabels || null;
+      if (labels) {
+        const labelContainer = document.querySelector('.connection-label-container') || createLabelContainer();
+        const entries = Array.isArray(labels) ? labels : Object.entries(labels);
+        entries.forEach(([key, labelData]) => {
+          const text = typeof labelData === 'string' ? labelData : labelData?.textContent;
+          if (!key || !text) return;
+          const [sourceId, targetId] = String(key).split('-');
+          createConnectionLabel(sourceId, targetId, text, labelContainer);
         });
       }
 
-      // Restaurar descrições de tarefas
-      if (meta.taskDescriptions) {
-        meta.taskDescriptions.forEach(([nodeId, description]) => {
-          taskDescriptions.set(parseInt(nodeId), description);
-          updateDescriptionButton(parseInt(nodeId));
+      const descs = meta.taskDescriptions || data.taskDescriptions || null;
+      if (descs) {
+        const entries = Array.isArray(descs) ? descs : Object.entries(descs);
+        entries.forEach(([nodeId, description]) => {
+          const idNum = parseInt(nodeId, 10);
+          if (!Number.isNaN(idNum)) {
+            taskDescriptions.set(idNum, description);
+            updateDescriptionButton(idNum);
+          }
         });
       }
 
-      // Atualizar UI
-      updateActorSelect();
-      updateActorsList();
-      updateProcessInfo();
-      renderColorPicker();
+      updateActorSelect?.();
+      updateActorsList?.();
+      updateProcessInfo?.();
+      renderColorPicker?.();
 
       alert('Fluxo carregado com sucesso!');
     }
@@ -2646,12 +2664,6 @@ async function loadFlowById(flowId) {
     alert("Erro ao carregar fluxo do Firestore.");
   }
 }
-
-document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('click', async () => {
-    const flows = await loadFlowsFromFirestore();
-    console.log("Fluxos carregados:", flows);
-    // Aqui você pode preencher seu popup com a lista de fluxos
-});
 
 async function openSavedFlowsPopupFromFirestore() {
   const popup = document.getElementById('saved-flows-popup');
@@ -2666,19 +2678,19 @@ async function openSavedFlowsPopupFromFirestore() {
   if (!flows.length) {
     container.innerHTML = '<div class="no-flows-message">Nenhum fluxo salvo ainda</div>';
   } else {
-    // render cards
     flows.forEach(flow => {
-      const updated =
-        flow.updatedAt?.toDate?.() ? flow.updatedAt.toDate() :
-        flow.createdAt?.toDate?.() ? flow.createdAt.toDate() : null;
+      const ts = flow.updatedAt || flow.createdAt;
+      let dateStr = '—';
+      try {
+        const d = ts?.toDate?.() ? ts.toDate() : null;
+        if (d) {
+          dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        }
+      } catch {}
 
-      const dateStr = updated
-        ? `${updated.getDate()}/${updated.getMonth()+1}/${updated.getFullYear()} ${updated.getHours()}:${String(updated.getMinutes()).padStart(2,'0')}`
-        : '—';
-
-      const actorsCount = Array.isArray(flow.actors) ? flow.actors.length : 0;
-      const elementsCount = flow.drawflowData?.drawflow?.Home?.data
-        ? Object.keys(flow.drawflowData.drawflow.Home.data).length
+      const actorsCount = flow.actors ? Object.keys(flow.actors).length : 0;
+      const elementsCount = flow.drawflow?.drawflow?.Home?.data
+        ? Object.keys(flow.drawflow.drawflow.Home.data).length
         : 0;
 
       const card = document.createElement('div');
@@ -2693,38 +2705,33 @@ async function openSavedFlowsPopupFromFirestore() {
         <p>${elementsCount} elementos</p>
       `;
 
-      // carregar
       card.addEventListener('click', async (e) => {
-        if (e.target.closest('.flow-action-btn')) return; // ignorar clique no "×"
+        if (e.target.closest('.flow-action-btn')) return;
         document.getElementById('saved-flows-popup').style.display = 'none';
         await loadFlowById(flow.id);
         alert('Fluxo carregado!');
       });
 
-      // excluir
       card.querySelector('.flow-action-btn.delete').addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!confirm(`Excluir o fluxo "${flow.name}"?`)) return;
-        const uid = firebaseAuth.currentUser?.uid;
+        const uid = window.firebaseAuth?.currentUser?.uid;
         if (!uid) return;
-        await deleteDoc(doc(firebaseDB, "usuarios", uid, "flows", flow.id));
-        openSavedFlowsPopupFromFirestore(); // recarrega a lista
+        await window.deleteDoc(window.doc(window.firebaseDB, "usuarios", uid, "flows", flow.id));
+        openSavedFlowsPopupFromFirestore();
       });
 
       container.appendChild(card);
     });
   }
 
-  // fechar ao clicar fora
   popup.addEventListener('click', function onOverlay(e) {
     if (e.target === popup) popup.style.display = 'none';
   }, { once: true });
 
-  // fechar pelo botão "×"
   const closeBtn = document.getElementById('close-saved-flows-popup');
   closeBtn.addEventListener('click', () => popup.style.display = 'none', { once: true });
 
-  // busca em tempo real
   searchInput.addEventListener('input', function onSearch(e) {
     const term = e.target.value.toLowerCase();
     container.querySelectorAll('.flow-card').forEach(card => {
