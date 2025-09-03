@@ -2495,7 +2495,6 @@ if (processNameInput) {
 // ====================== FIRESTORE SAVE & LOAD ======================
 
 // Salvar fluxo no Firestore
-// Salvar fluxo no Firestore (sobrescrevendo se já existir)
 async function saveFlowToFirestore(processName) {
   try {
     const user = window.firebaseAuth.currentUser;
@@ -2511,34 +2510,36 @@ async function saveFlowToFirestore(processName) {
     let existingDocId = null;
 
     snapshot.forEach((docSnap) => {
-      if (docSnap.data().name === processName) {
+      if (docSnap.data().metadata?.processName === processName) {
         existingDocId = docSnap.id;
       }
     });
 
-    // Objeto do fluxo
+    // Objeto do fluxo no mesmo padrão do arquivo
     const flowData = {
-      name: processName,
-      drawflow: editor.export(),   // pega o fluxo atual do Drawflow
-      actors: actors,
-      taskDescriptions: Object.fromEntries(taskDescriptions),
-      connectionLabels: Object.fromEntries(connectionLabels),
-      updatedAt: window.serverTimestamp(),
+      drawflow: editor.export(),
+      metadata: {
+        processName: processName,
+        actors: { ...actors },   // garante objeto plano
+        selectedColor: selectedColor,
+        colors: [...colors],
+        nodeIdCounter: nodeIdCounter,
+        taskDescriptions: Array.from(taskDescriptions.entries()),
+        connectionLabels: Array.from(connectionLabels.entries()),
+        updatedAt: window.serverTimestamp(),
+      }
     };
 
     if (existingDocId) {
-      // Se já existe → sobrescreve
-      const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "fluxos", existingDocId);
+      const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", existingDocId);
       await window.setDoc(docRef, flowData, { merge: true });
-      console.log("Fluxo sobrescrito com sucesso:", processName);
       alert(`Fluxo "${processName}" atualizado com sucesso!`);
     } else {
-      // Se não existe → cria novo
-      const newDocRef = window.doc(window.collection(window.firebaseDB, "usuarios", user.uid, "fluxos"));
+      const newDocRef = window.doc(window.collection(window.firebaseDB, "usuarios", user.uid, "flows"));
       await window.setDoc(newDocRef, flowData);
-      console.log("Fluxo criado com sucesso:", processName);
       alert(`Fluxo "${processName}" salvo com sucesso!`);
     }
+
   } catch (error) {
     console.error("Erro ao salvar fluxo:", error);
     alert("Erro ao salvar fluxo. Veja o console para mais detalhes.");
@@ -2596,16 +2597,17 @@ async function loadFlowById(flowId) {
     const flowData = docSnap.data();
 
     if (confirm('Carregar este fluxo? O fluxo atual será substituído.')) {
-      clearAll(); // limpa o fluxo atual
+      clearAll();
 
-      // Restaurar atores
-      actors = flowData.actors || {};
-      selectedColor = flowData.selectedColor || COLORS[0];
-      colors = flowData.colors || [...COLORS];
-      nodeIdCounter = flowData.nodeIdCounter || 1;
+      // Restaurar metadados
+      const meta = flowData.metadata || {};
+      actors = meta.actors || {};
+      selectedColor = meta.selectedColor || COLORS[0];
+      colors = meta.colors || [...COLORS];
+      nodeIdCounter = meta.nodeIdCounter || 1;
 
       // Restaurar nome do processo
-      document.getElementById('process-name').value = flowData.name || '';
+      document.getElementById('process-name').value = meta.processName || '';
 
       // Importar o fluxo
       if (flowData.drawflow) {
@@ -2613,25 +2615,25 @@ async function loadFlowById(flowId) {
       }
 
       // Restaurar labels de conexão
-      if (flowData.connectionLabels) {
+      if (meta.connectionLabels) {
         const labelContainer = document.querySelector('.connection-label-container') || 
                               createLabelContainer();
-        
-        Object.entries(flowData.connectionLabels).forEach(([key, labelData]) => {
+
+        meta.connectionLabels.forEach(([key, labelData]) => {
           const [sourceId, targetId] = key.split('-');
           createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
         });
       }
 
       // Restaurar descrições de tarefas
-      if (flowData.taskDescriptions) {
-        Object.entries(flowData.taskDescriptions).forEach(([nodeId, description]) => {
+      if (meta.taskDescriptions) {
+        meta.taskDescriptions.forEach(([nodeId, description]) => {
           taskDescriptions.set(parseInt(nodeId), description);
           updateDescriptionButton(parseInt(nodeId));
         });
       }
 
-      // Atualizar a UI
+      // Atualizar UI
       updateActorSelect();
       updateActorsList();
       updateProcessInfo();
