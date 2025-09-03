@@ -2504,7 +2504,7 @@ async function saveFlowToFirestore(processName) {
       return;
     }
 
-    const flowsRef = window.collection(window.firebaseDB, "usuarios", user.uid, "fluxos");
+    const flowsRef = window.collection(window.firebaseDB, "usuarios", user.uid, "flows");
 
     // Procurar fluxo com o mesmo nome
     const snapshot = await window.getDocs(flowsRef);
