@@ -2375,13 +2375,14 @@ function loadFlowFromFile(event) {
                 clearAll(); // Limpa o fluxo atual
                 
                 // Restaurar metadados
-                actors = flowData.metadata.actors || {};
+                actors = data.actors || {};
+                updateActorListUI();
                 selectedColor = flowData.metadata.selectedColor || COLORS[0];
                 colors = flowData.metadata.colors || [...COLORS];
                 nodeIdCounter = flowData.metadata.nodeIdCounter || 1;
                 
                 // Restaurar nome do processo
-                document.getElementById('process-name').value = flowData.metadata.processName || '';
+                document.getElementById("process-name").value = data.name || "";
                 
                 // Importar o fluxo
                 editor.import(flowData.drawflow);
@@ -2562,6 +2563,20 @@ async function loadFlowsFromFirestore() {
   return flows;
 }
 
+function updateActorListUI() {
+  const listContainer = document.getElementById("actors-list");
+  if (!listContainer) return;
+
+  listContainer.innerHTML = "";
+  for (const [name, color] of Object.entries(actors)) {
+    const item = document.createElement("div");
+    item.className = "actor-item";
+    item.style.backgroundColor = color;
+    item.textContent = name;
+    listContainer.appendChild(item);
+  }
+}
+
 // Carregar um fluxo específico
 async function loadFlowById(flowId) {
     if (!firebaseAuth.currentUser) return;
@@ -2572,6 +2587,9 @@ async function loadFlowById(flowId) {
     if (docSnap.exists()) {
         const data = docSnap.data();
         editor.import(data.drawflowData);
+        document.getElementById("process-name").value = flow.name || "";
+        actors = flow.actors || {};
+        updateActorListUI();
         actors = Object.fromEntries(data.actors.map(a => [a.name, a.color]));
         nodeIdCounter = data.nodeIdCounter || 1;
         connectionLabels = new Map(Object.entries(data.connectionLabels || {}));
