@@ -2110,30 +2110,33 @@ body {
 /* TOAST NOTIFICATIONS */
 #toast-container {
   position: fixed;
-  bottom: 505px;
-  right: 20px;
+  top: 20px;               /* Fica no topo */
+  left: 50%;               /* Centraliza */
+  transform: translateX(-50%); /* Ajuste de centralização */
   display: flex;
   flex-direction: column;
   gap: 10px;
   z-index: 99999;
+  align-items: center;     /* Garante centralização dos toasts */
 }
 
 .toast {
   opacity: 0;
-  transform: translateX(100%);
+  transform: translateY(-30px);  /* Começa deslocado para cima */
   transition: all 0.3s ease;
   padding: 12px 20px;
   border-radius: 8px;
   color: white;
-  font-size: 16px;
-  min-width: 200px;
-  max-width: 300px;
+  font-size: 14px;
+  min-width: 220px;
+  max-width: 320px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  text-align: center;
 }
 
 .toast.show {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateY(0);   /* Desce suavemente para posição final */
 }
 
 /* Cores dos tipos */
