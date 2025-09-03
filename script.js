@@ -885,7 +885,7 @@ function deleteNode(nodeId) {
 // ======================
 function startGatewayMode() {
     if (!selectedNodeId) {
-        alert('Selecione uma tarefa antes de criar um caminho de decisão!');
+        showToast('Selecione uma tarefa antes de criar um caminho de decisão!', "warning");
         return;
     }
     
@@ -975,7 +975,7 @@ function finalizeGateway() {
     const question = document.getElementById('gateway-question').value.trim();
     
     if (!question) {
-        alert('Digite a pergunta da decisão!');
+        showToast('Digite a pergunta da decisão!', "warning");
         return;
     }
 
@@ -984,7 +984,7 @@ function finalizeGateway() {
 
     const validPaths = gatewayPaths.filter(p => p.task.trim() && p.actor && p.pathName.trim());
     if (validPaths.length === 0) {
-        alert('Adicione pelo menos um caminho com nome, tarefa e responsável!');
+        showToast('Adicione pelo menos um caminho com nome, tarefa e responsável!', "warning");
         return;
     }
 
@@ -1610,7 +1610,7 @@ function loadFlowFromList(flowName) {
         const flowData = allFlows[flowName];
         
         if (!flowData) {
-            alert('Fluxo não encontrado!');
+            showToast('Fluxo não encontrado!', "warning");
             return;
         }
         
@@ -1662,7 +1662,7 @@ function loadFlowFromList(flowName) {
             }, 300);
         }
         
-        alert(`Fluxo "${flowName}" carregado com sucesso!`);
+        showToast(`Fluxo "${flowName}" carregado com sucesso!`, "success");
     }
 }
 
@@ -1673,7 +1673,7 @@ function loadFlowFromList(flowName) {
 async function exportToPNG() {
     // Verificar se há nó selecionado
     if (selectedNodeId) {
-        alert('Por favor, desmarque o elemento selecionado antes de exportar. Clique em qualquer área vazia do canvas para desmarcar.');
+        showToast('Por favor, desmarque o elemento selecionado antes de exportar. Clique em qualquer área vazia do canvas para desmarcar.', "warning");
         return;
     }
     resetZoom();
@@ -1808,7 +1808,7 @@ async function exportToPNG() {
 
     } catch (error) {
         console.error('Erro ao exportar PNG:', error);
-        alert('Erro ao exportar: ' + error.message);
+        showToast('Erro ao exportar: ' + error.message);
     } finally {
         hideLoading();
     }
@@ -1930,7 +1930,7 @@ function createNewSvg(container) {
 async function exportToPDF() {
     // Verificar se há nó selecionado
     if (selectedNodeId) {
-        alert('Por favor, desmarque o elemento selecionado antes de exportar. Clique em qualquer área vazia do canvas para desmarcar.');
+        showToast('Por favor, desmarque o elemento selecionado antes de exportar. Clique em qualquer área vazia do canvas para desmarcar.', "warning");
         return;
     }
 
@@ -2069,7 +2069,7 @@ async function exportToPDF() {
 
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
-        alert('Erro ao exportar: ' + error.message);
+        showToast('Erro ao exportar: ' + error.message);
     } finally {
         hideLoading();
     }
@@ -2142,7 +2142,7 @@ async function exportDocumentationPDF() {
         const today = new Date();
         
         if (tasks.length === 0) {
-            alert('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.');
+            showToast('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.', "warning");
             return;
         }
         
@@ -2231,7 +2231,7 @@ async function exportDocumentationPDF() {
         
     } catch (error) {
         console.error('Erro ao exportar documentação PDF:', error);
-        alert('Erro ao exportar documentação: ' + error.message);
+        showToast('Erro ao exportar documentação: ' + error.message);
     } finally {
         hideLoading();
     }
@@ -2246,7 +2246,7 @@ async function exportDocumentationWord() {
         const today = new Date();
         
         if (tasks.length === 0) {
-            alert('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.');
+            showToast('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.', "warning");
             return;
         }
         
@@ -2308,11 +2308,11 @@ async function exportDocumentationWord() {
         URL.revokeObjectURL(url);
         
         // Mostrar instruções ao usuário
-        alert('Arquivo de documentação exportado com sucesso!\n\nO arquivo foi salvo como .txt para compatibilidade máxima.\nVocê pode abrir este arquivo no Microsoft Word e salvá-lo como .docx se necessário.');
+        showToast('Arquivo de documentação exportado com sucesso!\n\nO arquivo foi salvo como .txt para compatibilidade máxima.\nVocê pode abrir este arquivo no Microsoft Word e salvá-lo como .docx se necessário.', "success");
         
     } catch (error) {
         console.error('Erro ao exportar documentação Word:', error);
-        alert('Erro ao exportar documentação: ' + error.message);
+        showToast('Erro ao exportar documentação: ' + error.message);
     } finally {
         hideLoading();
     }
@@ -2410,11 +2410,11 @@ function loadFlowFromFile(event) {
                 updateProcessInfo();
                 renderColorPicker();
                 
-                alert('Fluxo carregado com sucesso!');
+                showToast('Fluxo carregado com sucesso!', "success");
             }
         } catch (error) {
             console.error("Erro ao carregar fluxo:", error);
-            alert("Erro ao carregar o arquivo. Certifique-se de que é um arquivo .meipperflow válido.");
+            showToast("Erro ao carregar o arquivo. Certifique-se de que é um arquivo .meipperflow válido.");
         }
     };
     reader.readAsText(file);
@@ -2508,7 +2508,7 @@ async function saveFlowToFirestore(processName) {
   try {
     const user = window.firebaseAuth?.currentUser;
     if (!user) {
-      alert("Você precisa estar logado para salvar fluxos.");
+      showToast("Você precisa estar logado para salvar fluxos.", "warning");
       return;
     }
 
@@ -2537,10 +2537,10 @@ async function saveFlowToFirestore(processName) {
     // 🔑 agora SEM merge -> substitui o documento inteiro
     await window.setDoc(docRef, flowPayload, { merge: false });
 
-    alert(`Fluxo "${cleanedName}" salvo com sucesso!`);
+    showToast(`Fluxo "${cleanedName}" salvo com sucesso!`, "success");
   } catch (error) {
     console.error("Erro ao salvar fluxo:", error);
-    alert("Erro ao salvar fluxo. Veja o console para mais detalhes.");
+    showToast("Erro ao salvar fluxo. Veja o console para mais detalhes.");
   }
 }
 
@@ -2600,7 +2600,7 @@ async function loadFlowById(flowId) {
   try {
     const user = firebaseAuth.currentUser;
     if (!user) {
-      alert("Você precisa estar logado para carregar fluxos.");
+      showToast("Você precisa estar logado para carregar fluxos.", "warning");
       return;
     }
 
@@ -2608,7 +2608,7 @@ async function loadFlowById(flowId) {
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
-      alert("Fluxo não encontrado.");
+      showToast("Fluxo não encontrado.", "info");
       return;
     }
 
@@ -2657,11 +2657,11 @@ async function loadFlowById(flowId) {
       updateProcessInfo();
       renderColorPicker();
 
-      alert('Fluxo carregado com sucesso!');
+      showToast('Fluxo carregado com sucesso!', "success");
     }
   } catch (error) {
     console.error("Erro ao carregar fluxo:", error);
-    alert("Erro ao carregar fluxo do Firestore.");
+    showToast("Erro ao carregar fluxo do Firestore.");
   }
 }
 
@@ -3161,7 +3161,7 @@ function completeTutorial() {
     highlight.style.left = '0px';
   }
 
-  alert('Tutorial concluído! 🎉');
+  showToast('Tutorial concluído! 🎉', "info");
 }
 
 function skipTutorial() {
