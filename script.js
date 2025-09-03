@@ -2520,19 +2520,19 @@ async function saveFlowToFirestore(processName) {
     const existing = await window.getDoc(docRef);
 
     const flowPayload = {
-      drawflow: editor.export(),
-      metadata: {
-        processName: cleanedName,
-        actors: { ...actors },
-        selectedColor: selectedColor,
-        colors: [...colors],
-        nodeIdCounter: nodeIdCounter,
-        taskDescriptions: Array.from(taskDescriptions?.entries ? taskDescriptions.entries() : []),
-        connectionLabels: Array.from(connectionLabels?.entries ? connectionLabels.entries() : []),
-        updatedAt: window.serverTimestamp(),
-        ...(existing.exists() ? {} : { createdAt: window.serverTimestamp() })
-      }
-    };
+  drawflow: editor.export(),
+  metadata: {
+    processName: cleanedName,
+    actors: { ...actors },
+    selectedColor: selectedColor,
+    colors: [...colors],
+    nodeIdCounter: nodeIdCounter,
+    taskDescriptions: Object.fromEntries(taskDescriptions || []),
+    connectionLabels: Object.fromEntries(connectionLabels || []),
+    updatedAt: window.serverTimestamp(),
+    ...(existing.exists() ? {} : { createdAt: window.serverTimestamp() })
+  }
+};
 
     // 🔑 agora SEM merge -> substitui o documento inteiro
     await window.setDoc(docRef, flowPayload, { merge: false });
