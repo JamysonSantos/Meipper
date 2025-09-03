@@ -2375,8 +2375,7 @@ function loadFlowFromFile(event) {
                 clearAll(); // Limpa o fluxo atual
                 
                 // Restaurar metadados
-                actors = data.actors || {};
-                updateActorListUI();
+                actors = flowData.metadata.actors || {};
                 selectedColor = flowData.metadata.selectedColor || COLORS[0];
                 colors = flowData.metadata.colors || [...COLORS];
                 nodeIdCounter = flowData.metadata.nodeIdCounter || 1;
