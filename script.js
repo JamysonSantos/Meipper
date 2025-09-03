@@ -2495,45 +2495,54 @@ if (processNameInput) {
 // ====================== FIRESTORE SAVE & LOAD ======================
 
 // Salvar fluxo no Firestore
+// Salvar fluxo no Firestore (sobrescrevendo se já existir)
 async function saveFlowToFirestore(processName) {
-    if (!window.authManager || !window.authManager.user) {
-        alert("Você precisa estar logado para salvar fluxos.");
-        return;
+  try {
+    const user = window.firebaseAuth.currentUser;
+    if (!user) {
+      alert("Você precisa estar logado para salvar fluxos.");
+      return;
     }
 
-    try {
-        const userId = window.authManager.user.uid;
-        const flowsRef = window.collection(window.firebaseDB, "usuarios", userId, "fluxos");
+    const flowsRef = window.collection(window.firebaseDB, "usuarios", user.uid, "fluxos");
 
-        // Procurar se já existe fluxo com esse nome
-        const q = window.query(flowsRef, window.where("name", "==", processName.trim()));
-        const querySnapshot = await window.getDocs(q);
+    // Procurar fluxo com o mesmo nome
+    const snapshot = await window.getDocs(flowsRef);
+    let existingDocId = null;
 
-        if (!querySnapshot.empty) {
-            // Já existe → sobrescreve com updateDoc
-            const existingDoc = querySnapshot.docs[0];
-            await window.updateDoc(existingDoc.ref, {
-                data: editor.export(),
-                updatedAt: window.serverTimestamp()
-            });
+    snapshot.forEach((docSnap) => {
+      if (docSnap.data().name === processName) {
+        existingDocId = docSnap.id;
+      }
+    });
 
-            alert(`♻️ Fluxo "${processName}" atualizado com sucesso!`);
-        } else {
-            // Não existe → cria novo
-            await window.addDoc(flowsRef, {
-                name: processName.trim(),
-                data: editor.export(),
-                createdAt: window.serverTimestamp(),
-                updatedAt: window.serverTimestamp()
-            });
+    // Objeto do fluxo
+    const flowData = {
+      name: processName,
+      drawflow: editor.export(),   // pega o fluxo atual do Drawflow
+      actors: actors,
+      taskDescriptions: Object.fromEntries(taskDescriptions),
+      connectionLabels: Object.fromEntries(connectionLabels),
+      updatedAt: window.serverTimestamp(),
+    };
 
-            alert(`✅ Fluxo "${processName}" salvo com sucesso!`);
-        }
-    } catch (error) {
-        console.error("Erro ao salvar fluxo (objeto completo):", error);
-        let errMsg = error.message || JSON.stringify(error);
-        alert("Erro ao salvar fluxo: " + errMsg);
+    if (existingDocId) {
+      // Se já existe → sobrescreve
+      const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "fluxos", existingDocId);
+      await window.setDoc(docRef, flowData, { merge: true });
+      console.log("Fluxo sobrescrito com sucesso:", processName);
+      alert(`Fluxo "${processName}" atualizado com sucesso!`);
+    } else {
+      // Se não existe → cria novo
+      const newDocRef = window.doc(window.collection(window.firebaseDB, "usuarios", user.uid, "fluxos"));
+      await window.setDoc(newDocRef, flowData);
+      console.log("Fluxo criado com sucesso:", processName);
+      alert(`Fluxo "${processName}" salvo com sucesso!`);
     }
+  } catch (error) {
+    console.error("Erro ao salvar fluxo:", error);
+    alert("Erro ao salvar fluxo. Veja o console para mais detalhes.");
+  }
 }
 
 // Carregar lista de fluxos
