@@ -2512,7 +2512,9 @@ async function saveFlowToFirestore(processName) {
       return;
     }
 
-    const cleanedName = sanitizeFlowNameForDocId(processName || document.getElementById('process-name')?.value);
+    const cleanedName = sanitizeFlowNameForDocId(
+      processName || document.getElementById('process-name')?.value
+    );
     const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", cleanedName);
 
     const existing = await window.getDoc(docRef);
@@ -2532,7 +2534,9 @@ async function saveFlowToFirestore(processName) {
       }
     };
 
-    await window.setDoc(docRef, flowPayload, { merge: true });
+    // 🔑 agora SEM merge -> substitui o documento inteiro
+    await window.setDoc(docRef, flowPayload, { merge: false });
+
     alert(`Fluxo "${cleanedName}" salvo com sucesso!`);
   } catch (error) {
     console.error("Erro ao salvar fluxo:", error);
