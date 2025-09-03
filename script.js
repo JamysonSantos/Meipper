@@ -633,7 +633,7 @@ function addActor() {
 
     const colorInUse = Object.values(actors).includes(selectedColor);
     if (colorInUse) {
-        alert('Essa cor já está em uso. Escolha uma cor diferente.');
+        showToast('Essa cor já está em uso. Escolha uma cor diferente.', "warning");
         return;
     }
 
@@ -731,12 +731,12 @@ function addTask(type) {
         const description = descriptionInput.value.trim();
 
         if (!taskName) {
-            alert('Digite o nome da tarefa!');
+            showToast('Digite o nome da tarefa!', "warning");
             return;
         }
 
         if (!selectedActor) {
-            alert('Selecione um responsável!');
+            showToast('Selecione um responsável!', "warning");
             return;
         }
 
