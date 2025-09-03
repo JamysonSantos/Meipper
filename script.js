@@ -2594,68 +2594,64 @@ function updateActorListUI() {
 // Carregar um fluxo específico
 async function loadFlowById(flowId) {
   try {
-    const user = window.firebaseAuth?.currentUser;
+    const user = firebaseAuth.currentUser;
     if (!user) {
       alert("Você precisa estar logado para carregar fluxos.");
       return;
     }
 
-    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", flowId);
-    const docSnap = await window.getDoc(docRef);
+    const docRef = doc(firebaseDB, "usuarios", user.uid, "flows", flowId);
+    const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
       alert("Fluxo não encontrado.");
       return;
     }
 
-    const data = docSnap.data() || {};
-    const meta = data.metadata || {};
+    const flowData = docSnap.data();
 
     if (confirm('Carregar este fluxo? O fluxo atual será substituído.')) {
       clearAll();
 
-      const processName = meta.processName || data.name || flowId || 'Processo sem nome';
-      actors        = (meta.actors && typeof meta.actors === 'object') ? meta.actors : (data.actors || {});
+      // Restaurar metadados
+      const meta = flowData.metadata || {};
+      actors = meta.actors || {};
       selectedColor = meta.selectedColor || COLORS[0];
-      colors        = Array.isArray(meta.colors) ? meta.colors : [...COLORS];
-      nodeIdCounter = Number.isInteger(meta.nodeIdCounter) ? meta.nodeIdCounter : 1;
+      colors = meta.colors || [...COLORS];
+      nodeIdCounter = meta.nodeIdCounter || 1;
 
-      const nameInput = document.getElementById('process-name');
-      if (nameInput) nameInput.value = processName;
+      // Restaurar nome do processo
+      document.getElementById('process-name').value = meta.processName || '';
 
-      const drawflowObj = data.drawflow || data.drawflowData || null;
-      if (drawflowObj) {
-        editor.import(drawflowObj);
+      // Importar o fluxo
+      if (flowData.drawflow) {
+        editor.import(flowData.drawflow);
       }
 
-      const labels = meta.connectionLabels || data.connectionLabels || null;
-      if (labels) {
-        const labelContainer = document.querySelector('.connection-label-container') || createLabelContainer();
-        const entries = Array.isArray(labels) ? labels : Object.entries(labels);
-        entries.forEach(([key, labelData]) => {
-          const text = typeof labelData === 'string' ? labelData : labelData?.textContent;
-          if (!key || !text) return;
-          const [sourceId, targetId] = String(key).split('-');
-          createConnectionLabel(sourceId, targetId, text, labelContainer);
+      // Restaurar labels de conexão
+      if (meta.connectionLabels) {
+        const labelContainer = document.querySelector('.connection-label-container') || 
+                              createLabelContainer();
+
+        meta.connectionLabels.forEach(([key, labelData]) => {
+          const [sourceId, targetId] = key.split('-');
+          createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
         });
       }
 
-      const descs = meta.taskDescriptions || data.taskDescriptions || null;
-      if (descs) {
-        const entries = Array.isArray(descs) ? descs : Object.entries(descs);
-        entries.forEach(([nodeId, description]) => {
-          const idNum = parseInt(nodeId, 10);
-          if (!Number.isNaN(idNum)) {
-            taskDescriptions.set(idNum, description);
-            updateDescriptionButton(idNum);
-          }
+      // Restaurar descrições de tarefas
+      if (meta.taskDescriptions) {
+        meta.taskDescriptions.forEach(([nodeId, description]) => {
+          taskDescriptions.set(parseInt(nodeId), description);
+          updateDescriptionButton(parseInt(nodeId));
         });
       }
 
-      updateActorSelect?.();
-      updateActorsList?.();
-      updateProcessInfo?.();
-      renderColorPicker?.();
+      // Atualizar UI
+      updateActorSelect();
+      updateActorsList();
+      updateProcessInfo();
+      renderColorPicker();
 
       alert('Fluxo carregado com sucesso!');
     }
