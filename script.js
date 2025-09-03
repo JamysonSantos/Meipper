@@ -3229,4 +3229,29 @@ const tutorialStyle = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = tutorialStyle;
 document.head.appendChild(styleSheet);
+
+// ===================
+// SISTEMA DE TOAST
+// ===================
+function showToast(message, type = "info") {
+  const container = document.getElementById("toast-container");
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  // Animação de entrada
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 100);
+
+  // Remover após 4s
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
 // ====================================================================
