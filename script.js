@@ -2578,26 +2578,71 @@ function updateActorListUI() {
 
 // Carregar um fluxo específico
 async function loadFlowById(flowId) {
-    if (!firebaseAuth.currentUser) return;
-
-    const uid = firebaseAuth.currentUser.uid;
-    const docSnap = await getDoc(doc(firebaseDB, "usuarios", uid, "flows", flowId));
-
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        editor.import(data.drawflowData);
-        document.getElementById("process-name").value = flow.name || "";
-        actors = flow.actors || {};
-        updateActorListUI();
-        actors = Object.fromEntries(data.actors.map(a => [a.name, a.color]));
-        nodeIdCounter = data.nodeIdCounter || 1;
-        connectionLabels = new Map(Object.entries(data.connectionLabels || {}));
-        taskDescriptions = new Map(Object.entries(data.taskDescriptions || {}));
-        currentZoom = data.zoom || 1;
-        updateProcessInfo();
-    } else {
-        alert("Fluxo não encontrado.");
+  try {
+    const user = firebaseAuth.currentUser;
+    if (!user) {
+      alert("Você precisa estar logado para carregar fluxos.");
+      return;
     }
+
+    const docRef = doc(firebaseDB, "usuarios", user.uid, "flows", flowId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      alert("Fluxo não encontrado.");
+      return;
+    }
+
+    const flowData = docSnap.data();
+
+    if (confirm('Carregar este fluxo? O fluxo atual será substituído.')) {
+      clearAll(); // limpa o fluxo atual
+
+      // Restaurar atores
+      actors = flowData.actors || {};
+      selectedColor = flowData.selectedColor || COLORS[0];
+      colors = flowData.colors || [...COLORS];
+      nodeIdCounter = flowData.nodeIdCounter || 1;
+
+      // Restaurar nome do processo
+      document.getElementById('process-name').value = flowData.name || '';
+
+      // Importar o fluxo
+      if (flowData.drawflow) {
+        editor.import(flowData.drawflow);
+      }
+
+      // Restaurar labels de conexão
+      if (flowData.connectionLabels) {
+        const labelContainer = document.querySelector('.connection-label-container') || 
+                              createLabelContainer();
+        
+        Object.entries(flowData.connectionLabels).forEach(([key, labelData]) => {
+          const [sourceId, targetId] = key.split('-');
+          createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+        });
+      }
+
+      // Restaurar descrições de tarefas
+      if (flowData.taskDescriptions) {
+        Object.entries(flowData.taskDescriptions).forEach(([nodeId, description]) => {
+          taskDescriptions.set(parseInt(nodeId), description);
+          updateDescriptionButton(parseInt(nodeId));
+        });
+      }
+
+      // Atualizar a UI
+      updateActorSelect();
+      updateActorsList();
+      updateProcessInfo();
+      renderColorPicker();
+
+      alert('Fluxo carregado com sucesso!');
+    }
+  } catch (error) {
+    console.error("Erro ao carregar fluxo:", error);
+    alert("Erro ao carregar fluxo do Firestore.");
+  }
 }
 
 document.querySelector('[data-action="show-saved-flows"]')?.addEventListener('click', async () => {
