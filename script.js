@@ -627,7 +627,7 @@ function addActor() {
     if (!name) return;
     
     if (actors[name]) {
-        showToast('Esse responsável já existe!', "warning");
+        showToast('Esse responsável já existe!');
         return;
     }
 
