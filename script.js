@@ -481,7 +481,7 @@ function restoreState(state) {
         selectedColor = state.selectedColor;
         colors = state.colors;
         
-        document.getElementById('process-name').value = flowData.metadata.processName || '';
+        document.getElementById('process-name').value = state.processName;
         updateActorSelect();
         updateActorsList();
         updateProcessInfo();
@@ -2381,7 +2381,7 @@ function loadFlowFromFile(event) {
                 nodeIdCounter = flowData.metadata.nodeIdCounter || 1;
                 
                 // Restaurar nome do processo
-                document.getElementById("process-name").value = data.name || "";
+                document.getElementById('process-name').value = flowData.metadata.processName || '';
                 
                 // Importar o fluxo
                 editor.import(flowData.drawflow);
