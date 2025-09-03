@@ -859,7 +859,7 @@ function getNextPosition() {
     
     if (selectedNodeId) {
         const selectedNode = editor.getNodeFromId(selectedNodeId);
-        if (selectedNode) return { x: selectedNode.pos_x + 150, y: selectedNode.pos_y };
+        if (selectedNode) return { x: selectedNode.pos_x + 200, y: selectedNode.pos_y };
     }
     
     let maxX = 0, maxY = 200;
