@@ -481,7 +481,7 @@ function restoreState(state) {
         selectedColor = state.selectedColor;
         colors = state.colors;
         
-        document.getElementById('process-name').value = state.processName;
+        document.getElementById('process-name').value = flowData.metadata.processName || '';
         updateActorSelect();
         updateActorsList();
         updateProcessInfo();
