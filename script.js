@@ -2495,39 +2495,51 @@ if (processNameInput) {
 // ====================== FIRESTORE SAVE & LOAD ======================
 
 // Salvar fluxo no Firestore
-// Salvar fluxo no Firestore com ID = nome do processo (sobrescreve se já existir)
 async function saveFlowToFirestore(processName) {
   try {
-    const user = window.firebaseAuth?.currentUser;
+    const user = window.firebaseAuth.currentUser;
     if (!user) {
       alert("Você precisa estar logado para salvar fluxos.");
       return;
     }
 
-    const cleanedName = sanitizeFlowNameForDocId(processName || document.getElementById('process-name')?.value);
-    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", cleanedName);
+    const flowsRef = window.collection(window.firebaseDB, "usuarios", user.uid, "flows");
 
-    // Verifica se o doc já existe (para setar createdAt apenas no primeiro salvamento)
-    const existing = await window.getDoc(docRef);
+    // Procurar fluxo com o mesmo nome
+    const snapshot = await window.getDocs(flowsRef);
+    let existingDocId = null;
 
-    const flowPayload = {
+    snapshot.forEach((docSnap) => {
+      if (docSnap.data().metadata?.processName === processName) {
+        existingDocId = docSnap.id;
+      }
+    });
+
+    // Objeto do fluxo no mesmo padrão do arquivo
+    const flowData = {
       drawflow: editor.export(),
       metadata: {
-        processName: cleanedName,
-        actors: { ...actors },                 // garante objeto plano { nome: cor }
+        processName: processName,
+        actors: { ...actors },   // garante objeto plano
         selectedColor: selectedColor,
         colors: [...colors],
         nodeIdCounter: nodeIdCounter,
-        // Salvamos como array de pares (compatível com loadFromFile existente)
-        taskDescriptions: Array.from(taskDescriptions?.entries ? taskDescriptions.entries() : []),
-        connectionLabels: Array.from(connectionLabels?.entries ? connectionLabels.entries() : []),
+        taskDescriptions: Array.from(taskDescriptions.entries()),
+        connectionLabels: Array.from(connectionLabels.entries()),
         updatedAt: window.serverTimestamp(),
-        ...(existing.exists() ? {} : { createdAt: window.serverTimestamp() })
       }
     };
 
-    await window.setDoc(docRef, flowPayload, { merge: true });
-    alert(`Fluxo "${cleanedName}" salvo com sucesso!`);
+    if (existingDocId) {
+      const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", existingDocId);
+      await window.setDoc(docRef, flowData, { merge: true });
+      alert(`Fluxo "${processName}" atualizado com sucesso!`);
+    } else {
+      const newDocRef = window.doc(window.collection(window.firebaseDB, "usuarios", user.uid, "flows"));
+      await window.setDoc(newDocRef, flowData);
+      alert(`Fluxo "${processName}" salvo com sucesso!`);
+    }
+
   } catch (error) {
     console.error("Erro ao salvar fluxo:", error);
     alert("Erro ao salvar fluxo. Veja o console para mais detalhes.");
@@ -2568,76 +2580,64 @@ function updateActorListUI() {
 // Carregar um fluxo específico
 async function loadFlowById(flowId) {
   try {
-    const user = window.firebaseAuth?.currentUser;
+    const user = firebaseAuth.currentUser;
     if (!user) {
       alert("Você precisa estar logado para carregar fluxos.");
       return;
     }
 
-    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", flowId);
-    const docSnap = await window.getDoc(docRef);
+    const docRef = doc(firebaseDB, "usuarios", user.uid, "flows", flowId);
+    const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
       alert("Fluxo não encontrado.");
       return;
     }
 
-    const data = docSnap.data() || {};
-    const meta = data.metadata || {};
+    const flowData = docSnap.data();
 
     if (confirm('Carregar este fluxo? O fluxo atual será substituído.')) {
       clearAll();
 
-      // === Restaurar metadados (novo formato) ===
-      const processName = meta.processName || data.name || flowId || 'Processo sem nome';
-      actors        = (meta.actors && typeof meta.actors === 'object') ? meta.actors : (data.actors || {});
-      selectedColor = meta.selectedColor || (typeof selectedColor !== 'undefined' ? selectedColor : null) || (typeof COLORS !== 'undefined' ? COLORS[0] : '#999');
-      colors        = Array.isArray(meta.colors) ? meta.colors : (Array.isArray(colors) ? colors : (typeof COLORS !== 'undefined' ? [...COLORS] : []));
-      nodeIdCounter = Number.isInteger(meta.nodeIdCounter) ? meta.nodeIdCounter : (Number.isInteger(nodeIdCounter) ? nodeIdCounter : 1);
+      // Restaurar metadados
+      const meta = flowData.metadata || {};
+      actors = meta.actors || {};
+      selectedColor = meta.selectedColor || COLORS[0];
+      colors = meta.colors || [...COLORS];
+      nodeIdCounter = meta.nodeIdCounter || 1;
 
-      // Nome do processo na UI
-      const nameInput = document.getElementById('process-name');
-      if (nameInput) nameInput.value = processName;
+      // Restaurar nome do processo
+      document.getElementById('process-name').value = meta.processName || '';
 
-      // === Importar Drawflow ===
-      const drawflowObj = data.drawflow || data.drawflowData || null;
-      if (drawflowObj) {
-        editor.import(drawflowObj);
+      // Importar o fluxo
+      if (flowData.drawflow) {
+        editor.import(flowData.drawflow);
       }
 
-      // === Restaurar labels de conexão (suporta array ou objeto) ===
-      const labels = meta.connectionLabels || data.connectionLabels || null;
-      if (labels) {
-        const labelContainer = document.querySelector('.connection-label-container') || createLabelContainer();
+      // Restaurar labels de conexão
+      if (meta.connectionLabels) {
+        const labelContainer = document.querySelector('.connection-label-container') || 
+                              createLabelContainer();
 
-        const entries = Array.isArray(labels) ? labels : Object.entries(labels);
-        entries.forEach(([key, labelData]) => {
-          // labelData pode ser string ou objeto com textContent
-          const text = typeof labelData === 'string' ? labelData : labelData?.textContent;
-          if (!key || !text) return;
-          const [sourceId, targetId] = String(key).split('-');
-          createConnectionLabel(sourceId, targetId, text, labelContainer);
+        meta.connectionLabels.forEach(([key, labelData]) => {
+          const [sourceId, targetId] = key.split('-');
+          createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
         });
       }
 
-      // === Restaurar descrições de tarefas (array ou objeto) ===
-      const descs = meta.taskDescriptions || data.taskDescriptions || null;
-      if (descs) {
-        const entries = Array.isArray(descs) ? descs : Object.entries(descs);
-        entries.forEach(([nodeId, description]) => {
-          const idNum = parseInt(nodeId, 10);
-          if (!Number.isNaN(idNum)) {
-            taskDescriptions.set(idNum, description);
-            updateDescriptionButton(idNum);
-          }
+      // Restaurar descrições de tarefas
+      if (meta.taskDescriptions) {
+        meta.taskDescriptions.forEach(([nodeId, description]) => {
+          taskDescriptions.set(parseInt(nodeId), description);
+          updateDescriptionButton(parseInt(nodeId));
         });
       }
 
-      // === Atualizar UI auxiliar ===
-      updateActorSelect?.();
-      updateActorsList?.();
-      updateProcessInfo?.();
-      renderColorPicker?.();
+      // Atualizar UI
+      updateActorSelect();
+      updateActorsList();
+      updateProcessInfo();
+      renderColorPicker();
 
       alert('Fluxo carregado com sucesso!');
     }
@@ -2666,21 +2666,19 @@ async function openSavedFlowsPopupFromFirestore() {
   if (!flows.length) {
     container.innerHTML = '<div class="no-flows-message">Nenhum fluxo salvo ainda</div>';
   } else {
+    // render cards
     flows.forEach(flow => {
-      // Data de atualização (ou criação)
-      const ts = flow.updatedAt || flow.createdAt;
-      let dateStr = '—';
-      try {
-        const d = ts?.toDate?.() ? ts.toDate() : null;
-        if (d) {
-          dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-        }
-      } catch {}
+      const updated =
+        flow.updatedAt?.toDate?.() ? flow.updatedAt.toDate() :
+        flow.createdAt?.toDate?.() ? flow.createdAt.toDate() : null;
 
-      // Contadores
-      const actorsCount = flow.actors ? Object.keys(flow.actors).length : 0;
-      const elementsCount = flow.drawflow?.drawflow?.Home?.data
-        ? Object.keys(flow.drawflow.drawflow.Home.data).length
+      const dateStr = updated
+        ? `${updated.getDate()}/${updated.getMonth()+1}/${updated.getFullYear()} ${updated.getHours()}:${String(updated.getMinutes()).padStart(2,'0')}`
+        : '—';
+
+      const actorsCount = Array.isArray(flow.actors) ? flow.actors.length : 0;
+      const elementsCount = flow.drawflowData?.drawflow?.Home?.data
+        ? Object.keys(flow.drawflowData.drawflow.Home.data).length
         : 0;
 
       const card = document.createElement('div');
@@ -2695,7 +2693,7 @@ async function openSavedFlowsPopupFromFirestore() {
         <p>${elementsCount} elementos</p>
       `;
 
-      // Abrir (carregar)
+      // carregar
       card.addEventListener('click', async (e) => {
         if (e.target.closest('.flow-action-btn')) return; // ignorar clique no "×"
         document.getElementById('saved-flows-popup').style.display = 'none';
@@ -2703,13 +2701,13 @@ async function openSavedFlowsPopupFromFirestore() {
         alert('Fluxo carregado!');
       });
 
-      // Excluir
+      // excluir
       card.querySelector('.flow-action-btn.delete').addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!confirm(`Excluir o fluxo "${flow.name}"?`)) return;
-        const uid = window.firebaseAuth?.currentUser?.uid;
+        const uid = firebaseAuth.currentUser?.uid;
         if (!uid) return;
-        await window.deleteDoc(window.doc(window.firebaseDB, "usuarios", uid, "flows", flow.id));
+        await deleteDoc(doc(firebaseDB, "usuarios", uid, "flows", flow.id));
         openSavedFlowsPopupFromFirestore(); // recarrega a lista
       });
 
