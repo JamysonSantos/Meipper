@@ -2709,7 +2709,6 @@ async function openSavedFlowsPopupFromFirestore() {
         if (e.target.closest('.flow-action-btn')) return;
         document.getElementById('saved-flows-popup').style.display = 'none';
         await loadFlowById(flow.id);
-        alert('Fluxo carregado!');
       });
 
       card.querySelector('.flow-action-btn.delete').addEventListener('click', async (e) => {
