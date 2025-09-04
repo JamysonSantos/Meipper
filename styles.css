@@ -433,7 +433,7 @@ body {
 }
 
 .header-btn.secondary {
-    background: rgba(107, 114, 128, 20%);
+    background: rgba(0 0 0 / 0%);
     border-color: rgba(107, 114, 128, 0.3);
 }
 
