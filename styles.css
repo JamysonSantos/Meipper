@@ -360,7 +360,7 @@ body {
 
 /* Header */
 .header {
-    background: linear-gradient(135deg, #ebffea 0%, #b50505 100%);
+    background: linear-gradient(135deg, #02000a 0%, #010643 100%);
     color: white;
     padding: 1px 25px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
