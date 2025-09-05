@@ -2142,7 +2142,7 @@ async function exportDocumentationPDF() {
         const today = new Date();
         
         if (tasks.length === 0) {
-            showToast('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.', "warning");
+            showToast('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.');
             return;
         }
         
@@ -2152,7 +2152,6 @@ async function exportDocumentationPDF() {
         const margin = 20;
         const pageWidth = pdf.internal.pageSize.width - 2 * margin;
         
-        // Configurar fonte para suporte a caracteres especiais
         pdf.setFont('helvetica');
         
         // Cabeçalho
@@ -2165,12 +2164,10 @@ async function exportDocumentationPDF() {
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'normal');
         
-        // Responsáveis
         const responsaveis = Object.keys(actors).join(', ') || 'Não especificados';
         pdf.text('Responsáveis: ' + responsaveis, margin, yPosition);
         yPosition += 10;
         
-        // Data de criação
         const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
         pdf.text('Data de criação: ' + formattedDate, margin, yPosition);
         yPosition += 20;
@@ -2186,19 +2183,29 @@ async function exportDocumentationPDF() {
         let taskNumber = 1;
         
         for (const task of tasks) {
-            // Verificar se precisa de nova página
             if (yPosition > 250) {
                 pdf.addPage();
                 yPosition = 20;
             }
             
             let taskTitle = '';
+            
             if (task.type === 'gateway') {
-                taskTitle = `${taskNumber}. DECISÃO: ${task.name}`;
+                // Apenas título, sem numeração
+                taskTitle = `DECISÃO: ${task.name}`;
+                pdf.setFont('helvetica', 'bold');
+                const titleLines = pdf.splitTextToSize(taskTitle, pageWidth);
+                pdf.text(titleLines, margin, yPosition);
+                yPosition += titleLines.length * 5 + 10;
+                continue; // não incrementa numeração
             } else {
-                taskTitle = `${taskNumber}. ${task.name}`;
+                // Tarefas normais numeradas
+                taskTitle = `${taskNumber}. `;
+                
                 if (task.pathName) {
-                    taskTitle += ` (${task.pathName})`;
+                    taskTitle += `(${task.pathName.toUpperCase()}) ${task.name}`;
+                } else {
+                    taskTitle += task.name;
                 }
             }
             
@@ -2210,17 +2217,20 @@ async function exportDocumentationPDF() {
             
             // Responsável
             pdf.setFont('helvetica', 'normal');
-            pdf.text('Responsável: ' + task.actor, margin + 10, yPosition);
+            pdf.text('Responsável: ' + (task.actor || 'Não definido'), margin + 10, yPosition);
             yPosition += 7;
             
-            // Descrição
-            pdf.text('Descrição:', margin + 10, yPosition);
-            yPosition += 5;
-            
-            const descriptionLines = pdf.splitTextToSize(task.description, pageWidth - 20);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(descriptionLines, margin + 20, yPosition);
-            yPosition += descriptionLines.length * 5 + 10;
+            // Descrição (só se existir de fato)
+            if (task.description && task.description.trim() !== '' && task.description.trim() !== 'Descrição não fornecida') {
+    pdf.text('Descrição:', margin + 10, yPosition);
+    yPosition += 5;
+
+    const descriptionLines = pdf.splitTextToSize(task.description, pageWidth - 20);
+    pdf.text(descriptionLines, margin + 20, yPosition);
+    yPosition += descriptionLines.length * 5 + 10;
+} else {
+    yPosition += 5; // só um pequeno espaçamento
+}
             
             taskNumber++;
         }
