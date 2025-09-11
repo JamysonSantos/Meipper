@@ -2621,70 +2621,83 @@ function updateActorListUI() {
 // Carregar um fluxo específico
 async function loadFlowById(flowId) {
   try {
-    const user = firebaseAuth.currentUser;
-    if (!user) {
-      showToast("Você precisa estar logado para carregar fluxos.", "warning");
+    const uid = window.firebaseAuth?.currentUser?.uid;
+    if (!uid) {
+      showToast("Usuário não autenticado!", "warning");
       return;
     }
 
-    const docRef = doc(firebaseDB, "usuarios", user.uid, "flows", flowId);
-    const docSnap = await getDoc(docRef);
+    const flowRef = window.doc(window.firebaseDB, "usuarios", uid, "flows", flowId);
+    const flowSnap = await window.getDoc(flowRef);
 
-    if (!docSnap.exists()) {
-      showToast("Fluxo não encontrado.", "info");
+    if (!flowSnap.exists()) {
+      showToast("Fluxo não encontrado!", "warning");
       return;
     }
 
-    const flowData = docSnap.data();
+    const flowData = flowSnap.data();
 
-    if (confirm('Carregar este fluxo? O fluxo atual será substituído.')) {
-      clearAll();
+    // Confirmar carregamento
+    if (!confirm(`Carregar o fluxo "${flowData.name}"? Isso substituirá o fluxo atual.`)) return;
 
-      // Restaurar metadados
-      const meta = flowData.metadata || {};
-      actors = meta.actors || {};
-      selectedColor = meta.selectedColor || COLORS[0];
-      colors = meta.colors || [...COLORS];
-      nodeIdCounter = meta.nodeIdCounter || 1;
+    // Limpar fluxo atual
+    clearAll();
 
-      // Restaurar nome do processo
-      document.getElementById('process-name').value = meta.processName || '';
+    // Restaurar estado do fluxo
+    actors = flowData.actors || {};
+    nodeIdCounter = flowData.nodeIdCounter || 1;
+    selectedColor = flowData.selectedColor || COLORS[0];
+    colors = flowData.colors || [...COLORS];
 
-      // Importar o fluxo
-      if (flowData.drawflow) {
-        editor.import(flowData.drawflow);
-      }
+    // Nome do processo
+    document.getElementById("process-name").value = flowData.processName || flowData.name || "";
 
-      // Restaurar labels de conexão
-      if (meta.connectionLabels) {
-        const labelContainer = document.querySelector('.connection-label-container') || 
-                              createLabelContainer();
+    // Atualizar UI (sidebar + cabeçalho)
+    updateActorSelect();
+    updateActorsList();
+    updateProcessInfo();
+    renderColorPicker();
 
-        meta.connectionLabels.forEach(([key, labelData]) => {
-          const [sourceId, targetId] = key.split('-');
-          createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+    // Importar fluxo
+    if (flowData.drawflow) editor.import(flowData.drawflow);
+
+    // Restaurar labels de conexão
+    if (flowData.connectionLabels && flowData.connectionLabels.length > 0) {
+      setTimeout(() => {
+        let labelContainer = document.querySelector(".connection-label-container");
+        if (!labelContainer) {
+          labelContainer = document.createElement("div");
+          labelContainer.className = "connection-label-container";
+          document.getElementById("drawflow").appendChild(labelContainer);
+        }
+
+        flowData.connectionLabels.forEach(([connectionKey, labelData]) => {
+          const [sourceId, targetId] = connectionKey.split("-");
+          if (labelData && labelData.textContent) {
+            createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
+          }
         });
-      }
+      }, 200);
+    }
 
-      // Restaurar descrições de tarefas
-      if (meta.taskDescriptions) {
-        meta.taskDescriptions.forEach(([nodeId, description]) => {
-          taskDescriptions.set(parseInt(nodeId), description);
+    // Restaurar descrições de tarefas
+    if (flowData.taskDescriptions && flowData.taskDescriptions.length > 0) {
+      flowData.taskDescriptions.forEach(([nodeId, description]) => {
+        taskDescriptions.set(parseInt(nodeId), description);
+      });
+
+      setTimeout(() => {
+        flowData.taskDescriptions.forEach(([nodeId]) => {
           updateDescriptionButton(parseInt(nodeId));
         });
-      }
-
-      // Atualizar UI
-      updateActorSelect();
-      updateActorsList();
-      updateProcessInfo();
-      renderColorPicker();
-
-      showToast('Fluxo carregado com sucesso!', "success");
+      }, 300);
     }
+
+    showToast(`Fluxo "${flowData.name}" carregado com sucesso!`, "success");
+
   } catch (error) {
-    console.error("Erro ao carregar fluxo:", error);
-    showToast("Erro ao carregar fluxo do Firestore.");
+    console.error("Erro ao carregar fluxo do Firestore:", error);
+    showToast("Erro ao carregar fluxo do banco de dados.", "error");
   }
 }
 
