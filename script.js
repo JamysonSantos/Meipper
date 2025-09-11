@@ -1622,10 +1622,13 @@ function loadFlowFromList(flowName) {
         selectedColor = flowData.selectedColor || COLORS[0];
         colors = flowData.colors || [...COLORS];
         
+        // Nome do processo
         document.getElementById('process-name').value = flowData.processName || '';
+        
+        // Atualizar lista de responsáveis no sidebar e cabeçalho
         updateActorSelect();
         updateActorsList();
-        updateProcessInfo();
+        updateProcessInfo();  // <- já atualiza acima do sidebar com nome e responsáveis
         renderColorPicker();
         
         if (flowData.drawflow) editor.import(flowData.drawflow);
@@ -1665,6 +1668,7 @@ function loadFlowFromList(flowName) {
         showToast(`Fluxo "${flowName}" carregado com sucesso!`, "success");
     }
 }
+
 
 // ======================
 // FUNÇÕES DE EXPORTAÇÃO VISUAL
