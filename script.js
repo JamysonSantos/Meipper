@@ -2636,23 +2636,25 @@ async function loadFlowById(flowId) {
     }
 
     const flowData = flowSnap.data();
+    const meta = flowData.metadata || {};
+
+    // Nome do processo
+    const processName = meta.processName || "Sem nome";
 
     // Confirmar carregamento
-    if (!confirm(`Carregar o fluxo "${flowData.name}"? Isso substituirá o fluxo atual.`)) return;
+    if (!confirm(`Carregar o fluxo "${processName}"? Isso substituirá o fluxo atual.`)) return;
 
     // Limpar fluxo atual
     clearAll();
 
     // Restaurar estado do fluxo
-    actors = flowData.actors || {};
-    nodeIdCounter = flowData.nodeIdCounter || 1;
-    selectedColor = flowData.selectedColor || COLORS[0];
-    colors = flowData.colors || [...COLORS];
+    actors = meta.actors || {};
+    nodeIdCounter = meta.nodeIdCounter || 1;
+    selectedColor = meta.selectedColor || COLORS[0];
+    colors = meta.colors || [...COLORS];
 
-    // Nome do processo
-    document.getElementById("process-name").value = flowData.processName || flowData.name || "";
-
-    // Atualizar UI (sidebar + cabeçalho)
+    // Atualizar campos de UI
+    document.getElementById("process-name").value = processName;
     updateActorSelect();
     updateActorsList();
     updateProcessInfo();
@@ -2662,7 +2664,7 @@ async function loadFlowById(flowId) {
     if (flowData.drawflow) editor.import(flowData.drawflow);
 
     // Restaurar labels de conexão
-    if (flowData.connectionLabels && flowData.connectionLabels.length > 0) {
+    if (meta.connectionLabels && Object.keys(meta.connectionLabels).length > 0) {
       setTimeout(() => {
         let labelContainer = document.querySelector(".connection-label-container");
         if (!labelContainer) {
@@ -2671,7 +2673,7 @@ async function loadFlowById(flowId) {
           document.getElementById("drawflow").appendChild(labelContainer);
         }
 
-        flowData.connectionLabels.forEach(([connectionKey, labelData]) => {
+        Object.entries(meta.connectionLabels).forEach(([connectionKey, labelData]) => {
           const [sourceId, targetId] = connectionKey.split("-");
           if (labelData && labelData.textContent) {
             createConnectionLabel(sourceId, targetId, labelData.textContent, labelContainer);
@@ -2681,19 +2683,19 @@ async function loadFlowById(flowId) {
     }
 
     // Restaurar descrições de tarefas
-    if (flowData.taskDescriptions && flowData.taskDescriptions.length > 0) {
-      flowData.taskDescriptions.forEach(([nodeId, description]) => {
+    if (meta.taskDescriptions && Object.keys(meta.taskDescriptions).length > 0) {
+      Object.entries(meta.taskDescriptions).forEach(([nodeId, description]) => {
         taskDescriptions.set(parseInt(nodeId), description);
       });
 
       setTimeout(() => {
-        flowData.taskDescriptions.forEach(([nodeId]) => {
+        Object.keys(meta.taskDescriptions).forEach((nodeId) => {
           updateDescriptionButton(parseInt(nodeId));
         });
       }, 300);
     }
 
-    showToast(`Fluxo "${flowData.name}" carregado com sucesso!`, "success");
+    showToast(`Fluxo "${processName}" carregado com sucesso!`, "success");
 
   } catch (error) {
     console.error("Erro ao carregar fluxo do Firestore:", error);
