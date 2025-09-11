@@ -2248,7 +2248,7 @@ async function exportDocumentationPDF() {
 }
 
 async function exportDocumentationWord() {
-    showLoading('Exportando Documentação Word...', 'Coletando informações do processo...');
+    showLoading('Exportando Documentação Word...', 'Gerando arquivo editável...');
 
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
@@ -2260,16 +2260,22 @@ async function exportDocumentationWord() {
             return;
         }
 
-        // Cabeçalho
         const responsaveis = Object.keys(actors).join(', ') || 'Não especificados';
         const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
 
-        let documentContent = `PROCESSO: ${processName}\n\n`;
-        documentContent += `Responsáveis: ${responsaveis}\n`;
-        documentContent += `Data de criação: ${formattedDate}\n\n`;
-        documentContent += `ATIVIDADES\n-----------\n\n`;
+        // Criar documento em HTML com estilo simples
+        let htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+              xmlns:w='urn:schemas-microsoft-com:office:word' 
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset="utf-8"><title>${processName}</title></head>
+        <body>
+            <h1 style="font-family: Arial;">${processName}</h1>
+            <p><strong>Responsáveis:</strong> ${responsaveis}</p>
+            <p><strong>Data de criação:</strong> ${formattedDate}</p>
+            <h2>Atividades</h2>
+        `;
 
-        // Listar tarefas
         let taskNumber = 1;
         for (const task of tasks) {
             let taskTitle = '';
@@ -2282,22 +2288,21 @@ async function exportDocumentationWord() {
                 }
             }
 
-            documentContent += `${taskTitle}\n`;
-            documentContent += `Responsável: ${task.actor}\n`;
-            documentContent += `Descrição: ${task.description}\n\n`;
-
+            htmlContent += `
+            <p><b>${taskTitle}</b><br>
+            Responsável: ${task.actor}<br>
+            Descrição: ${task.description || 'Não fornecida'}</p>
+            `;
             taskNumber++;
         }
 
-        // Criar um arquivo Word simples via RTF
-        const rtfContent = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Arial;}}
-\\f0\\fs24 ${documentContent.replace(/\n/g, '\\par ')}
-}`;
+        htmlContent += `</body></html>`;
 
-        const blob = new Blob([rtfContent], { type: "application/msword" });
+        // Criar blob como Word
+        const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword;charset=utf-8' });
         const url = URL.createObjectURL(blob);
 
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = `Documentação - ${processName.replace(/[^a-z0-9]/gi, ' ').trim()} (${formattedDate}).doc`;
         document.body.appendChild(link);
