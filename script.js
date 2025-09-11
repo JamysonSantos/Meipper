@@ -2248,7 +2248,7 @@ async function exportDocumentationPDF() {
 }
 
 async function exportDocumentationWord() {
-    showLoading('Exportando Documentação Word...', 'Gerando arquivo editável...');
+    showLoading('Exportando Documentação Word...', 'Coletando informações do processo...');
 
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
@@ -2263,36 +2263,49 @@ async function exportDocumentationWord() {
         const responsaveis = Object.keys(actors).join(', ') || 'Não especificados';
         const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
 
-        // Criar documento em HTML com estilo simples
+        // Cabeçalho em HTML estruturado
         let htmlContent = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-              xmlns:w='urn:schemas-microsoft-com:office:word' 
+        <html xmlns:o='urn:schemas-microsoft-com:office:office'
+              xmlns:w='urn:schemas-microsoft-com:office:word'
               xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset="utf-8"><title>${processName}</title></head>
-        <body>
-            <h1 style="font-family: Arial;">${processName}</h1>
-            <p><strong>Responsáveis:</strong> ${responsaveis}</p>
-            <p><strong>Data de criação:</strong> ${formattedDate}</p>
-            <h2>Atividades</h2>
+        <body style="font-family: Arial; line-height: 1.5;">
+
+            <h1 style="font-size:22pt;">${processName}</h1>
+            <p><b>Responsáveis:</b> ${responsaveis}</p>
+            <p><b>Data de criação:</b> ${formattedDate}</p>
+
+            <h2 style="font-size:16pt; margin-top:20px;">Atividades</h2>
         `;
 
+        // Listar tarefas
         let taskNumber = 1;
         for (const task of tasks) {
-            let taskTitle = '';
             if (task.type === 'gateway') {
-                taskTitle = `${taskNumber}. DECISÃO: ${task.name}`;
-            } else {
-                taskTitle = `${taskNumber}. ${task.name}`;
-                if (task.pathName) {
-                    taskTitle += ` (${task.pathName})`;
-                }
+                // Somente o título da decisão
+                htmlContent += `<p><b>DECISÃO: ${task.name}</b></p>`;
+                continue; // não incrementa numeração
             }
 
-            htmlContent += `
-            <p><b>${taskTitle}</b><br>
-            Responsável: ${task.actor}<br>
-            Descrição: ${task.description || 'Não fornecida'}</p>
-            `;
+            // Montar título numerado
+            let taskTitle = `${taskNumber}. `;
+            if (task.pathName) {
+                taskTitle += `(${task.pathName.toUpperCase()}) ${task.name}`;
+            } else {
+                taskTitle += task.name;
+            }
+
+            // Nome da tarefa
+            htmlContent += `<p><b>${taskTitle}</b></p>`;
+            // Responsável
+            htmlContent += `<p style="margin-left:20px;">Responsável: ${task.actor || 'Não definido'}</p>`;
+
+            // Descrição, só se existir
+            if (task.description && task.description.trim() !== '' && task.description.trim() !== 'Descrição não fornecida') {
+                htmlContent += `<p style="margin-left:20px;"><i>Descrição:</i><br>${task.description}</p>`;
+            }
+
+            htmlContent += `<br>`;
             taskNumber++;
         }
 
@@ -2302,7 +2315,7 @@ async function exportDocumentationWord() {
         const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword;charset=utf-8' });
         const url = URL.createObjectURL(blob);
 
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = `Documentação - ${processName.replace(/[^a-z0-9]/gi, ' ').trim()} (${formattedDate}).doc`;
         document.body.appendChild(link);
