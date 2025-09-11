@@ -1725,8 +1725,8 @@ async function exportToPNG() {
         header.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
                 <div style="flex: 1;">
-                    <h2 style="font-size: 20px; margin: 0 0 10px 0;">${processName}</h2>
-                    <div style="font-size: 14px;">
+                    <h2 style="font-size: 26px; margin: 0 0 10px 0;">${processName}</h2>
+                    <div style="font-size: 16px;">
                         <strong>Responsáveis:</strong>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                             ${actorsList.map(actor => `
@@ -1984,8 +1984,8 @@ async function exportToPDF() {
         header.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
                 <div style="flex: 1;">
-                    <h2 style="font-size: 20px; margin: 0 0 10px 0;">${processName}</h2>
-                    <div style="font-size: 14px;">
+                    <h2 style="font-size: 26px; margin: 0 0 10px 0;">${processName}</h2>
+                    <div style="font-size: 16px;">
                         <strong>Responsáveis:</strong>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                             ${actorsList.map(actor => `
@@ -2249,38 +2249,28 @@ async function exportDocumentationPDF() {
 
 async function exportDocumentationWord() {
     showLoading('Exportando Documentação Word...', 'Coletando informações do processo...');
-    
+
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
         const tasks = collectAllTasks();
         const today = new Date();
-        
+
         if (tasks.length === 0) {
             showToast('Não há tarefas para exportar. Crie algumas tarefas no fluxo primeiro.', "warning");
             return;
         }
-        
-        // Preparar texto para Word
-        let documentContent = '';
-        
+
         // Cabeçalho
-        documentContent += `${processName}\n`;
-        documentContent += `${'='.repeat(processName.length)}\n\n`;
-        
-        // Informações do processo
         const responsaveis = Object.keys(actors).join(', ') || 'Não especificados';
         const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
-        
+
+        let documentContent = `PROCESSO: ${processName}\n\n`;
         documentContent += `Responsáveis: ${responsaveis}\n`;
         documentContent += `Data de criação: ${formattedDate}\n\n`;
-        
-        // Seção de atividades
-        documentContent += `Atividades\n`;
-        documentContent += `----------\n\n`;
-        
+        documentContent += `ATIVIDADES\n-----------\n\n`;
+
         // Listar tarefas
         let taskNumber = 1;
-        
         for (const task of tasks) {
             let taskTitle = '';
             if (task.type === 'gateway') {
@@ -2291,35 +2281,33 @@ async function exportDocumentationWord() {
                     taskTitle += ` (${task.pathName})`;
                 }
             }
-            
+
             documentContent += `${taskTitle}\n`;
             documentContent += `Responsável: ${task.actor}\n`;
             documentContent += `Descrição: ${task.description}\n\n`;
-            
+
             taskNumber++;
         }
-        
-        // Criar arquivo Word usando uma abordagem simples
-        // Como o docx.js é complexo, vamos criar um arquivo RTF que pode ser aberto pelo Word
-        const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}
-\\f0\\fs24 ${documentContent.replace(/\n/g, '\\par ')}}`;
-        
-        // Alternativamente, criar um arquivo .txt que pode ser importado
-        const blob = new Blob([documentContent], { type: 'text/plain;charset=utf-8' });
+
+        // Criar um arquivo Word simples via RTF
+        const rtfContent = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Arial;}}
+\\f0\\fs24 ${documentContent.replace(/\n/g, '\\par ')}
+}`;
+
+        const blob = new Blob([rtfContent], { type: "application/msword" });
         const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
+
+        const link = document.createElement("a");
         link.href = url;
-        link.download = `Documentação - ${processName.replace(/[^a-z0-9]/gi, ' ').trim()} (${formattedDate}).txt`;
+        link.download = `Documentação - ${processName.replace(/[^a-z0-9]/gi, ' ').trim()} (${formattedDate}).doc`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         URL.revokeObjectURL(url);
-        
-        // Mostrar instruções ao usuário
-        showToast('Arquivo de documentação exportado com sucesso!\n\nO arquivo foi salvo como .txt para compatibilidade máxima.\nVocê pode abrir este arquivo no Microsoft Word e salvá-lo como .docx se necessário.', "success");
-        
+
+        showToast('Arquivo Word exportado com sucesso!', "success");
+
     } catch (error) {
         console.error('Erro ao exportar documentação Word:', error);
         showToast('Erro ao exportar documentação: ' + error.message);
