@@ -1625,10 +1625,10 @@ function loadFlowFromList(flowName) {
         // Nome do processo
         document.getElementById('process-name').value = flowData.processName || '';
         
-        // Atualizar lista de responsáveis no sidebar e cabeçalho
-        updateActorSelect();
-        updateActorsList();
-        updateProcessInfo();  // <- já atualiza acima do sidebar com nome e responsáveis
+        // Atualizar cabeçalho e lista lateral
+        updateActorsList();   // Atualiza lista acima do sidebar
+        updateProcessInfo();  // Atualiza cabeçalho
+        updateActorSelect();  // <- Força a atualização do select no sidebar
         renderColorPicker();
         
         if (flowData.drawflow) editor.import(flowData.drawflow);
@@ -1668,7 +1668,6 @@ function loadFlowFromList(flowName) {
         showToast(`Fluxo "${flowName}" carregado com sucesso!`, "success");
     }
 }
-
 
 // ======================
 // FUNÇÕES DE EXPORTAÇÃO VISUAL
