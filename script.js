@@ -2248,7 +2248,7 @@ async function exportDocumentationPDF() {
 }
 
 async function exportDocumentationWord() {
-    showLoading('Exportando Documentação Word...', 'Coletando informações do processo...');
+    showLoading('Exportando Documentação Word...', 'Gerando arquivo em A4...');
 
     try {
         const processName = document.getElementById('process-name').value.trim() || 'Processo sem nome';
@@ -2263,31 +2263,39 @@ async function exportDocumentationWord() {
         const responsaveis = Object.keys(actors).join(', ') || 'Não especificados';
         const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
 
-        // Cabeçalho em HTML estruturado
+        // HTML com definição de página A4
         let htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office'
               xmlns:w='urn:schemas-microsoft-com:office:word'
               xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset="utf-8"><title>${processName}</title></head>
-        <body style="font-family: Arial; line-height: 1.5;">
+        <head>
+            <meta charset="utf-8">
+            <title>${processName}</title>
+            <style>
+              @page { size: A4; margin: 2cm; }
+              body { font-family: Arial, sans-serif; line-height: 1.5; font-size: 12pt; }
+              h1 { font-size: 20pt; margin-bottom: 10px; }
+              h2 { font-size: 16pt; margin-top: 20px; }
+              p  { margin: 0 0 10px 0; }
+            </style>
+        </head>
+        <body>
 
-            <h1 style="font-size:22pt;">${processName}</h1>
+            <h1>${processName}</h1>
             <p><b>Responsáveis:</b> ${responsaveis}</p>
             <p><b>Data de criação:</b> ${formattedDate}</p>
 
-            <h2 style="font-size:16pt; margin-top:20px;">Atividades</h2>
+            <h2>Atividades</h2>
         `;
 
         // Listar tarefas
         let taskNumber = 1;
         for (const task of tasks) {
             if (task.type === 'gateway') {
-                // Somente o título da decisão
                 htmlContent += `<p><b>DECISÃO: ${task.name}</b></p>`;
-                continue; // não incrementa numeração
+                continue;
             }
 
-            // Montar título numerado
             let taskTitle = `${taskNumber}. `;
             if (task.pathName) {
                 taskTitle += `(${task.pathName.toUpperCase()}) ${task.name}`;
@@ -2295,12 +2303,9 @@ async function exportDocumentationWord() {
                 taskTitle += task.name;
             }
 
-            // Nome da tarefa
             htmlContent += `<p><b>${taskTitle}</b></p>`;
-            // Responsável
             htmlContent += `<p style="margin-left:20px;">Responsável: ${task.actor || 'Não definido'}</p>`;
 
-            // Descrição, só se existir
             if (task.description && task.description.trim() !== '' && task.description.trim() !== 'Descrição não fornecida') {
                 htmlContent += `<p style="margin-left:20px;"><i>Descrição:</i><br>${task.description}</p>`;
             }
@@ -2311,7 +2316,6 @@ async function exportDocumentationWord() {
 
         htmlContent += `</body></html>`;
 
-        // Criar blob como Word
         const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword;charset=utf-8' });
         const url = URL.createObjectURL(blob);
 
@@ -2324,7 +2328,7 @@ async function exportDocumentationWord() {
 
         URL.revokeObjectURL(url);
 
-        showToast('Arquivo Word exportado com sucesso!', "success");
+        showToast('Arquivo Word exportado em formato A4!', "success");
 
     } catch (error) {
         console.error('Erro ao exportar documentação Word:', error);
