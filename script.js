@@ -2527,44 +2527,43 @@ function sanitizeFlowNameForDocId(name) {
 }
 
 // Salvar fluxo no Firestore
-async function saveFlowToFirestore(flowName) {
+async function saveFlowToFirestore(processName) {
   try {
-    const uid = window.firebaseAuth?.currentUser?.uid;
-    if (!uid) {
+    const user = window.firebaseAuth?.currentUser;
+    if (!user) {
       showToast("Você precisa estar logado para salvar fluxos.", "warning");
       return;
     }
 
-    const flowRef = window.doc(window.firebaseDB, "usuarios", uid, "flows", flowName);
+    const cleanedName = sanitizeFlowNameForDocId(
+      processName || document.getElementById('process-name')?.value
+    );
+    const docRef = window.doc(window.firebaseDB, "usuarios", user.uid, "flows", cleanedName);
 
-    // Pegar dados atuais do fluxo
-    const flowData = editor.export();
+    const existing = await window.getDoc(docRef);
 
-    // Salvar também metadados importantes
-    const processName = document.getElementById("process-name").value.trim();
-    const actorsData = actors || {};
-    const taskDesc = Array.from(taskDescriptions.entries());
-    const connLabels = Array.from(connectionLabels.entries());
+    const flowPayload = {
+      drawflow: editor.export(),
+      metadata: {
+        processName: cleanedName,
+        actors: { ...actors },
+        selectedColor,
+        colors: [...colors],
+        nodeIdCounter,
+        taskDescriptions: Object.fromEntries(taskDescriptions || []), // ✅ vira objeto
+        connectionLabels: Object.fromEntries(connectionLabels || []), // ✅ vira objeto
+        updatedAt: window.serverTimestamp(),
+        ...(existing.exists() ? {} : { createdAt: window.serverTimestamp() })
+      }
+    };
 
-    await window.setDoc(flowRef, {
-      name: flowName,
-      processName: processName,
-      actors: actorsData,
-      colors,
-      selectedColor,
-      nodeIdCounter,
-      drawflow: flowData,
-      taskDescriptions: taskDesc,
-      connectionLabels: connLabels,
-      updatedAt: window.serverTimestamp(),
-      createdAt: window.serverTimestamp()
-    }, { merge: true });
+    // substitui o documento inteiro (garante consistência)
+    await window.setDoc(docRef, flowPayload, { merge: false });
 
-    showToast(`Fluxo "${flowName}" salvo com sucesso!`, "success");
-
+    showToast(`Fluxo "${cleanedName}" salvo com sucesso!`, "success");
   } catch (error) {
     console.error("Erro ao salvar fluxo:", error);
-    showToast("Erro ao salvar fluxo: " + error.message, "error");
+    showToast("Erro ao salvar fluxo. Veja o console para mais detalhes.", "error");
   }
 }
 
