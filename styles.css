@@ -1180,7 +1180,7 @@ body {
 
 .task-content {
     padding: 6px 12px;
-    min-width: 120px;
+    min-width: 160px;
     max-width: 280px;
     word-wrap: break-word;
     white-space: normal;
@@ -1554,7 +1554,7 @@ body {
 .drawflow .drawflow-node.task .input {
     width: 7px !important;
     height: 7px !important;
-    left: -6px !important;
+    left: -16px !important;
     top: 50% !important;
     transform: translateY(-95%) !important;
     background: #afb3b9 !important;
@@ -1564,7 +1564,7 @@ body {
 .drawflow .drawflow-node.task .output {
     width: 7px !important;
     height: 7px !important;
-    right: -83px !important;
+    right: -93px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     background: #afb3b9 !important;
