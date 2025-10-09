@@ -2156,3 +2156,89 @@ body {
 .toast.warning {
   background: #f39c12;
 }
+
+/* ===== Phase marker styles ===== */
+.phase-marker-node {
+  position: relative;
+  width: 40px;                /* caixa do nó (apenas de apoio) */
+  height: 260px;              /* altura da linha */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  cursor: move;               /* indica que pode arrastar */
+  pointer-events: auto;       /* importante: permitir seleção/drag */
+  user-select: none;
+}
+
+.phase-marker-line {
+  width: 2px;
+  height: 100%;
+  background-color: #1f2937;  /* vermelho parecido com Tailwind (rose-600) */
+  border-radius: 1px;
+}
+
+.phase-marker-label {
+  position: absolute;
+  left: -12px;                /* desloca o texto para a esquerda da linha */
+  top: 8px;                   /* alinhado próximo ao topo da linha; ajuste se quiser */
+  transform: translateX(-100%);
+  color: #1f2937;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: auto;       /* permitir selecionar texto / menu contextual */
+}
+
+/* ===== Popup específico para Phase (não interfere em outros popups) ===== */
+#phase-popup.popup-overlay {
+  display: none;              /* controlado via JS */
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 12000;
+  align-items: center;
+  justify-content: center;
+}
+
+#phase-popup .popup-content {
+  width: 440px;
+  max-width: calc(100% - 32px);
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+}
+
+#phase-popup .popup-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 8px;
+}
+
+#phase-popup .popup-header h3 {
+  margin:0;
+  font-size:16px;
+}
+
+#phase-popup .popup-body {
+  margin-top:10px;
+}
+
+#phase-popup .popup-input {
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #e6e6e6;
+  font-size:14px;
+  box-sizing:border-box;
+}
+
+#phase-popup .popup-footer {
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:12px;
+}
+
