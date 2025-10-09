@@ -230,7 +230,53 @@ function setupButtonListeners() {
     document.querySelector('[data-action="add-gateway-path"]').addEventListener('click', addGatewayPath);
     document.querySelector('[data-action="finalize-gateway"]').addEventListener('click', finalizeGateway);
     document.querySelector('[data-action="cancel-gateway"]').addEventListener('click', cancelGateway);
-    
+
+    // Botão de Marco/Fases
+    const addPhaseButton = document.querySelector('[data-action="add-phase"]');
+if (addPhaseButton) {
+  addPhaseButton.addEventListener("click", () => {
+    const popup = document.getElementById("phase-popup");
+    if (popup) popup.style.display = "flex";
+  });
+}
+
+// === Botões do popup de Marco/Fase ===
+const confirmPhaseBtn = document.getElementById("confirm-phase");
+const cancelPhaseBtn = document.getElementById("cancel-phase");
+const closePhasePopup = document.getElementById("close-phase-popup");
+
+if (confirmPhaseBtn) {
+  confirmPhaseBtn.addEventListener("click", () => {
+    const input = document.getElementById("phase-name-input");
+    const name = input ? input.value.trim() : "";
+    if (!name) {
+      if (typeof showToast === "function") showToast("Digite um nome para o Marco/Fase!", "warning");
+      return;
+    }
+
+    // Cria o marcador no Drawflow
+    addPhaseNode(name);
+
+    // Fecha popup e limpa campo
+    document.getElementById("phase-popup").style.display = "none";
+    input.value = "";
+
+    if (typeof showToast === "function") showToast(`Marco/Fase "${name}" adicionado com sucesso!`, "success");
+  });
+}
+
+if (cancelPhaseBtn) {
+  cancelPhaseBtn.addEventListener("click", () => {
+    document.getElementById("phase-popup").style.display = "none";
+  });
+}
+
+if (closePhasePopup) {
+  closePhasePopup.addEventListener("click", () => {
+    document.getElementById("phase-popup").style.display = "none";
+  });
+}
+
     // Botões de ação principais
     document.querySelector('[data-action="clear-all"]').addEventListener('click', clearAll);
     document.querySelector('[data-action="save-flow"]').addEventListener('click', async () => {
@@ -846,6 +892,58 @@ function createGatewayNode(question) {
     }
     
     return nodeId;
+}
+
+function addPhaseNode(phaseName) {
+  if (!phaseName || !editor) return;
+
+  // Obtém posição de referência (do último elemento ou selecionado)
+  const { x, y } = getNextPosition();
+
+  // Altura da linha e ajustes finos de posição
+  const lineHeight = 280;
+  const offsetX = -70; // distância curta após o elemento anterior
+  const pos_x = x + offsetX;
+  const pos_y = y - (lineHeight / 2); // centraliza a linha verticalmente com o elemento anterior
+
+  const data = { name: phaseName };
+  const html = `
+    <div class="phase-marker-node">
+      <div class="phase-marker-label">${phaseName}</div>
+      <div class="phase-marker-line" style="height:${lineHeight}px;"></div>
+    </div>
+  `;
+
+  // Adiciona o nó no Drawflow
+  editor.addNode('phase', 0, 0, pos_x, pos_y, 'phase', data, html);
+
+  if (typeof saveState === "function") saveState();
+  if (typeof showToast === "function") showToast(`Marco/Fase "${phaseName}" adicionado`, "success");
+}
+
+function getNextPosition() {
+    const nodes = editor.getNodesFromName('task').concat(
+        editor.getNodesFromName('start'),
+        editor.getNodesFromName('end'),
+        editor.getNodesFromName('gateway')
+    );
+    
+    if (nodes.length === 0) return { x: 100, y: 200 };
+    
+    if (selectedNodeId) {
+        const selectedNode = editor.getNodeFromId(selectedNodeId);
+        if (selectedNode) return { x: selectedNode.pos_x + 200, y: selectedNode.pos_y };
+    }
+    
+    let maxX = 0, maxY = 200;
+    nodes.forEach(node => {
+        if (node.pos_x > maxX) {
+            maxX = node.pos_x;
+            maxY = node.pos_y;
+        }
+    });
+    
+    return { x: maxX + 350, y: maxY };
 }
 
 function getNextPosition() {
