@@ -902,7 +902,7 @@ function addPhaseNode(phaseName) {
 
   // Altura da linha e ajustes finos de posição
   const lineHeight = 280;
-  const offsetX = -60; // distância curta após o elemento anterior
+  const offsetX = -55; // distância curta após o elemento anterior
   const pos_x = x + offsetX;
   const pos_y = y - (lineHeight / 2); // centraliza a linha verticalmente com o elemento anterior
 
