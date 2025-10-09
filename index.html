@@ -314,41 +314,58 @@
                 </div>
 
                 <!-- Task Management -->
-                <div class="form-group">
-                    <label>Gerenciar Tarefas:</label>
-                    
-                    <button class="modern-btn success large" data-action="add-start-task">
-                        <span class="btn-icon">▶</span>
-                        <span class="btn-text">Iniciar Fluxo</span>
-                    </button>
+<div class="form-group">
+    <label>Gerenciar Tarefas:</label>
+    
+    <button class="modern-btn success large" data-action="add-start-task">
+        <span class="btn-icon">▶</span>
+        <span class="btn-text">Iniciar Processo</span>
+    </button>
 
-                    <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
-                    
-                    <!-- Task Description Field -->
-                    <label for="task-description-input">Descrição da Tarefa (opcional):</label>
-                    <textarea id="task-description-input" placeholder="Descreva como executar esta tarefa..." style="min-height: 100px;"></textarea>
+    <textarea id="task-input" placeholder="Digite a tarefa..."></textarea>
+    
+    <!-- Task Description Field -->
+    <label for="task-description-input">Descrição da Tarefa (opcional):</label>
+    <textarea id="task-description-input" placeholder="Descreva como executar esta tarefa..." style="min-height: 100px;"></textarea>
 
-                    <!-- Actor Selection Field (MOVED TO HERE) -->
-                    <label for="actor-select">Selecionar Responsável:</label>
-                    <select id="actor-select">
-                        <option value="">Selecione...</option>
-                    </select>
+    <button class="modern-btn primary" data-action="add-task">
+        <span class="btn-icon">➕</span>
+        <span class="btn-text">Adicionar Tarefa</span>
+    </button>
 
-                    <button class="modern-btn primary" data-action="add-task">
-                        <span class="btn-icon">➕</span>
-                        <span class="btn-text">Adicionar Tarefa</span>
-                    </button>
+    <button class="modern-btn purple" data-action="start-gateway">
+        <span class="btn-icon">◆</span>
+        <span class="btn-text">Inserir caminhos para tarefa</span>
+    </button>
 
-                    <button class="modern-btn purple" data-action="start-gateway">
-                        <span class="btn-icon">◆</span>
-                        <span class="btn-text">Inserir caminhos para tarefa</span>
-                    </button>
+    <button class="modern-btn warning" data-action="add-phase">
+        <span class="btn-icon">⬛</span>
+        <span class="btn-text">Adicionar Marco/Fase</span>
+    </button>
 
-                    <button class="modern-btn danger" data-action="add-end-task">
-                        <span class="btn-icon">⏹</span>
-                        <span class="btn-text">Finalizar Fluxo</span>
-                    </button>
-                </div>
+    <button class="modern-btn danger" data-action="add-end-task">
+        <span class="btn-icon">⏹</span>
+        <span class="btn-text">Finalizar Processo</span>
+    </button>
+</div>
+
+<!-- Popup: Adicionar Marco/Fase -->
+<div id="phase-popup" class="popup-overlay" style="display: none;">
+    <div class="popup-content small">
+        <div class="popup-header">
+            <h3>Adicionar Marco / Fase</h3>
+            <button class="popup-close" id="close-phase-popup">×</button>
+        </div>
+        <div class="popup-body">
+            <label for="phase-name-input">Nome da Fase:</label>
+            <input type="text" id="phase-name-input" placeholder="Ex: Planejamento, Execução, Revisão..." class="popup-input">
+        </div>
+        <div class="popup-footer">
+            <button class="modern-btn secondary" id="cancel-phase">Cancelar</button>
+            <button class="modern-btn primary" id="confirm-phase">Adicionar</button>
+        </div>
+    </div>
+</div>
 
                 <!-- Gateway Panel -->
                 <div id="gateway-panel" class="gateway-panel" style="display: none;">
