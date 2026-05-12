@@ -2936,6 +2936,12 @@ tutorialSteps = [
         position: "top"
     },
     {
+        title: "Criar Marcos/Fases",
+        description: "Preencha aqui para indicar marcos e fases de um processo",
+        element: "[data-action='add-phase']",
+        position: "top"
+    },
+    {
         title: "Finalizar Processo",
         description: "Todo fluxo precisa de um ponto final. Adicione aqui para completar seu processo.",
         element: "[data-action='add-end-task']",
