@@ -1,7 +1,7 @@
-# Mapflue
+# Meipper
 
 ## 🚀 Visão Geral
-Mapflue é uma ferramenta web inovadora que transforma texto em fluxogramas de processos automaticamente. Com foco em agilidade e usabilidade, Mapflue simplifica o mapeamento de processos para profissionais e empresas, eliminando a complexidade de desenhar fluxogramas manualmente.
+Meipper é uma ferramenta web inovadora que transforma texto em fluxogramas de processos automaticamente. Com foco em agilidade e usabilidade, Meipper simplifica o mapeamento de processos para profissionais e empresas, eliminando a complexidade de desenhar fluxogramas manualmente.
 
 ---
 
@@ -11,7 +11,7 @@ O mapeamento e desenho de fluxogramas de processos são tarefas trabalhosas e de
 ---
 
 ## 💡 Proposta de Valor
-Mapflue permite que o usuário digite o fluxo do processo em formato simples de texto e veja o fluxograma correspondente gerado automaticamente em tempo real. Essa abordagem reduz o tempo gasto, facilita a colaboração e torna o mapeamento acessível para qualquer pessoa.
+Meipper permite que o usuário digite o fluxo do processo em formato simples de texto e veja o fluxograma correspondente gerado automaticamente em tempo real. Essa abordagem reduz o tempo gasto, facilita a colaboração e torna o mapeamento acessível para qualquer pessoa.
 
 ---
 
@@ -23,7 +23,7 @@ Mapflue permite que o usuário digite o fluxo do processo em formato simples de 
 ---
 
 ## ⚙️ Como Usar
-1. Acesse a aplicação no [Mapflue](https://mapflue.netlify.app/)  
+1. Acesse a aplicação no [Meipper](https://Meipper.netlify.app/)  
 2. No campo de texto, digite as etapas do processo seguindo a estrutura:
 
 3. O fluxograma será gerado automaticamente na área de visualização ao lado  
@@ -43,7 +43,7 @@ Mapflue permite que o usuário digite o fluxo do processo em formato simples de 
 
 ## 🤝 Contribuições
 Contribuições são bem-vindas! Abra uma issue ou envie um pull request para o repositório:  
-[https://github.com/JamysonSantos/Mapflue](https://github.com/JamysonSantos/Mapflue)
+[https://github.com/JamysonSantos/Meipper](https://github.com/JamysonSantos/Meipper)
 
 ---
 
@@ -54,5 +54,5 @@ LinkedIn: https://www.linkedin.com/in/jamysonsantos/
 
 ---
 
-> Mapflue — Do texto ao processo em segundos.
+> Meipper — Do texto ao processo em segundos.
 
